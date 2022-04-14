@@ -5,40 +5,37 @@ import os
 
 
 class WaitForRFID(object):
-    main_path_pre = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
-    rfid_in = "RFID-IN.png"
-    rfid_out = "RFID-OUT.png"
-    rfid_scanned = "0"
+    MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
+    RFID_IN = "RFID-IN.png"
+    RFID_OUT = "RFID-OUT.png"
+    WINDOW_WIDTH = 1280
+    WINDOW_HEIGHT = 720
+    CONFIRM_BUTTON_DONE_TEXT = "Fertig"
+    CONFIRM_BUTTON_RESTART_TEXT = "Neustart"
+    CONFIRM_BUTTON_ABORT_TEXT = "Ausschuss"
+    PICTURE_TYPE = ".png"
 
+    rfid_scanned = "0"
     article_id = 0
     station = 0
     operation = 0
-    variant = 0
     main_path = "0"
-
-    window_width = 1280
-    window_height = 720
-    confirm_button1_text = "Fertig"
-    confirm_button2_text = "Neustart"
-    confirm_button3_text = "Ausschuss"
     progression_counter = 0
-    picture_type = ".png"
+
 
     def workflow_start(self, argument):
         article_id = argument
         self.station = article_id[0:2]
         self.operation = article_id[2:5]
-        self.variant = article_id[5:7]
-        self.main_path = self.main_path_pre + self.station + "/" + self.operation + "/"
+        self.main_path = self.MAIN_PATH_PRE + self.station + "/" + self.operation + "/"
         print(article_id)
         print(self.station)
         print(self.operation)
-        print(self.variant)
         print(self.main_path)
         self.second_window()
 
-    def __init__(self, rfid_init):
-        self.rfid_scanned = rfid_init
+    def __init__(self, RFID_INit):
+        self.rfid_scanned = RFID_INit
         self.main()
 
     def workflow_picture_resize(self, workflow_pictures):
@@ -75,12 +72,15 @@ class WaitForRFID(object):
             self.picture_count = len(file_names)
 
     def picture_progressor(self):
-        if self.progression_counter != self.picture_count:
-            self.progression_counter += 1
-            return str(self.progression_counter) + self.picture_type
-        elif self.progression_counter == self.picture_count:
-            print("Das war das letzte Bild")
-            return str(self.progression_counter) + self.picture_type
+        try:
+            if self.progression_counter != self.picture_count:
+                self.progression_counter += 1
+                return str(self.progression_counter) + self.PICTURE_TYPE
+            elif self.progression_counter == self.picture_count:
+                print("Das war das letzte Bild")
+                return str(self.progression_counter) + self.PICTURE_TYPE
+        except FileNotFoundError:
+            print("Datei nicht gefunden, bitte überprüfen ob Pfad angelegt ist.")
 
     def workflow_completed(self, root2):
         if self.progression_counter == self.picture_count:
@@ -110,12 +110,10 @@ class WaitForRFID(object):
         root2 = tk.Toplevel()
 
         # window size
-        canvas = tk.Canvas(root2, width=self.window_width, height=self.window_height)
+        canvas = tk.Canvas(root2, width=self.WINDOW_WIDTH, height=self.WINDOW_HEIGHT)
 
         # window grid
         canvas.grid(columnspan=3, rowspan=3)
-        canvas.configure(background="black")
-        canvas.grid_forget()
 
         # image definition as a image
         workflow_picture = Image.open(self.main_path + self.picture_progressor())
@@ -132,12 +130,12 @@ class WaitForRFID(object):
         # label position inside root2 grid
         workflow_picture_label.grid(column=0, row=0, rowspan=3)
 
-        spaceholder_picture_buttons = tk.Label(root2, width=10, height=20, background="black")
+        spaceholder_picture_buttons = tk.Label(root2, width=10, height=20)
         spaceholder_picture_buttons.grid(column=1, row=0)
 
         # button1 definition
         button1_text = tk.StringVar()
-        button1_text.set(self.confirm_button1_text)
+        button1_text.set(self.CONFIRM_BUTTON_DONE_TEXT)
         button1_btn = tk.Button(root2, textvariable=button1_text,
                                 command=lambda: (self.workflow_completed(root2), self.change_picture(root2)),
                                 width=10, height=5, background="green")
@@ -145,7 +143,7 @@ class WaitForRFID(object):
 
         # button2 definition
         button2_text = tk.StringVar()
-        button2_text.set(self.confirm_button2_text)
+        button2_text.set(self.CONFIRM_BUTTON_RESTART_TEXT)
         button2_btn = tk.Button(root2, textvariable=button2_text,
                                 command=lambda: (self.set_progression_counter(0),
                                                  self.change_picture(root2),
@@ -155,7 +153,7 @@ class WaitForRFID(object):
 
         # button3 definition
         button3_text = tk.StringVar()
-        button3_text.set(self.confirm_button3_text)
+        button3_text.set(self.CONFIRM_BUTTON_ABORT_TEXT)
         button3_btn = tk.Button(root2, textvariable=button3_text,
                                 command=lambda: (self.ausschuss_prozess(root2)),
                                 width=10, height=5, background="red")
@@ -164,7 +162,6 @@ class WaitForRFID(object):
         # window size adjustment
         width, height = root2.winfo_screenwidth(), root2.winfo_screenheight()
         root2.geometry("%dx%d+0+0" % (width, height))
-        root2.configure(background="black")
 
         # loop of the window - END!
         root2.mainloop()
@@ -179,7 +176,7 @@ class WaitForRFID(object):
         canvas_root.grid(columnspan=3, rowspan=3)
 
         # image definition as a image
-        workflow_picture_root = Image.open(self.main_path_pre + self.rfid_in)
+        workflow_picture_root = Image.open(self.MAIN_PATH_PRE + self.RFID_IN)
 
         # resizing the picture
         workflow_picture_root = self.workflow_picture_resize(workflow_picture_root)
@@ -206,9 +203,7 @@ class WaitForRFID(object):
         # loop of the window - END!
         root.mainloop()
 
-    # workflowPagesDisplay.Workflow("rfid_in")
 
-
-objectX = "I0100101"
+objectX = "I0"
 objectX = objectX[1:]
 WaitForRFID(objectX)
