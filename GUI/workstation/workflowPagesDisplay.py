@@ -158,6 +158,3 @@ class Workflow(object):
 
         # loop of the window - END!
         root2.mainloop()
-
-
-
