@@ -10,7 +10,7 @@ class WaitForRFID(object):
     and shows related workflow steps.
     """
     # static global variables:
-    MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
+    MAIN_PATH_PRE = "//192.168.137.144/WorkflowInstructions/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
     WINDOW_WIDTH = 1280
