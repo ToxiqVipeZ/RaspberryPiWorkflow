@@ -35,3 +35,10 @@ PW: ----------?!MISSING!?------------- <br>
 IP: 169.254.58.117 <br>
 ID: pi <br>
 PW: raspberry <br>
+
+## pi@fileserver <br>
+IP: 169.254.8.124 <br>
+ID: pi <br>
+PW: raspberry <br>
+Fileserver: OpenMediaVault (OMV) <br>
+  Login: admin & raspberry <br>
