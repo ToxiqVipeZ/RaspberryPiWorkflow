@@ -4,13 +4,13 @@ from PIL import Image, ImageTk
 import os
 
 
-class WaitForRFID(object):
+class WorkstationApp(object):
     """
     This class processes the RFID-Input from the RFID-Reader
     and shows related workflow steps.
     """
     # static global variables:
-    MAIN_PATH_PRE = "//192.168.137.144/WorkflowInstructions/"
+    MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
     WINDOW_WIDTH = 1280
@@ -266,4 +266,4 @@ class WaitForRFID(object):
 # example of calling this class
 objectX = "I01001"
 objectX = objectX[1:]
-WaitForRFID(objectX)
+WorkstationApp(objectX)
