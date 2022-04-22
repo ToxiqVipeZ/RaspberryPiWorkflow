@@ -17,8 +17,8 @@ process_id INTEGER PRIMARY KEY,
 article_id INTEGER NOT NULL,
 station INTEGER,
 last_station INTEGER,
-process_start VARCHAR(255),
-process_time VARCHAR(255)
+process_start TEXT,
+process_time TEXT
 )""")
 
 # drop table:
