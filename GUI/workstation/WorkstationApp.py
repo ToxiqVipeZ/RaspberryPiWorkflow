@@ -25,9 +25,11 @@ class WorkstationApp(object):
     article_id = 0
     station = 0
     operation = 0
+    variant = 0
     main_path = "0"
     progression_counter = 0
     rfid_out_trigger = 0
+    alternative_path = ""
 
     def workflow_start(self, argument):
         """
@@ -37,10 +39,12 @@ class WorkstationApp(object):
         article_id = argument
         self.station = article_id[0:2]
         self.operation = article_id[2:5]
+        self.variant = article_id[5:]
         self.main_path = self.MAIN_PATH_PRE + self.station + "/" + self.operation + "/"
         print(article_id)
         print(self.station)
         print(self.operation)
+        print(self.variant)
         print(self.main_path)
         self.second_window()
 
@@ -94,9 +98,13 @@ class WorkstationApp(object):
         progresses trough the folders and sets the amount of pictures in given folder
         """
         file_names = os.listdir(self.main_path)
+        self.set_picture_count(len(file_names))
         for file_name in file_names:
             print(os.path.abspath(os.path.join(self.main_path, file_name)), sep="\n")
-            self.set_picture_count(len(file_names))
+            if file_name.endswith("_v"):
+                self.picture_count -= 1
+
+
 
     def picture_progressor(self):
         """
@@ -104,9 +112,30 @@ class WorkstationApp(object):
         :return: the next picture in folder
         """
         try:
+            alternative = ""
+
+            file_names = os.listdir(self.main_path)
             if self.progression_counter != self.picture_count:
                 self.progression_counter += 1
-                return str(self.progression_counter) + self.PICTURE_TYPE
+                #alternative = str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
+                #print(self.main_path + str(self.progression_counter))
+                if self.variant != "00":
+                    alternative = str(self.progression_counter) + self.PICTURE_TYPE
+                    alternative = alternative.replace("/", "\\")
+                    print(alternative)
+                    if (alternative not in file_names):
+                        return str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
+                    elif (alternative in file_names):
+                        return str(self.progression_counter) + self.PICTURE_TYPE
+                elif self.variant == "00":
+                    alternative = str(self.progression_counter) + self.PICTURE_TYPE
+                    alternative = alternative.replace("/", "\\")
+                    if (alternative not in file_names):
+                        return str(self.progression_counter) +"_v" + self.PICTURE_TYPE
+                    elif (alternative in file_names):
+                        return str(self.progression_counter) + self.PICTURE_TYPE
+
+
             elif self.progression_counter == self.picture_count:
                 print("Das war das letzte Bild")
                 return str(self.progression_counter) + self.PICTURE_TYPE
@@ -264,6 +293,6 @@ class WorkstationApp(object):
 
 
 # example of calling this class
-objectX = "I01001"
+objectX = "I0100155"
 objectX = objectX[1:]
 WorkstationApp(objectX)

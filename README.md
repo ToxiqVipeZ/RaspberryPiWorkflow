@@ -5,6 +5,10 @@
 IP: 169.254.237.185 <br>
 ID: pi <br>
 PW: raspberry <br>
+
+phpMyAdmin Login: <br>
+ID: phpmyadmin <br>
+PW: 1234 <br>
  <br>
 
 ## pi@pickone <br>
