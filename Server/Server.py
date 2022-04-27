@@ -1,7 +1,7 @@
 import socket
 import threading
 
-from Database import insertRecord
+from Database import stationSwapper
 
 
 HEADER = 64
@@ -44,7 +44,8 @@ def handle_client(conn, addr):
                     print(workflow_procedure)
                     print(station)
 
-                    insertRecord.main(workflow_procedure, station)
+                    next_station = stationSwapper.main(workflow_procedure, station)
+                    conn.send(next_station.encode(FORMAT))
                     receive_rfid = False
 
 

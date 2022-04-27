@@ -34,18 +34,15 @@ def send(msg, *args):
     send_length += b" " * (HEADER - len(send_length))
 
     if msg == SENDING_RFID:
-        print(str(send_length) + "msg1 length")
         client.send(send_length)
-        print(str(message) + "msg1")
         client.send(message)
-        print(str(send_length_args0) + "length")
         client.send(send_length_args0)
-        print(str(args0) + "message")
         client.send(args0)
+        next_station = client.recv(2048).decode(FORMAT)
+        return next_station
     else:
         # sending the message length and the message itself afterwards
         client.send(send_length)
         client.send(message)
 
-send(SENDING_RFID, "0100155")
-send(DISCONNECT_MESSAGE)
+    send(DISCONNECT_MESSAGE)

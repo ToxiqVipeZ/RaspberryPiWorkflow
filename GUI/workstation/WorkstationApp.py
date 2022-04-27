@@ -2,6 +2,7 @@ import _tkinter
 import tkinter as tk
 from PIL import Image, ImageTk
 import os
+from Server import Client
 
 
 class WorkstationApp(object):
@@ -113,7 +114,6 @@ class WorkstationApp(object):
         """
         try:
             alternative = ""
-
             file_names = os.listdir(self.main_path)
             if self.progression_counter != self.picture_count:
                 self.progression_counter += 1
@@ -182,6 +182,10 @@ class WorkstationApp(object):
         :param number: picture number
         """
         self.progression_counter = number
+
+    def rfid_submit(self):
+        new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
+        print(new_rfid)
 
     def second_window(self):
         """
@@ -284,7 +288,7 @@ class WorkstationApp(object):
         buttonTest_text = tk.StringVar()
         buttonTest_text.set("Test")
         buttonTest_btn = tk.Button(root, textvariable=buttonTest_text,
-                                   command=lambda: (self.workflow_start(self.rfid_scanned)),
+                                   command=lambda: (self.rfid_submit(), self.workflow_start(self.rfid_scanned)),
                                    width=10, height=5, background="green")
         buttonTest_btn.grid(column=1, row=0)
 
