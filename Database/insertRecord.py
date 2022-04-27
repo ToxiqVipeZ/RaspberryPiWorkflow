@@ -1,24 +1,26 @@
 import sqlite3
 
-process_id =
-process_step = 1
 
-# connection holds the connection to the database
-connection = sqlite3.connect("productionDatabase.db")
+def main(*args):
+    # connection holds the connection to the database
+    connection = sqlite3.connect("C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
 
-# cursor instance:
-c = connection.cursor()
+    # cursor instance:
+    c = connection.cursor()
 
-if process_step != 0:
+    workflow_procedure_value = args[0]
+    stations_value = args[1]
 
+    print(workflow_procedure_value)
+    print(stations_value)
 
-c.execute("INSERT INTO process_time_table VALUES (NULL, 0, 0, 0, datetime(), time())")
+    c.execute("INSERT INTO workflow_planner_table VALUES (?, ?)", (workflow_procedure_value, stations_value))
 
-# testprint
-print("execute ausgeführt!")
+    # testprint
+    print("execute ausgeführt!")
 
-# committing the created table:
-connection.commit()
+    # committing the created table:
+    connection.commit()
 
-# closing the connection
-connection.close()
+    # closing the connection
+    connection.close()
