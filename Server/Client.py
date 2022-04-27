@@ -6,6 +6,7 @@ FORMAT = "utf-8"
 DISCONNECT_MESSAGE = "DISCONNECT"
 SENDING_RFID = "C-S-RFID"
 RECEIVING_RFID = "S-C-RFID"
+SAVE_TO_DATABASE = "saveData"
 SERVER = "172.29.167.85"
 ADDR = (SERVER, PORT)
 
@@ -21,27 +22,44 @@ def send(msg, *args):
     """
     # formatting the message
     message = msg.encode(FORMAT)
-    print(args)
+
+    # if there are arguments to process
     if len(args) != 0:
+
+        # encode the argument on pos 0
         args0 = args[0].encode(FORMAT)
+
+        # save the length of the argument on pos 0
         args0_length = len(args0)
+
+        # format the length of the argument into a send-able format
         send_length_args0 = str(args0_length).encode(FORMAT)
         send_length_args0 += b" " * (HEADER - len(send_length_args0))
+
     # setting and formatting the message length
     msg_length = len(message)
     send_length = str(msg_length).encode(FORMAT)
+
     # representing the message length in bytes, related to the header-size
     send_length += b" " * (HEADER - len(send_length))
 
+    # if the received message equals SENDING_RFID
     if msg == SENDING_RFID:
+
+        # send the length of the message and the message itself afterwards
         client.send(send_length)
         client.send(message)
+
+        # send the length of the message and the message itself afterwards
         client.send(send_length_args0)
         client.send(args0)
+
+        # returning the next_station back to the application that called this client function
         next_station = client.recv(2048).decode(FORMAT)
         return next_station
+
     else:
-        # sending the message length and the message itself afterwards
+        # sending the message length and the message itself afterwards (for any other messages)
         client.send(send_length)
         client.send(message)
 

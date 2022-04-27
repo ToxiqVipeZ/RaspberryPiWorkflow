@@ -15,9 +15,13 @@ class WorkflowPlannerApp:
         :param text_window: which text window is given
         :param operation: what operation to execute
         """
+        # if the passed operation is called "save"
         if operation == "save":
             text_input = text_window.get("1.0", "end-1c")
+            # the textinput that needs to be saved gets passed to database_save
             self.database_save(root, text_input)
+
+        # if the passed operation is called "delete"
         if operation == "delete":
             text_input = text_window.get()
             if len(text_input) != 3:
@@ -58,15 +62,17 @@ class WorkflowPlannerApp:
         """
         try:
             # connection holds the connection to the database
-            # (path\productionDatabase.db)
+            # (path/productionDatabase.db)
             connection = sqlite3.connect(
                 "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
 
             # cursor instance:
             c = connection.cursor()
 
+            # the format that the input has to be in
             regex = "^[0-9]{3}(;{1}[0-9]{2})+"
 
+            # looking if the given input matches the regex
             if re.search(regex, text_input):
                 workflow_procedure_value = text_input.split(";")
                 workflow_procedure_value = workflow_procedure_value[:1]
@@ -75,12 +81,13 @@ class WorkflowPlannerApp:
                 stations_values = text_input.split(";")
                 stations_values = stations_values[1:]
                 stations_values = ";".join([str(item) for item in stations_values])
-                print(stations_values.endswith(";"))
+
+                # delete the last ";" if there is one given at the end of declaration
                 if stations_values.endswith(";"):
                     stations_values = stations_values[:-1]
 
-                # workflow_procedure_value = procedure number (examples: 001, 002, 003)
-                # stations_value = station number (multiple: [01;02;05, 07;02;01;05,03 ...])
+                # workflow_procedure_value = procedure number (examples: 001 | 002 | 003)
+                # stations_value = station number (examples: [01;02;05] | [07;02;01;05,03] | ...])
                 c.execute("INSERT INTO workflow_planner_table VALUES (?, ?)",
                           (workflow_procedure_value, stations_values))
 
@@ -140,25 +147,25 @@ class WorkflowPlannerApp:
         # loop of the window - START
         root = tk.Tk()
 
+        # saving screen width and height
         width, height = root.winfo_screenwidth(), root.winfo_screenheight()
 
-        # window size
-        # canvas_root = tk.Canvas(root, width=root.winfo_screenwidth(), height=root.winfo_screenheight())
-        # window grid
-        # canvas_root.grid(columnspan=3, rowspan=3)
-
+        # textbox to save a procedure workflow
         text_save_window = tk.Text(root, height=5, width=40)
+        # label above the text_save_window
         text_label = tk.Label(root, text="Form: \"Verfahren;Fertigung;Montage;Versand;...\""
                                          "\n Beispiel: 001;01;02;05;...")
         text_label.config(font=("Arial", 14))
         text_label.pack(pady=(10, 0))
         text_save_window.pack(pady=(0, 10))
 
+        # applying screen width and height to the window size
         root.geometry("%dx%d+0+0" % (width, height))
 
         # button_save definition
         button_save_text = tk.StringVar()
         button_save_text.set("Save")
+        # when the save button is pressed, take_input gets called
         button_save_btn = tk.Button(root, textvariable=button_save_text,
                                     command=lambda: (self.take_input(root, text_save_window, "save")),
                                     width=8, height=1, background="green", font=("Arial", 14))

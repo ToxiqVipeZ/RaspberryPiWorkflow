@@ -8,7 +8,7 @@ def main(*args):
     # cursor instance:
     c = connection.cursor()
 
-    # saving the values that got passed from the server
+    # saving the values received by the client
     workflow_procedure_value = args[0]
     stations_value = args[1]
 
