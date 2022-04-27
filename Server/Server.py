@@ -18,6 +18,12 @@ receive_rfid = False
 
 
 def handle_client(conn, addr):
+    """
+    Executes after a client has connected
+    :param conn: connect & data information
+    :param addr: address information
+    """
+
     print(f"[NEW CONNETION] {addr} connected \n")
     # waiting for client-data, gets executed after a message is received:
     connected = True
@@ -31,34 +37,42 @@ def handle_client(conn, addr):
             # msg receives the message with size (msg_length) and decodes it as (FORMAT)
             msg = conn.recv(msg_length).decode(FORMAT)
 
+            # starting receive_rfid mode
             if msg == RECEIVING_RFID:
                 receive_rfid = True
 
+            # if in receive rfid mode
             if receive_rfid is True:
+
+                # excluding the first message, so that only the arguments in args join into this section
                 if msg != RECEIVING_RFID:
 
-                    ############# HIER CODE AN DATENBANK ###############
+                    # splitting the received information
                     station = msg[:2]
                     workflow_procedure = msg[2:5]
 
-                    print(workflow_procedure)
-                    print(station)
-
+                    # passing the information to the stationSwapper, which gives back the next statin
                     next_station = stationSwapper.main(workflow_procedure, station)
+
+                    # sending the next station back to the client
                     conn.send(next_station.encode(FORMAT))
+
+                    # exiting the rfid mode
                     receive_rfid = False
 
-
+            # killing the thread (stopping the connection) when the message from the client is the DISCONNECT_MESSAGE
             if msg == DISCONNECT_MESSAGE:
                 connected = False
 
-            print(f"[{addr}]{msg}")
+            print(f"From client: {addr}, received message: {msg}")
 
     conn.close()
 
 
 def start():
-
+    """
+    starting the server
+    """
     server.listen()
     print(f"Waiting for a client to connect to {SERVER} \n")
     # waiting for a client to establish a connection:

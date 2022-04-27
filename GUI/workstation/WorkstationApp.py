@@ -98,47 +98,60 @@ class WorkstationApp(object):
         """
         progresses trough the folders and sets the amount of pictures in given folder
         """
+        # putting all filenames from the main_path direction into file_names
         file_names = os.listdir(self.main_path)
+        # setting the amount of pictures to progress trough based on the filenames
         self.set_picture_count(len(file_names))
+
+        # looking, which of the file_names are ending with a "_v" and exclude them from picture count
         for file_name in file_names:
             print(os.path.abspath(os.path.join(self.main_path, file_name)), sep="\n")
             if file_name.endswith("_v"):
                 self.picture_count -= 1
 
-
-
     def picture_progressor(self):
         """
-        progresses trough the pictures inside a given folder
+        - progresses trough the pictures inside a given folder
+        - if a file is tagged by "_v", it will browse the folder with the same number
+            as the file, that contains "_v" and pics the right variation
         :return: the next picture in folder
         """
         try:
             alternative = ""
+            # saving all filenames
             file_names = os.listdir(self.main_path)
+
+            # looking if progression counter is not at the last picture to increment it
             if self.progression_counter != self.picture_count:
                 self.progression_counter += 1
-                #alternative = str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
-                #print(self.main_path + str(self.progression_counter))
+
+                # looking if there is a variation number given
                 if self.variant != "00":
                     alternative = str(self.progression_counter) + self.PICTURE_TYPE
                     alternative = alternative.replace("/", "\\")
-                    print(alternative)
+
+                    # looking if its needed to go into a variation folder
                     if (alternative not in file_names):
                         return str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
                     elif (alternative in file_names):
                         return str(self.progression_counter) + self.PICTURE_TYPE
+
+                # looking if there is no variation number given:
                 elif self.variant == "00":
                     alternative = str(self.progression_counter) + self.PICTURE_TYPE
                     alternative = alternative.replace("/", "\\")
+
+                    # if no variation number, then the default picture will be given back
                     if (alternative not in file_names):
                         return str(self.progression_counter) +"_v" + self.PICTURE_TYPE
                     elif (alternative in file_names):
                         return str(self.progression_counter) + self.PICTURE_TYPE
 
-
+            # looking if the progression counter is at the last picture
             elif self.progression_counter == self.picture_count:
                 print("Das war das letzte Bild")
                 return str(self.progression_counter) + self.PICTURE_TYPE
+
         except FileNotFoundError:
             print("Datei nicht gefunden, bitte überprüfen ob Pfad angelegt ist.")
 

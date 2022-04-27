@@ -8,32 +8,36 @@ def main(*args):
     # cursor instance:
     c = connection.cursor()
 
+    # saving the values that got passed from the server
     workflow_procedure_value = args[0]
     stations_value = args[1]
 
-    print(workflow_procedure_value)
-    print(stations_value)
-
+    # the databank operation that selects the workflow procedure value, matching the passed one
     c.execute("SELECT * FROM workflow_planner_table WHERE workflow_procedure = (?)",
               (workflow_procedure_value,))
 
+    # saving the information from the database in items
     items = c.fetchall()
+
+    # saving the stations from the database into a list called stations
     stations = items[0][1]
     stations = stations.split(";")
+
     item_pos = 0
     next_station = 00
 
+    # iterating through all items inside stations
     for item in stations:
-
+        # looking, which station in the database matches the station passed by the client
         if stations_value == item:
-            print("Station gefunden! " + str(item_pos) + " " + item)
+            print("Station gefunden! " + "\nPos: " + str(item_pos) + "\nStation: " + item)
             next_station = stations[item_pos + 1]
-            print(next_station)
+            print("Nächste Station: " + next_station)
 
     item_pos += 1
 
     # testprint
-    print("execute ausgeführt!")
+    print("Datenbankoperation ausgeführt!")
 
     # committing the created table:
     connection.commit()
