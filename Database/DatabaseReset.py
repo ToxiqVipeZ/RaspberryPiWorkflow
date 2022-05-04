@@ -31,6 +31,30 @@ workflow_procedure TEXT UNIQUE,
 stations TEXT
 )""")
 
+# drop table:
+c.execute("DROP TABLE shop_info_table")
+
+# creating a table:
+c.execute("""
+CREATE TABLE shop_info_table (
+order_item_id INTEGER,
+order_id INTEGER,
+article_id TEXT,
+status_ident TEXT,
+TIMESTAMP DATETIME DEFAULT CURRENT_TIMESTAMP,
+production_number INTEGER PRIMARY KEY
+)""")
+
+# drop table:
+c.execute("DROP TABLE article_procedure_table")
+
+# creating a table:
+c.execute("""
+CREATE TABLE article_procedure_table (
+article_id TEXT UNIQUE,
+procedure TEXT UNIQUE
+)""")
+
 # committing the created table:
 connection.commit()
 

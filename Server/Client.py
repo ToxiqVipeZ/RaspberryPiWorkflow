@@ -7,7 +7,7 @@ DISCONNECT_MESSAGE = "DISCONNECT"
 SENDING_RFID = "C-S-RFID"
 RECEIVING_RFID = "S-C-RFID"
 SAVE_TO_DATABASE = "saveData"
-SERVER = "172.29.167.85"
+SERVER = "172.29.184.100"
 ADDR = (SERVER, PORT)
 
 # set the clients-socket, establish connection to server

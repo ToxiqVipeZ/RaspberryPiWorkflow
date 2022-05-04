@@ -54,6 +54,41 @@ class WorkflowPlannerApp:
         else:
             return False
 
+    def article_procedure_popup(self, root):
+        popup = tk.Toplevel(root, )
+        popup_article_label = tk.Label(popup, text="Artikel-ID:")
+        popup_procedure_label = tk.Label(popup, text="Vorgangsnummer:")
+        article_entry = tk.Entry(popup)
+        procedure_entry = tk.Entry(popup)
+        popup_confirm_button = tk.Button(popup,
+                                         text="Speichern",
+                                         command=lambda: (self.article_procedure_database_operation(article_entry.get(),
+                                                                                                    procedure_entry.get(),
+                                                                                                    popup)))
+        popup_article_label.pack()
+        article_entry.pack()
+        popup_procedure_label.pack()
+        procedure_entry.pack()
+        popup_confirm_button.pack()
+
+    def article_procedure_database_operation(self, valueA, valueB, window):
+        print(valueA)
+        print(valueB)
+        print(self.delete_input_checker(valueA))
+        print(self.delete_input_checker(valueB))
+        if (self.delete_input_checker(valueA) & self.delete_input_checker(valueB)) == True:
+            # database operation:
+            connection = sqlite3.connect(
+                "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+            c = connection.cursor()
+            c.execute("INSERT INTO article_procedure_table VALUES (?, ?)",
+                      (valueA, valueB))
+            connection.commit()
+            connection.close()
+        else:
+            pass
+            self.message_label(window, "Fehlerhafte Angaben. Bitte erneut versuchen.")
+
     def database_save(self, root, text_input):
         """
         The method that executes write operations into the database
@@ -192,6 +227,13 @@ class WorkflowPlannerApp:
 
         # buttonTest_btn.grid(column=0, row=0)
         button_delete_btn.pack(pady=(5, 10))
+
+        button_relation_text = tk.StringVar()
+        button_relation_text.set("Artikel<->Vorgang")
+        button_relation_btn = tk.Button(root, textvariable=button_relation_text,
+                                      command=lambda: (self.article_procedure_popup(root)),
+                                      width=15, height=2, background="green", font=("Arial", 14))
+        button_relation_btn.pack(pady=(5, 10))
 
         delete_input_check = root.register(self.delete_input_checker)
         text_delete_window.config(validate="key", validatecommand=(delete_input_check, "%P"))

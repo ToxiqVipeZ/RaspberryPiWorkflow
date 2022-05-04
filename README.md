@@ -9,7 +9,11 @@ PW: raspberry <br>
 phpMyAdmin Login: <br>
 ID: phpmyadmin <br>
 PW: 1234 <br>
- <br>
+
+Shop Login: <br>
+ID: Shop <br>
+PW: Shop123 <br>
+ <br> 
 
 ## pi@pickone <br>
 IP: 169.254.131.108 <br>

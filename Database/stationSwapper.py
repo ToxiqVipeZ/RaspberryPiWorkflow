@@ -23,6 +23,7 @@ def main(*args):
     stations = items[0][1]
     stations = stations.split(";")
 
+    # only a declaration of variables before the initialization
     item_pos = 0
     next_station = 00
 
