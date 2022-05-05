@@ -37,8 +37,7 @@ def main(*args):
 
     item_pos += 1
 
-    # testprint
-    print("Datenbankoperation ausgeführt!")
+    print("Datenbankoperation ausgeführt, nächste Station übergeben.")
 
     # committing the created table:
     connection.commit()
