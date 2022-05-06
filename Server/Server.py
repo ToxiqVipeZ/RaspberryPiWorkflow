@@ -1,9 +1,7 @@
 import socket
 import threading
-import sqlite3
 
-from Database import stationSwapper
-
+from Database import StationSwapper
 
 HEADER = 64
 PORT = 5050
@@ -13,15 +11,17 @@ FORMAT = "utf-8"
 DISCONNECT_MESSAGE = "DISCONNECT"
 RECEIVING_RFID = "C-S-RFID"
 SENDING_RFID = "S-C-RFID"
-ADD_TO_QUEUE = "RFID-QUEUE-ADD"
+QUEUE_REQUEST = "QUEUE-REQUEST"
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
-receive_rfid = False
 
 
 class Server:
-    def add_to_queue(self, msg):
-        queue = []
+    receive_rfid_mode = False
+    add_to_queue_mode = False
+
+    def add_to_queue(self, production_number):
+        print("Versuche Produktionsnummer: " + production_number + " zur Warteschlange hinzuzufügen.")
 
 
     @staticmethod
@@ -31,7 +31,7 @@ class Server:
         workflow_procedure = msg[2:5]
 
         # passing the information to the stationSwapper, which gives back the next statin
-        next_station = stationSwapper.main(workflow_procedure, station)
+        next_station = StationSwapper.main(workflow_procedure, station)
 
         # sending the next station back to the client
         return next_station.encode(FORMAT)
@@ -50,26 +50,31 @@ class Server:
             # msg_length receives information about the data length (HEADER) and decodes it as (FORMAT)
             msg_length = conn.recv(HEADER).decode(FORMAT)
 
-            # if the sent message got a length
+            # if the received message got a length
             if msg_length:
                 msg_length = int(msg_length)
 
                 # msg receives the message with size (msg_length) and decodes it as (FORMAT)
                 msg = conn.recv(msg_length).decode(FORMAT)
 
-                # starting receive_rfid mode
+                # starting receive_rfid_mode
                 if msg == RECEIVING_RFID:
-                    receive_rfid = True
+                    self.receive_rfid_mode = True
                 # if in receive rfid mode
-                if receive_rfid is True:
+                if self.receive_rfid_mode is True:
                     # excluding the first message, so that only the arguments in args join into this section
                     if msg != RECEIVING_RFID:
                         conn.send(self.switch_station(msg))
-                        # exiting the rfid mode
-                        receive_rfid = False
+                        # exiting the receive_rfid_mode
+                        self.receive_rfid_mode = False
 
-                if msg == ADD_TO_QUEUE:
-                    self.add_to_queue(msg)
+                # starting add_to_queue_mode
+                if msg == QUEUE_REQUEST:
+                    self.add_to_queue_mode = True
+                if self.add_to_queue_mode is True:
+                    if msg != QUEUE_REQUEST:
+                        self.add_to_queue(msg)
+                        self.add_to_queue_mode = False
 
                 # killing the thread (stopping the connection) when the message from the client is the DISCONNECT_MESSAGE
                 if msg == DISCONNECT_MESSAGE:
@@ -100,4 +105,4 @@ class Server:
     print("Server startet ...")
 
 
-Server.main()
+Server().main()

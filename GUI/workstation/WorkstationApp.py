@@ -198,7 +198,7 @@ class WorkstationApp(object):
 
     def rfid_submit(self):
         new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
-        print(new_rfid)
+        print("Der neue RFID-Präfix: " + new_rfid)
 
     def second_window(self):
         """

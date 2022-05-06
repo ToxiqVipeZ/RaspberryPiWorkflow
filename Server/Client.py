@@ -6,8 +6,9 @@ FORMAT = "utf-8"
 DISCONNECT_MESSAGE = "DISCONNECT"
 SENDING_RFID = "C-S-RFID"
 RECEIVING_RFID = "S-C-RFID"
+ADD_TO_QUEUE = "RFID-QUEUE-ADD"
 SAVE_TO_DATABASE = "saveData"
-SERVER = "172.29.184.100"
+SERVER = "169.254.0.102"
 ADDR = (SERVER, PORT)
 
 # set the clients-socket, establish connection to server
@@ -44,6 +45,7 @@ def send(msg, *args):
     send_length += b" " * (HEADER - len(send_length))
 
     # if the received message equals SENDING_RFID
+    print(msg)
     if msg == SENDING_RFID:
 
         # send the length of the message and the message itself afterwards
@@ -57,6 +59,20 @@ def send(msg, *args):
         # returning the next_station back to the application that called this client function
         next_station = client.recv(2048).decode(FORMAT)
         return next_station
+
+    # if the received message equals ADD_TO_QUEUE
+    if msg == ADD_TO_QUEUE:
+
+        # send the length of the message and the message itself afterwards
+        client.send(send_length)
+        client.send(message)
+
+        print(send_length_args0)
+        print(args0)
+        # send the length of the message and the message itself afterwards
+        client.send(send_length_args0)
+        client.send(args0)
+
 
     else:
         # sending the message length and the message itself afterwards (for any other messages)

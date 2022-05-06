@@ -1,33 +1,27 @@
 #!/usr/bin/env python3
 import sqlite3
-
 import mysql.connector
 import time
 
-global read_order_item_id
-x = 5
-
+STATUS = "ORDER-IN"
 
 def Status_log(read_order_item_id):
-    cursor.execute("SELECT MAX(ident_number) FROM custom_order_receiver LIMIT 0, 1")
-    prod_cursor.execute("SELECT MAX(production_number) FROM shop_info_table LIMIT 0, 1")
-    Produktionsnummer = cursor.fetchone()
-    print("Produktionsnummer: " + str(Produktionsnummer[0]))
-    print("-------------------------------")
+    print(read_order_item_id)
 
-    Status = "Bestellung IN"
-
-    cursor.execute("UPDATE custom_order_receiver SET status_ident=%s WHERE order_item_id LIKE %s", (Status, read_order_item_id,))
-    prod_cursor.execute("UPDATE shop_info_table SET status_ident=(?) WHERE order_item_id LIKE (?)", (Status, read_order_item_id,))
+    cursor.execute("UPDATE custom_order_receiver SET status_ident=%s WHERE order_item_id=%s", (STATUS, read_order_item_id))
+    prod_cursor.execute("UPDATE shop_info_table SET status_ident=(?) WHERE order_item_id=(?)", (STATUS, read_order_item_id))
     connection.commit()
     production_connection.commit()
 
 
 try:
-    while x > 1:
+    while True:
+        print("Baue Shop-Datenbankverbindung auf....")
         connection = mysql.connector.connect(host="169.254.0.3", user="FRANK", passwd="$Ute2511%", db="wordpress2")
+        print("Baue Produktions-Datenbankverbindung auf....")
         production_connection = sqlite3.connect(
             "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+        print("Datenbankverbindung steht!")
         cursor = connection.cursor()
         prod_cursor = production_connection.cursor()
 
@@ -54,12 +48,17 @@ try:
                 cursor.execute("SELECT MAX(order_id) FROM custom_order_receiver")
                 cor_oid_max_read = cursor.fetchone()
                 cor_oid_max = (cor_oid_max_read)
+
                 connection.commit()
 
                 print("Warte 5s auf Bestelleingangsscan")
                 time.sleep(5)
 
         # Wenn es in der Tabelle eine Bestell-ID gibt, welche es noch nicht in custom_order_receiver gibt:
+        print(cor_oid_max)
+        if cor_oid_max[0] == None:
+            cor_oid_max = (0,)
+        print(cor_oid_max)
         if shop_oid_max > cor_oid_max:
             cursor.execute(
                 "SELECT MAX(order_id) FROM wp_woocommerce_order_items WHERE order_item_type like ('%line_item%')")
@@ -121,9 +120,10 @@ try:
                             prod_cursor.execute(
                                 "INSERT INTO shop_info_table(order_item_id, order_id, article_id) VALUES (?, ?, ?)",
                                 (read_order_item_id, read_order_id, article_id[0],))
-                            Status_log(read_order_item_id)
+
                             connection.commit()
                             production_connection.commit()
+                            Status_log(read_order_item_id)
                             mv = mv - 1
 
                     else:
@@ -149,9 +149,10 @@ try:
                         prod_cursor.execute(
                             "INSERT INTO shop_info_table(order_item_id, order_id, article_id) VALUES (?, ?, ?)",
                             (read_order_item_id, read_order_id, article_id[0],))
-                        Status_log(read_order_item_id)
+
                         connection.commit()
                         production_connection.commit()
+                        Status_log(read_order_item_id)
         else:
             # die neueste Bestellung rausfinden
 
@@ -216,9 +217,10 @@ try:
                 prod_cursor.execute(
                     "INSERT INTO shop_info_table(order_item_id, order_id, article_id) VALUES (?, ?, ?)",
                     (read_order_item_id, read_order_id, article_id[0],))
-                Status_log(read_order_item_id)
+
                 connection.commit()
                 production_connection.commit()
+                Status_log(read_order_item_id)
                 mv = mv - 1
 
         else:
@@ -243,11 +245,11 @@ try:
                 prod_cursor.execute(
                     "INSERT INTO shop_info_table(order_item_id, order_id, article_id) VALUES (?, ?, ?)",
                     (read_order_item_id, read_order_id, article_id[0],))
-                Status_log(read_order_item_id)
+
                 connection.commit()
                 production_connection.commit()
+                Status_log(read_order_item_id)
 
 except KeyboardInterrupt:
     connection.close()
     production_connection.close()
-

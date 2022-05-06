@@ -31,6 +31,14 @@ items = c.fetchall()
 for item in items:
     print(item)
 
+print("\n\narticle queue: ")
+
+c.execute("SELECT * FROM article_queue ORDER BY queue_pos")
+items = c.fetchall()
+
+for item in items:
+    print(item)
+
 
 print("\n \nEnde des Outputs!")
 
