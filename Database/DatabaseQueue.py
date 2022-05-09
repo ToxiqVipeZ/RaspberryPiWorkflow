@@ -36,8 +36,8 @@ class DatabaseQueue:
                     "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
                 cursor = connection.cursor()
 
-                cursor.execute("SELECT MIN(production_number) FROM shop_info_table WHERE status_ident IS NOT (?)",
-                               (STAT_QUEUED,))
+                cursor.execute("SELECT MIN(production_number) FROM shop_info_table WHERE status_ident IS (?)",
+                               (STAT_ORDER_IN,))
                 list_not_empty = cursor.fetchone()[0]
 
                 production_number = list_not_empty
