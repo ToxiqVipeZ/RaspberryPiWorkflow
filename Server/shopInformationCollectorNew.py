@@ -11,15 +11,6 @@ MYSQL_DB = "wordpress"
 
 SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
-def Status_log(read_order_item_id):
-    print(read_order_item_id)
-
-    cursor.execute("UPDATE custom_order_receiver SET status_ident=%s WHERE order_item_id=%s", (STATUS, read_order_item_id))
-    prod_cursor.execute("UPDATE shop_info_table SET status_ident=(?) WHERE order_item_id=(?)", (STATUS, read_order_item_id))
-    connection.commit()
-    production_connection.commit()
-
-
 try:
     while True:
         print("Baue Shop-Datenbankverbindung auf....")
@@ -131,7 +122,7 @@ try:
 
                             connection.commit()
                             production_connection.commit()
-                            Status_log(read_order_item_id)
+
                             mv = mv - 1
 
                     else:
@@ -163,7 +154,7 @@ try:
 
                         connection.commit()
                         production_connection.commit()
-                        Status_log(read_order_item_id)
+
         else:
             # die neueste Bestellung rausfinden
 
@@ -233,7 +224,6 @@ try:
 
                 connection.commit()
                 production_connection.commit()
-                Status_log(read_order_item_id)
                 mv = mv - 1
 
         else:
@@ -263,7 +253,6 @@ try:
 
                 connection.commit()
                 production_connection.commit()
-                Status_log(read_order_item_id)
 
 except KeyboardInterrupt:
     connection.close()

@@ -319,7 +319,7 @@ class WorkstationApp(object):
 
 
 # example of calling this class
-objectX = "0500155"
+objectX = "0100155"
 
 WorkstationApp(objectX)
 
