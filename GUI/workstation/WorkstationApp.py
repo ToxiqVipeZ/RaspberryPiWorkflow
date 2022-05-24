@@ -1,9 +1,13 @@
+import os
 import _tkinter
 import tkinter as tk
 from PIL import Image, ImageTk
-import os
 from Server import Client
+#from Reader import Reader
+#from Writer import Writer
 
+    #os.system('sudo apt-get update')
+    #os.system('sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5')
 
 class WorkstationApp(object):
     """
@@ -22,7 +26,7 @@ class WorkstationApp(object):
     PICTURE_TYPE = ".png"
 
     # global variables:
-    rfid_scanned = "0"
+    rfid_scanned = "0100101"
     article_id_global = 0
     station = 0
     operation = 0
@@ -38,6 +42,7 @@ class WorkstationApp(object):
         Starts the workflow-steps
         :param argument: given rfid-id
         """
+        self.rfid_scanned = argument
         article_id = argument
         self.station = article_id[0:2]
         self.operation = article_id[2:5]
@@ -50,12 +55,12 @@ class WorkstationApp(object):
         print(self.main_path)
         self.second_window()
 
-    def __init__(self, rfid_init):
+    def __init__(self):
         """
         Initialisation method
         :param rfid_init: saves the RFID on object creation or class call in rfid_scanned
         """
-        self.rfid_scanned = rfid_init
+        #self.rfid_scanned = rfid_init
         self.main()
 
     def workflow_picture_resize(self, workflow_pictures):
@@ -121,7 +126,7 @@ class WorkstationApp(object):
             alternative = ""
             # saving all filenames
             file_names = os.listdir(self.main_path)
-
+            print(self.variant)
             # looking if progression counter is not at the last picture to increment it
             if self.progression_counter != self.picture_count:
                 self.progression_counter += 1
@@ -131,7 +136,7 @@ class WorkstationApp(object):
                     alternative = str(self.progression_counter) + self.PICTURE_TYPE
                     alternative = alternative.replace("/", "\\")
 
-                    # looking if its needed to go into a variation folder
+                    # looking if it is needed to go into a variation folder
                     if (alternative not in file_names):
                         return str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
                     elif (alternative in file_names):
@@ -206,8 +211,17 @@ class WorkstationApp(object):
         else:
             self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
             self.rfid_scanned = self.new_rfid + self.operation + self.variant
+            #1 self.rfid_writer(self.rfid_scanned)
         print("Der neue RFID-Präfix: " + self.new_rfid)
 
+    def rfid_reader(self):
+        #2 scanner = Reader()
+        #2 self.rfid_scanned = scanner.main()
+        self.workflow_start(self.rfid_scanned)
+        
+    def rfid_writer(self, rfid_scanned):
+        #3 Writer(rfid_scanned)
+        pass
 
     def second_window(self):
         """
@@ -308,9 +322,9 @@ class WorkstationApp(object):
 
         # buttonTest definition
         buttonTest_text = tk.StringVar()
-        buttonTest_text.set("Test")
+        buttonTest_text.set("RFID einlesen")
         buttonTest_btn = tk.Button(root, textvariable=buttonTest_text,
-                                   command=lambda: (self.workflow_start(self.rfid_scanned)),
+                                   command=lambda: (self.rfid_reader()),
                                    width=10, height=5, background="green")
         buttonTest_btn.grid(column=1, row=0)
 
@@ -318,11 +332,7 @@ class WorkstationApp(object):
         root.mainloop()
 
 
-# example of calling this class
-objectX = "0100155"
-
-WorkstationApp(objectX)
-
+WorkstationApp()
 
 
 

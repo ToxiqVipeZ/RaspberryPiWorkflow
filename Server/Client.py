@@ -8,7 +8,7 @@ SENDING_RFID = "C-S-RFID"
 RECEIVING_RFID = "S-C-RFID"
 ADD_TO_QUEUE = "RFID-QUEUE-ADD"
 SAVE_TO_DATABASE = "saveData"
-SERVER = "192.168.137.1"
+SERVER = "169.254.0.102"
 ADDR = (SERVER, PORT)
 
 # set the clients-socket, establish connection to server
@@ -72,7 +72,6 @@ def send(msg, *args):
         # send the length of the message and the message itself afterwards
         client.send(send_length_args0)
         client.send(args0)
-
 
     else:
         # sending the message length and the message itself afterwards (for any other messages)

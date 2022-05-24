@@ -22,14 +22,14 @@ process_time TEXT
 )""")
 
 # drop table:
-#c.execute("DROP TABLE workflow_planner_table")
+c.execute("DROP TABLE workflow_planner_table")
 
 # creating a table:
-#c.execute("""
-#CREATE TABLE workflow_planner_table (
-#workflow_procedure TEXT UNIQUE,
-#stations TEXT
-#)""")
+c.execute("""
+CREATE TABLE workflow_planner_table (
+workflow_procedure TEXT UNIQUE,
+stations TEXT
+)""")
 
 # drop table:
 c.execute("DROP TABLE shop_info_table")
@@ -46,14 +46,14 @@ production_number INTEGER PRIMARY KEY
 )""")
 
 # drop table:
-#c.execute("DROP TABLE article_procedure_table")
+c.execute("DROP TABLE article_procedure_table")
 
 # creating a table:
-#c.execute("""
-#CREATE TABLE article_procedure_table (
-#article_id TEXT UNIQUE,
-#procedure TEXT UNIQUE
-#)""")
+c.execute("""
+CREATE TABLE article_procedure_table (
+article_id TEXT UNIQUE,
+procedure TEXT UNIQUE
+)""")
 
 c.execute("DROP TABLE article_queue")
 

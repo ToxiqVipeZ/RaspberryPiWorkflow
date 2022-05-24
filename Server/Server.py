@@ -29,9 +29,10 @@ class Server:
         # splitting the received information
         station = msg[:2]
         workflow_procedure = msg[2:5]
+        variation = msg[5:]
 
         # passing the information to the stationSwapper, which gives back the next statin
-        next_station = StationSwapper.main(workflow_procedure, station)
+        next_station = StationSwapper.main(workflow_procedure, station, variation)
 
         # sending the next station back to the client
         return next_station.encode(FORMAT)
@@ -76,8 +77,9 @@ class Server:
                         self.add_to_queue(msg)
                         self.add_to_queue_mode = False
 
-                # killing the thread (stopping the connection) when the message from the client is the DISCONNECT_MESSAGE
+                # killing the thread when the message from the client equals the DISCONNECT_MESSAGE
                 if msg == DISCONNECT_MESSAGE:
+                    conn.close()
                     connected = False
 
                 print(f"From client: {addr}, received message: {msg}")
