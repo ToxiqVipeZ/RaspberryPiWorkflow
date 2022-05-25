@@ -9,24 +9,23 @@ MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
 MYSQL_DB = "wordpress"
 
-
 SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+
 
 class ShopInformationCollector:
     connection_closed = False
 
     def main(self):
+        # Database-connection
+        print("Baue Shop-Datenbankverbindung auf....")
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASSWD, db=MYSQL_DB)
+        print("Baue Produktions-Datenbankverbindung auf....")
+        production_connection = sqlite3.connect(
+            SQLITE3_HOST)
+        print("Datenbankverbindung steht!")
+        cursor = connection.cursor()
+        prod_cursor = production_connection.cursor()
         try:
-            # Database-connection
-            print("Baue Shop-Datenbankverbindung auf....")
-            connection = mysql.connector.connect(host="169.254.0.3", user="pi", passwd="raspberry", db="wordpress")
-            print("Baue Produktions-Datenbankverbindung auf....")
-            production_connection = sqlite3.connect(
-                SQLITE3_HOST)
-            print("Datenbankverbindung steht!")
-            cursor = connection.cursor()
-            prod_cursor = production_connection.cursor()
-
             # main loop
             while True:
 
@@ -173,5 +172,5 @@ class ShopInformationCollector:
             else:
                 pass
 
-
-ShopInformationCollector().main()
+if __name__ == '__main__':
+    ShopInformationCollector().main()

@@ -8,7 +8,7 @@ SENDING_RFID = "C-S-RFID"
 RECEIVING_RFID = "S-C-RFID"
 ADD_TO_QUEUE = "RFID-QUEUE-ADD"
 SAVE_TO_DATABASE = "saveData"
-SERVER = "169.254.0.102"
+SERVER = "192.168.137.1"
 ADDR = (SERVER, PORT)
 
 # set the clients-socket, establish connection to server

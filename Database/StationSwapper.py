@@ -8,7 +8,7 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
     article_id_queue = c.fetchone()
     if article_id_queue != None:
         article_id_queue = article_id_queue[0] + "-" + variation_value
-    print("regex_article_id_variation: " + article_id_queue)
+    print("test: article_id_queue: " + article_id_queue)
     # queue position where procedure and station matches
     c.execute("SELECT MIN(queue_pos) FROM article_queue WHERE article_id=(?) AND next_station!=(?)",
               (article_id_queue, "DONE",))
@@ -17,41 +17,42 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
     print("(StationSwapper) queue pos: " + str(queue_pos))
 
     if station != next_station:
-
         if in_queue is None:
             in_queue = False
 
-            c.execute("SELECT article_id FROM article_procedure_table WHERE procedure=(?)", (procedure,))
-            article_id_queue = c.fetchone()
-            if article_id_queue != None:
-                article_id_queue = article_id_queue[0]
-            regex = r"(" + re.escape(article_id_queue) + r")+[-]{1}[0-9]{2}"
-            print("RFID nicht in der Warteschlange! " + article_id_queue + ": " + procedure + "; " + station)
+            #c.execute("SELECT article_id FROM article_procedure_table WHERE procedure=(?)", (procedure,))
+            #article_id_queue = c.fetchone()
+            #if article_id_queue != None:
+            #    article_id_queue = article_id_queue[0]
+            #regex = r"(" + re.escape(article_id_queue) + r")+[-]{1}[0-9]{2}"
+            print("RFID nicht in der Warteschlange! " + article_id_queue + "\nVorgang: " +
+                  procedure + "\nStation: " + station)
 
             c.execute(
                 "SELECT MIN(production_number) FROM shop_info_table WHERE status_ident=(?) AND article_id=(?)",
                 ("QUEUED", article_id_queue,))
-            fetch = c.fetchone()[0]
+            prod_nr = c.fetchone()[0]
+
             c.execute(
                 "SELECT order_item_id, article_id FROM shop_info_table WHERE production_number=(?)",
-                (fetch,))
-            fetch = c.fetchall()
-            for item in fetch:
-                if re.match(regex, item[1]):
-                    article_id = item[1]
-                    order_item_id = item[0]
-                    print("artikelID: " + str(article_id) + "; order_item_id: " + str(order_item_id))
+                (prod_nr,))
+            fetch = c.fetchone()
 
-                    c.execute(
-                        "INSERT INTO article_queue(article_id, procedure, next_station) VALUES (?, ?, ?)",
-                        (article_id, procedure, next_station))
-                    connection.commit()
+            if article_id_queue == fetch[1]:
+                article_id = fetch[1]
+                order_item_id = fetch[0]
+                print("artikelID: " + str(article_id) + "; order_item_id: "
+                      + str(order_item_id)) + "prod_nr: " + str(prod_nr)
 
-                    c.execute("UPDATE shop_info_table SET status_ident=(?) WHERE order_item_id=(?)",
-                              (next_station, order_item_id,))
-                    connection.commit()
+                c.execute(
+                    "INSERT INTO article_queue(article_id, procedure, next_station) VALUES (?, ?, ?)",
+                    (article_id, procedure, next_station))
+                connection.commit()
 
-                    break
+                c.execute(
+                    "UPDATE shop_info_table SET status_ident=(?) WHERE order_item_id=(?) AND production_number=(?)",
+                    (next_station, order_item_id,))
+                connection.commit()
 
         if in_queue:
             print("inqueueueueueueueueueueueue-----------------------------------------------------------------")
