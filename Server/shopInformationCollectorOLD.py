@@ -8,6 +8,7 @@ MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
 MYSQL_DB = "wordpress"
+connection_closed = False
 
 SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
@@ -96,8 +97,8 @@ try:
                     mv = (int(dats[0]))
 
                     if mv > 1:
-                        print("(shopInfoCol. if 3")
-                        while mv >= 1:
+                        print("(shopInfoCol. if 3 - mv")
+                        while mv > 1:
                             cursor.execute(
                                 "SELECT meta_value FROM wp_woocommerce_order_itemmeta WHERE meta_key like ('%variation%') AND order_item_id=%s",
                                 (read_order_item_id,))
@@ -130,7 +131,8 @@ try:
 
                             mv = mv - 1
 
-                    else:
+                    elif mv <= 1:
+                        print("135 - mv <= 1")
                         cursor.execute(
                             "SELECT meta_value FROM wp_woocommerce_order_itemmeta WHERE meta_key like ('%variation%') AND order_item_id=%s",
                             (read_order_item_id,))
@@ -163,7 +165,8 @@ try:
 
                         production_connection.commit()
 
-        else:
+        elif shop_oid_max < cor_oid_max:
+            print("shopInfoCol. Test 4")
             # die neueste Bestellung rausfinden
 
             cursor.execute(
@@ -201,11 +204,11 @@ try:
 
         for dats in result1:
             print("Menge: " + str(dats[0]))
-        mv = (str(dats[0]))
         mv = (int(dats[0]))
 
         if mv > 1:
-            while mv >= 1:
+            print("shopInfoCol. 5 mv 2 / if mv >= 1")
+            while mv > 1:
                 cursor.execute(
                     "SELECT meta_value FROM wp_woocommerce_order_itemmeta WHERE meta_key like ('%variation%') AND order_item_id=%s",
                     (read_order_item_id,))
@@ -236,7 +239,7 @@ try:
 
                 mv = mv - 1
 
-        else:
+        elif mv <= 1:
             cursor.execute(
                 "SELECT meta_value FROM wp_woocommerce_order_itemmeta WHERE meta_key like ('%variation%') AND order_item_id=%s",
                 (read_order_item_id,))
@@ -269,3 +272,9 @@ try:
 except KeyboardInterrupt:
     connection.close()
     production_connection.close()
+    connection_closed = True
+
+finally:
+    if not connection_closed:
+        connection.close()
+        production_connection.close()
