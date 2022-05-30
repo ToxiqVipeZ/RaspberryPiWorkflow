@@ -1,4 +1,6 @@
 import os
+import time
+from threading import Thread
 import _tkinter
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -9,7 +11,7 @@ from Server import Client
     #os.system('sudo apt-get update')
     #os.system('sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5')
 
-class WorkstationApp(object):
+class WorkstationApp:
     """
     This class processes the RFID-Input from the RFID-Reader
     and shows related workflow steps.
@@ -36,6 +38,8 @@ class WorkstationApp(object):
     rfid_out_trigger = 0
     alternative_path = ""
     new_rfid = ""
+    scanning = True
+
 
     def workflow_start(self, argument):
         """
@@ -58,10 +62,16 @@ class WorkstationApp(object):
     def __init__(self):
         """
         Initialisation method
-        :param rfid_init: saves the RFID on object creation or class call in rfid_scanned
         """
-        #self.rfid_scanned = rfid_init
+        rfid_thread = Thread(target=self.scanning)
+        rfid_thread.start()
         self.main()
+
+    def scanning(self):
+        while True:
+            print("test")
+            time.sleep(2)
+
 
     def workflow_picture_resize(self, workflow_pictures):
         """
