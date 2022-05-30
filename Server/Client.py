@@ -78,4 +78,3 @@ def send(msg, *args):
         client.send(send_length)
         client.send(message)
 
-    send(DISCONNECT_MESSAGE)

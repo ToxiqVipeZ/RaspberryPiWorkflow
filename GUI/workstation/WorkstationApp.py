@@ -26,7 +26,7 @@ class WorkstationApp(object):
     PICTURE_TYPE = ".png"
 
     # global variables:
-    rfid_scanned = "0100101"
+    rfid_scanned = "0500102"
     article_id_global = 0
     station = 0
     operation = 0
@@ -207,8 +207,6 @@ class WorkstationApp(object):
     def rfid_submit(self, root2):
         # checks if there is a next station to write on to the rfid chip
         if self.new_rfid == "no next station":
-            # client disconnects from the server
-            Client.send(Client.DISCONNECT_MESSAGE)
             # calls the workflow_completed method
             self.workflow_completed(root2)
         # if there is a next station:
@@ -216,6 +214,7 @@ class WorkstationApp(object):
             self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
             self.rfid_scanned = self.new_rfid + self.operation + self.variant
             #1 self.rfid_writer(self.rfid_scanned)
+            # client disconnects from the server
         print("Der neue RFID-Präfix: " + self.new_rfid)
 
     def rfid_reader(self):
@@ -301,43 +300,43 @@ class WorkstationApp(object):
         """
         the main window, only showing and waiting for an RFID-chip to get read
         """
-        root = tk.Tk()
-        width, height = root.winfo_screenwidth(), root.winfo_screenheight()
+        try:
+            root = tk.Tk()
+            width, height = root.winfo_screenwidth(), root.winfo_screenheight()
 
-        # window size
-        canvas_root = tk.Canvas(root, width=root.winfo_screenwidth(), height=root.winfo_screenheight())
-        # window grid
-        canvas_root.grid(columnspan=3, rowspan=3)
+            # window size
+            canvas_root = tk.Canvas(root, width=root.winfo_screenwidth(), height=root.winfo_screenheight())
+            # window grid
+            canvas_root.grid(columnspan=3, rowspan=3)
 
-        # image definition as a image
-        workflow_picture_root = Image.open(self.MAIN_PATH_PRE + self.RFID_IN)
-        # resizing the picture
-        workflow_picture_root = self.workflow_picture_resize(workflow_picture_root)
-        # defining image as a photo image for tkinter
-        workflow_picture_root = ImageTk.PhotoImage(workflow_picture_root)
-        # label definition
-        workflow_picture_root_label = tk.Label(image=workflow_picture_root)
-        # insert image into label
-        workflow_picture_root_label.image = workflow_picture_root
-        # label position inside root grid
-        workflow_picture_root_label.grid(column=0, row=0)
+            # image definition as a image
+            workflow_picture_root = Image.open(self.MAIN_PATH_PRE + self.RFID_IN)
+            # resizing the picture
+            workflow_picture_root = self.workflow_picture_resize(workflow_picture_root)
+            # defining image as a photo image for tkinter
+            workflow_picture_root = ImageTk.PhotoImage(workflow_picture_root)
+            # label definition
+            workflow_picture_root_label = tk.Label(image=workflow_picture_root)
+            # insert image into label
+            workflow_picture_root_label.image = workflow_picture_root
+            # label position inside root grid
+            workflow_picture_root_label.grid(column=0, row=0)
 
-        root.geometry("%dx%d+0+0" % (width, height))
+            root.geometry("%dx%d+0+0" % (width, height))
 
-        # buttonTest definition
-        buttonTest_text = tk.StringVar()
-        buttonTest_text.set("RFID einlesen")
-        buttonTest_btn = tk.Button(root, textvariable=buttonTest_text,
-                                   command=lambda: (self.rfid_reader()),
-                                   width=10, height=5, background="green")
-        buttonTest_btn.grid(column=1, row=0)
+            # buttonTest definition
+            buttonTest_text = tk.StringVar()
+            buttonTest_text.set("RFID einlesen")
+            buttonTest_btn = tk.Button(root, textvariable=buttonTest_text,
+                                       command=lambda: (self.rfid_reader()),
+                                       width=10, height=5, background="green")
+            buttonTest_btn.grid(column=1, row=0)
 
-        # loop of the window - END!
-        root.mainloop()
+            # loop of the window - END!
+            root.mainloop()
+        finally:
+            Client.send(Client.DISCONNECT_MESSAGE)
 
 
 if __name__ == '__main__':
-    try:
-        WorkstationApp()
-    finally:
-        Client.send(Client.DISCONNECT_MESSAGE)
+    WorkstationApp()

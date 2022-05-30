@@ -34,7 +34,7 @@ def ptt_reset(connection, c):
     station INTEGER,
     last_station INTEGER,
     process_start TEXT,
-    process_time TEXT
+    process_end TEXT
     )""")
 
     # committing the created table:
