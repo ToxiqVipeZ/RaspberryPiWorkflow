@@ -11,7 +11,7 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
     print("test: article_id_queue: " + article_id_queue)
     # queue position where procedure and station matches
     c.execute("SELECT MIN(queue_pos) FROM article_queue WHERE article_id=(?) AND next_station!=(?)",
-              (article_id_queue, "DONE",))
+              (article_id_queue, next_station,))
     in_queue = cursor.fetchone()[0]
     queue_pos = in_queue
     print("(StationSwapper) queue pos: " + str(queue_pos))
@@ -42,7 +42,7 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
                 article_id = fetch[1]
                 order_item_id = fetch[0]
                 print("artikelID: " + str(article_id) + "; order_item_id: "
-                      + str(order_item_id)) + "prod_nr: " + str(prod_nr)
+                      + str(order_item_id) + "; prod_nr: " + str(prod_nr))
 
                 c.execute(
                     "INSERT INTO article_queue(article_id, procedure, next_station) VALUES (?, ?, ?)",
@@ -51,11 +51,11 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
 
                 c.execute(
                     "UPDATE shop_info_table SET status_ident=(?) WHERE order_item_id=(?) AND production_number=(?)",
-                    (next_station, order_item_id,))
+                    (next_station, order_item_id, prod_nr,))
                 connection.commit()
 
         if in_queue:
-            print("inqueueueueueueueueueueueue-----------------------------------------------------------------")
+            print("inqueueueueueueueueueueueue-------------------------------------------------")
             c.execute("UPDATE article_queue SET next_station=(?) WHERE queue_pos=(?)",
                       (next_station, queue_pos,))
             connection.commit()

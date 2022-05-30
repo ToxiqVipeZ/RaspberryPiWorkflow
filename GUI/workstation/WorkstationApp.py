@@ -26,7 +26,7 @@ class WorkstationApp(object):
     PICTURE_TYPE = ".png"
 
     # global variables:
-    rfid_scanned = "0500101"
+    rfid_scanned = "0100102"
     article_id_global = 0
     station = 0
     operation = 0
@@ -205,9 +205,13 @@ class WorkstationApp(object):
         self.progression_counter = number
 
     def rfid_submit(self, root2):
+        # checks if there is a next station to write on to the rfid chip
         if self.new_rfid == "no next station":
+            # client disconnects from the server
             Client.send(Client.DISCONNECT_MESSAGE)
+            # calls the workflow_completed method
             self.workflow_completed(root2)
+        # if there is a next station:
         else:
             self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
             self.rfid_scanned = self.new_rfid + self.operation + self.variant
