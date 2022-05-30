@@ -67,7 +67,7 @@ def sit_reset(connection, c):
     order_id INTEGER,
     article_id TEXT,
     status_ident TEXT,
-    TIMESTAMP DATETIME DEFAULT CURRENT_TIMESTAMP,
+    time_stamp TEXT,
     production_number INTEGER PRIMARY KEY
     )""")
 

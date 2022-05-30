@@ -2,12 +2,15 @@
 import sqlite3
 import mysql.connector
 import time
+import datetime
 
 STATUS = "ORDER-IN"
 MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
 MYSQL_DB = "wordpress"
+current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+
 
 SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
@@ -58,7 +61,7 @@ class ShopInformationCollector:
                         print("Warte 5s auf Bestelleingangsscan")
                         time.sleep(5)
 
-# som == com
+# som > com
                 # if the shop has a new Order:
                 if shop_oid_max > cor_oid_max:
                     while shop_oid_max > cor_oid_max:
@@ -107,16 +110,18 @@ class ShopInformationCollector:
                                                 (variation,))
                                             article_id = cursor.fetchone()
 
+                                            current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+
                                             cursor.execute(
-                                                "INSERT INTO custom_order_receiver(order_item_id, order_id, article_id, status_ident)"
-                                                " VALUES (%s, %s, %s, %s)",
-                                                (read_order_item_id, read_order_id, article_id[0], STATUS,))
+                                                "INSERT INTO custom_order_receiver(order_item_id, order_id, article_id, status_ident, time_stamp)"
+                                                " VALUES (%s, %s, %s, %s, %s)",
+                                                (read_order_item_id, read_order_id, article_id[0], STATUS, current_datetime))
                                             connection.commit()
 
                                             prod_cursor.execute(
-                                                "INSERT INTO shop_info_table(order_item_id, order_id, article_id, status_ident)"
-                                                " VALUES (?, ?, ?, ?)",
-                                                (read_order_item_id, read_order_id, article_id[0], STATUS,))
+                                                "INSERT INTO shop_info_table(order_item_id, order_id, article_id, status_ident, time_stamp)"
+                                                " VALUES (?, ?, ?, ?, ?)",
+                                                (read_order_item_id, read_order_id, article_id[0], STATUS, current_datetime))
                                             production_connection.commit()
 
                                         qty -= 1
@@ -136,16 +141,18 @@ class ShopInformationCollector:
                                         (variation,))
                                     article_id = cursor.fetchone()
 
+                                    current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+
                                     cursor.execute(
-                                        "INSERT INTO custom_order_receiver(order_item_id, order_id, article_id, status_ident)"
-                                        " VALUES (%s, %s, %s, %s)",
-                                        (read_order_item_id, read_order_id, article_id[0], STATUS,))
+                                        "INSERT INTO custom_order_receiver(order_item_id, order_id, article_id, status_ident, time_stamp)"
+                                        " VALUES (%s, %s, %s, %s, %s)",
+                                        (read_order_item_id, read_order_id, article_id[0], STATUS, current_datetime))
                                     connection.commit()
 
                                     prod_cursor.execute(
-                                        "INSERT INTO shop_info_table(order_item_id, order_id, article_id, status_ident)"
-                                        " VALUES (?, ?, ?, ?)",
-                                        (read_order_item_id, read_order_id, article_id[0], STATUS,))
+                                        "INSERT INTO shop_info_table(order_item_id, order_id, article_id, status_ident, time_stamp)"
+                                        " VALUES (?, ?, ?, ?, ?)",
+                                        (read_order_item_id, read_order_id, article_id[0], STATUS, current_datetime))
                                     production_connection.commit()
 
                         cursor.execute(

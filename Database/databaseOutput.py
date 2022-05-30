@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 # connection holds the connection to the database
 connection = sqlite3.connect("productionDatabase.db")
@@ -40,6 +41,9 @@ for item in items:
     print(item)
 
 
+current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+
+print("\n" + current_datetime)
 print("\n \nEnde des Outputs!")
 
 # committing the created table:
