@@ -1,5 +1,4 @@
 import sqlite3
-import re
 
 
 def next_in_queue(connection, cursor, procedure, station, next_station, variation_value):
@@ -10,8 +9,8 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
         article_id_queue = article_id_queue[0] + "-" + variation_value
     print("test: article_id_queue: " + article_id_queue)
     # queue position where procedure and station matches
-    c.execute("SELECT MIN(queue_pos) FROM article_queue WHERE article_id=(?) AND next_station!=(?)",
-              (article_id_queue, next_station,))
+    c.execute("SELECT MIN(queue_pos) FROM article_queue WHERE article_id=(?) AND next_station=(?)",
+              (article_id_queue, station,))
     in_queue = cursor.fetchone()[0]
     queue_pos = in_queue
     print("(StationSwapper) queue pos: " + str(queue_pos))
@@ -55,23 +54,32 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
                 connection.commit()
 
         if in_queue:
-            print("inqueueueueueueueueueueueue-------------------------------------------------")
+            print("inqueueueueueueueueueueueue--------------------################--------------")
+
             c.execute("UPDATE article_queue SET next_station=(?) WHERE queue_pos=(?)",
                       (next_station, queue_pos,))
             connection.commit()
             print(str(station) + " + " + str(next_station) + " + " + str(queue_pos))
-            c.execute("SELECT article_id FROM article_queue WHERE queue_pos=(?)",
-                      (queue_pos,))
-            article_id = c.fetchone()[0]
-            print(article_id)
+
+            if station == "01":
+                station_status = "QUEUED"
+            else:
+                station_status = station
+
             c.execute(
-                "SELECT MIN(order_item_id) FROM shop_info_table WHERE article_id LIKE (?) AND status_ident=(?)",
-                (article_id, station,))
-            order_item_id = c.fetchone()[0]
-            print(order_item_id)
+                "SELECT MIN(production_number) FROM shop_info_table WHERE status_ident=(?) AND article_id=(?)",
+                (station_status, article_id_queue,))
+            prod_nr = c.fetchone()[0]
+
+            #c.execute(
+            #    "SELECT MIN(order_item_id) FROM shop_info_table WHERE article_id LIKE (?) AND production_number=(?)",
+            #    (article_id, prod_nr,))
+            #order_item_id = c.fetchone()[0]
+            #print(order_item_id)
+
             c.execute(
-                "UPDATE shop_info_table SET status_ident=(?) WHERE order_item_id=(?)",
-                (next_station, order_item_id,))
+                "UPDATE shop_info_table SET status_ident=(?) WHERE production_number=(?)",
+                (next_station, prod_nr,))
             connection.commit()
 
     else:
@@ -79,20 +87,13 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
                   ("DONE", queue_pos,))
         connection.commit()
 
-        c.execute("SELECT article_id FROM article_queue WHERE queue_pos=(?)",
-                  (queue_pos,))
-        article_id = c.fetchone()
-        if article_id != None:
-            article_id = article_id[0]
+        c.execute(
+            "SELECT MIN(production_number) FROM shop_info_table WHERE article_id LIKE (?) AND status_ident=(?)",
+            (article_id_queue, station,))
+        prod_nr = c.fetchone()[0]
 
-        if article_id != None:
-            c.execute(
-                "SELECT MIN(order_item_id) FROM shop_info_table WHERE article_id LIKE (?) AND status_ident=(?)",
-                (article_id, station,))
-            order_item_id = c.fetchone()[0]
-
-            c.execute("UPDATE shop_info_table SET status_ident=(?) WHERE order_item_id=(?)", ("DONE", order_item_id,))
-            connection.commit()
+        c.execute("UPDATE shop_info_table SET status_ident=(?) WHERE production_number=(?)", ("DONE", prod_nr,))
+        connection.commit()
 
 
 def main(*args):
@@ -135,10 +136,6 @@ def main(*args):
                 break
             iterator += 1
 
-
-
-
-
         print("Datenbankoperation ausgeführt, nächste Station übergeben.")
 
         # committing the created table:
@@ -153,6 +150,7 @@ def main(*args):
     except IndexError:
         next_in_queue(connection, c, workflow_procedure_value, stations_value, stations_value, variation_value)
         return "no next station"
+
 
 #######################TEST
 # connection holds the connection to the database

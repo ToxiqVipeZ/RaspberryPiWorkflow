@@ -26,7 +26,7 @@ class WorkstationApp(object):
     PICTURE_TYPE = ".png"
 
     # global variables:
-    rfid_scanned = "0100102"
+    rfid_scanned = "0100101"
     article_id_global = 0
     station = 0
     operation = 0
@@ -341,7 +341,3 @@ if __name__ == '__main__':
         WorkstationApp()
     finally:
         Client.send(Client.DISCONNECT_MESSAGE)
-
-
-
-

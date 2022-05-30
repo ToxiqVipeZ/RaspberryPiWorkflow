@@ -9,9 +9,6 @@ MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
 MYSQL_DB = "wordpress"
-current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-
-
 SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
 
