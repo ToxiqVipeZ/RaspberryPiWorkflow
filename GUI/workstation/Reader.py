@@ -1,37 +1,33 @@
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
+from threading import Thread
 import time
-import os
 
-# Objekt mit Zugriff auf Methoden von SimpleMFRC522
-rfid = SimpleMFRC522()
-#wsa = WorkstationApp.WorkstationApp()
-GPIO.setwarnings(False)
+# Access object for SimpleMFRC522
 
 
 class Reader:
+    GPIO.setwarnings(False)
+    result = ""
+    rfid = ""
+    
     def __init__(self):
-        """
-        Initialisation method
-        :param rfid_init: saves the RFID on object creation or class call in rfid_scanned
-        """
-        #self.rfid_scanned = rfid_init
-        self.main()
+        self.result = "empty"
+        self.rfid = SimpleMFRC522()
 
-    def main(self):
+    def get_result(self):
+        return self.result
+    
+    def reset_result(self):
+        self.result = ""
+
+    def reader(self):
         try:
             print("Place tag..")
-            result = rfid.read()
-            print("Data: " + str(result[1]))
-            print("Sleeping 3s!")
+            self.result = self.rfid.read()[1][:7]
+            print("Data: " + str(self.result))
             time.sleep(1)
-            #print(str(result[1]))
-            return str(result[1])
-
-        except KeyboardInterrupt:
-            GPIO.cleanup()
 
         # finally wird benoetigt, da die GPIO Pins ansonsten belegt bleiben
         finally:
             GPIO.cleanup()
-

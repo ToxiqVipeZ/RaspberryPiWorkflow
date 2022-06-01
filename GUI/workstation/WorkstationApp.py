@@ -4,9 +4,9 @@ from threading import Thread
 import _tkinter
 import tkinter as tk
 from PIL import Image, ImageTk
-from Server import Client
-#from Reader import Reader
-#from Writer import Writer
+import Client
+from Writer import Writer
+from WorkstationHandler import WorkstationHandler
 
     #os.system('sudo apt-get update')
     #os.system('sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5')
@@ -17,18 +17,18 @@ class WorkstationApp:
     and shows related workflow steps.
     """
     # static global variables:
-    MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
+    MAIN_PATH_PRE = "/home/pi/Desktop/Fileserver/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
-    WINDOW_WIDTH = 1280
-    WINDOW_HEIGHT = 720
+    WINDOW_WIDTH = 1920
+    WINDOW_HEIGHT = 1080
     CONFIRM_BUTTON_DONE_TEXT = "Fertig"
     CONFIRM_BUTTON_RESTART_TEXT = "Neustart"
     CONFIRM_BUTTON_ABORT_TEXT = "Ausschuss"
     PICTURE_TYPE = ".png"
 
     # global variables:
-    rfid_scanned = "0500102"
+    rfid_scanned = ""
     article_id_global = 0
     station = 0
     operation = 0
@@ -38,8 +38,11 @@ class WorkstationApp:
     rfid_out_trigger = 0
     alternative_path = ""
     new_rfid = ""
-    scanning = True
-
+    scanned = False
+    rfid_reader_thread = Thread
+    main_thread = Thread
+    buttonTest_text = ""
+    thread_started = False
 
     def workflow_start(self, argument):
         """
@@ -63,15 +66,27 @@ class WorkstationApp:
         """
         Initialisation method
         """
-        rfid_thread = Thread(target=self.scanning)
-        rfid_thread.start()
+        #T1 = Thread(target=self.main()).start()
+        #T2 = Thread(target=self.scanning_rfid()).start()
         self.main()
 
-    def scanning(self):
-        while True:
-            print("test")
-            time.sleep(2)
+    def scanning_rfid(self):
+        work_handler = WorkstationHandler()
+        work_handler.start_op("reader_start")
+        self.rfid_scanned = work_handler.get_rfid()
+        work_handler.reset_rfid()
+        
+    def writing_rfid(self):
+        work_handler = WorkstationHandler()
+        work_handler.start_op("writer_start")
+        work_handler.reset_rfid()
 
+    def exec_after_scan(self):
+        if self.rfid_scanned != "":
+            self.rfid_readed(self.rfid_scanned)
+        else:
+            root.update()
+            root.after(100, self.exec_after_scan)
 
     def workflow_picture_resize(self, workflow_pictures):
         """
@@ -180,6 +195,10 @@ class WorkstationApp:
             if self.new_rfid != "no next station":
                 self.rfid_submit(root2)
             root2.destroy()
+            self.rfid_scanned = ""
+            root.after(1000, Thread(target=self.scanning_rfid).start())
+            root.after(1000, self.exec_after_scan)
+            
 
     def ausschuss_prozess(self, root2):
         """
@@ -188,7 +207,7 @@ class WorkstationApp:
         :param root2: the workflow window
         """
         self.set_progression_counter(0)
-        root2.destroy()
+        self.workflow_completed(root2)
 
     def button_switcher(self, button, status):
         """
@@ -223,18 +242,18 @@ class WorkstationApp:
         else:
             self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
             self.rfid_scanned = self.new_rfid + self.operation + self.variant
-            #1 self.rfid_writer(self.rfid_scanned)
+            print("END: " + self.rfid_scanned)
+            self.rfid_writer(self.rfid_scanned)
+
             # client disconnects from the server
         print("Der neue RFID-Präfix: " + self.new_rfid)
 
-    def rfid_reader(self):
-        #2 scanner = Reader()
-        #2 self.rfid_scanned = scanner.main()
-        self.workflow_start(self.rfid_scanned)
-        
+    def rfid_readed(self, rfid_scan):
+        self.workflow_start(rfid_scan)
+
+
     def rfid_writer(self, rfid_scanned):
-        #3 Writer(rfid_scanned)
-        pass
+        root.after(1000, Thread(target=self.writing_rfid).start())
 
     def second_window(self):
         """
@@ -311,6 +330,7 @@ class WorkstationApp:
         the main window, only showing and waiting for an RFID-chip to get read
         """
         try:
+            global root
             root = tk.Tk()
             width, height = root.winfo_screenwidth(), root.winfo_screenheight()
 
@@ -334,14 +354,9 @@ class WorkstationApp:
 
             root.geometry("%dx%d+0+0" % (width, height))
 
-            # buttonTest definition
-            buttonTest_text = tk.StringVar()
-            buttonTest_text.set("RFID einlesen")
-            buttonTest_btn = tk.Button(root, textvariable=buttonTest_text,
-                                       command=lambda: (self.rfid_reader()),
-                                       width=10, height=5, background="green")
-            buttonTest_btn.grid(column=1, row=0)
-
+            root.after(1000, Thread(target=self.scanning_rfid).start())
+            root.after(1000, self.exec_after_scan)
+            #root.after(5000, self.check_scan)
             # loop of the window - END!
             root.mainloop()
         finally:

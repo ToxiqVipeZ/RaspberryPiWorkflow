@@ -4,11 +4,13 @@ import time
 
 
 # Objekt mit Zugriff auf Methoden von SimpleMFRC522
-rfid = SimpleMFRC522()
-GPIO.setwarnings(False)
-newRFID = ""
+
 
 class Writer:
+    GPIO.setwarnings(False)
+    newRFID = ""
+    rfid = ""
+    
     def __init__(self, value):
         self.newRFID = str(value)
         self.main()
@@ -19,8 +21,9 @@ class Writer:
             print("Place tag..")
 
             rfid.write(input_text)
-            print("written. sleep 5 sec...")
-
+            print("written.")
+            
+            print(rfid.read()[1]+"x")
             time.sleep(1)
 
         except KeyboardInterrupt:
@@ -29,4 +32,3 @@ class Writer:
         # finally wird benötigt, da die GPIO Pins ansonsten belegt bleiben
         finally:
             GPIO.cleanup()
-
