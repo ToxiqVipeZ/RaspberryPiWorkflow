@@ -67,7 +67,6 @@ except ImportError:
     print("WorkstationHandler import failed, check for correct file location.")
 
 
-
 class WorkstationApp:
     """
     This class processes the RFID-Input from the RFID-Reader

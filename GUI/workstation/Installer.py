@@ -1,14 +1,22 @@
 import os
 import time
+import sys
 
-
+# autostart des Programms WorkstationApp hinzufügen
 class Installer:
-    def setup_network(self, address):
+    def __init__(self):
+        if sys.argv[1] == "setup_network":
+            self.Setup_Network(sys.argv[2])
+        elif sys.argv[1] == "setup_workstation":
+            self.Setup_Workstation()
+
+    def Setup_Network(self, address):
         os.system("sudo systemctl stop dhcpcd")
         os.system("sudo systemctl disable dhcpcd")
         write_netconfig = open("/etc/network/interfaces.d/eth0", "w")
         write_netconfig.write("auto eth0\n")
         write_netconfig.write("allow-hotplug eth0\n")
+        write_netconfig.write("iface eth0 inet static\n")
         write_netconfig.write("address " + address + "\n")
         write_netconfig.write("netmask 255.255.0.0")
         write_netconfig.write("gateway 169.254.0.1")
@@ -17,30 +25,63 @@ class Installer:
         write_netconfig.close()
         os.system("sudo systemctl restart networking")
         os.system("cat /etc/resolv.conf")
-        os.system("reboot")
+        print("\n################################\n"
+              "rebooting the system in 3s...\n"
+              "################################\n")
+        time.sleep(3)
+        os.system("sudo reboot")
 
-
-    def install(self):
+    def Setup_Workstation(self):
         try:
-            print("Set SPI to on \n chose [5 – Interfacing Options]  [P4 – SPI]  [YES]  [OK]  [Finish]")
-            time.sleep(3)
-            os.system("sudo raspi-config")
+            print("\n################################\n"
+                  "Setting raspi-config options...\n"
+                  "################################\n")
+            time.sleep(2)
+            os.system("sudo raspi-config nonint do_spi 0")
+            os.system("sudo raspi-config nonint do_vnc 0")
             os.system("lsmod | grep spi")
 
-            print("Installing os dependency's...")
+            print("\n################################\n"
+                  "Installing os dependency's...\n"
+                  "################################\n")
+            time.sleep(2)
             os.system("sudo apt-get update")
             os.system("sudo apt-get upgrade -y")
 
-            print("Installing library's....")
-            os.system("sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5")
+            print("\n################################\n"
+                  "Installing library's....\n"
+                  "################################\n")
+            time.sleep(2)
+            os.system("sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev libopenjp2-7 libtiff5")
 
-            print("Creating Fileserver link ...")
+            print("\n################################\n"
+                  "Creating Fileserver links ...\n"
+                  "################################\n")
+            time.sleep(2)
             os.system("mkdir /home/pi/Desktop/Fileserver")
             os.system("sudo mount -t cifs -o username=pi,password=raspberry "
                       "//169.254.0.2/WorkflowInstructions /home/pi/Desktop/Fileserver")
             os.system("sudo chmod -R 777 /home/pi/Desktop/Fileserver")
+
+            print("\n################################\n"
+                  "Fetching the WorkflowApp from the Fileserver\n"
+                  "################################\n")
+            os.system("mkdir /home/pi/WorkstationApp")
+            os.system("sudo mount -t cifs -o username=pi, password=raspberry "
+                      "//169.254.0.2/WorkflowInstructions/WorkstationApp /home/pi/WorkstationApp")
+            os.system("sudo chmod -R 777 /home/pi/WorkflowApp")
+
+            automount_fstab = open("/etc/fstab", "a")
+            automount_fstab.write("//169.254.0.2/WorkflowInstructions /home/pi/Desktop/Fileserver cifs "
+                                  "username=pi,password=raspberry 0 0\n")
+            automount_fstab.write("//169.254.0.2/WorkflowInstructions/WorkstationApp /home/pi/WorkstationApp cifs "
+                                  "username=pi,password=raspberry 0 0\n")
+            automount_fstab.close()
+
         except:
-            print("Check the base installation commands.")
+            print("\n################################\n"
+                  "Check the base installation commands.\n"
+                  "################################\n")
 
         try:
             import RPi.GPIO as GPIO
@@ -48,7 +89,9 @@ class Installer:
             os.system("ls /usr/local/lib/python3.9/dist-packages/mfrc522 | grep MFRC522")
             time.sleep(2)
         except ImportError:
-            print("Installing RFID packages...")
+            print("\n################################\n"
+                  "Installing RFID packages...\n"
+                  "################################\n")
             os.system("sudo apt-get -y install python3-dev python3-pip")
             os.system("sudo pip3 install spidev")
             os.system("sudo pip3 install mfrc522")
@@ -61,29 +104,38 @@ class Installer:
             from threading import Thread
             import socket
         except ImportError:
-            print("Baseimports are not working.")
+            print("\n################################\n"
+                  "Baseimports are not working.\n"
+                  "################################\n")
 
         try:
             import _tkinter
             import tkinter
             from PIL import Image, ImageTk
         except ImportError:
-            print("Installing tkinter packages...")
-            os.system("sudo apt-get install python3-pil python3-pil.imagetk")
+            print("\n################################\n"
+                  "Installing tkinter packages...\n"
+                  "################################\n")
+            os.system("sudo apt-get -y install python3-pil python3-pil.imagetk")
             import _tkinter
             import tkinter
             from PIL import Image, ImageTk
 
         try:
+            os.system("cd /home/pi/WorkflowApp")
             from modules import Client
             from modules.Writer import Writer
             from modules.Reader import Reader
         except:
-            print("module loading failed, check modules directory.")
+            print("\n################################\n"
+                  "module loading failed, check modules directory.\n"
+                  "################################\n")
 
-        print("Rebooting the system in 3s...")
-        time.sleep(3)
+        print("\n################################\n"
+              "Rebooting the system in 5s...\n"
+              "################################\n")
+        time.sleep(5)
         os.system("sudo reboot")
 
 if __name__ == "__main__":
-    Installer().install()
+    Installer()
