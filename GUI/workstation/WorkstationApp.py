@@ -1,15 +1,72 @@
-import os
-import time
-from threading import Thread
-import _tkinter
-import tkinter as tk
-from PIL import Image, ImageTk
-import Client
-from Writer import Writer
-from WorkstationHandler import WorkstationHandler
+"""
+Import list:
+    WorkstationApp:
+        import os
+        from threading import Thread
+        import _tkinter
+        import tkinter as tk
+        from PIL import Image, ImageTk
+        from modules import Client
+        from modules.WorkstationHandler import WorkstationHandler
+    WorkstationHandler:
+        import modules.Reader import Reader
+        from modules.Writer import Writer
+        from threading import Thread
+    Reader:
+        import RPi.GPIO as GPIO
+        from mfrc522 import SimpleMFRC522
+        from threading import Thread
+        import time
+    Writer:
+        import RPi.GPIO as GPIO
+        from mfrc522 import SimpleMFRC522
+        import time
+    Client:
+        import socket
 
-    #os.system('sudo apt-get update')
-    #os.system('sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5')
+Other OS related:
+    Fileserver link:
+        mkdir /home/pi/Desktop/Fileserver
+        sudo mount -t cifs -o username=pi,password=raspberry //169.254.0.2/WorkflowInstructions /home/pi/Desktop/Fileserver
+        sudo chmod -R 777 /home/pi/Desktop/Fileserver
+        
+        os.system("sudo apt-get update")
+        os.system("sudo apt-get upgrade")
+        os.system("sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5")
+        
+"""
+try:
+    import os
+    from threading import Thread
+except ImportError:
+    print("Baseimports failed - check os and threading.")
+    
+try:
+    import _tkinter
+except ImportError:
+    print("_tkinter import failed.")
+    
+try:
+    import tkinter as tk
+except ImportError:
+    print("tkinter import failed.")
+
+try:
+    from PIL import Image, ImageTk
+except ImportError:
+    print("PIL import failed.")
+    
+try:
+    from modules import Client
+except ImportError:
+    print("Client import failed, check for correct file location.")
+
+try:
+    from modules.WorkstationHandler import WorkstationHandler
+except ImportError:
+    print("WorkstationHandler import failed, check for correct file location.")
+
+
 
 class WorkstationApp:
     """
@@ -20,8 +77,8 @@ class WorkstationApp:
     MAIN_PATH_PRE = "/home/pi/Desktop/Fileserver/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
-    WINDOW_WIDTH = 1920
-    WINDOW_HEIGHT = 1080
+    WINDOW_WIDTH = 1280
+    WINDOW_HEIGHT = 720
     CONFIRM_BUTTON_DONE_TEXT = "Fertig"
     CONFIRM_BUTTON_RESTART_TEXT = "Neustart"
     CONFIRM_BUTTON_ABORT_TEXT = "Ausschuss"
@@ -38,12 +95,9 @@ class WorkstationApp:
     rfid_out_trigger = 0
     alternative_path = ""
     new_rfid = ""
-    scanned = False
-    rfid_reader_thread = Thread
-    main_thread = Thread
-    buttonTest_text = ""
-    thread_started = False
-
+    written_flag = False
+    scan_flag = False
+    
     def workflow_start(self, argument):
         """
         Starts the workflow-steps
@@ -71,15 +125,21 @@ class WorkstationApp:
         self.main()
 
     def scanning_rfid(self):
+        #self.rfid_scanned = ""
+        self.scan_flag = True
         work_handler = WorkstationHandler()
         work_handler.start_op("reader_start")
         self.rfid_scanned = work_handler.get_rfid()
         work_handler.reset_rfid()
+        self.written_flag = False
+        self.scan_flag = False
         
-    def writing_rfid(self):
+    def writing_rfid(self, rfid_scanned):
         work_handler = WorkstationHandler()
-        work_handler.start_op("writer_start")
+        work_handler.start_op("writer_start", rfid_scanned)
         work_handler.reset_rfid()
+        self.written_flag = True
+        self.rfid_scanned = ""
 
     def exec_after_scan(self):
         if self.rfid_scanned != "":
@@ -124,6 +184,8 @@ class WorkstationApp:
         except _tkinter.TclError:
             self.progression_counter = 0
             print("second screen destroyed, returning to root screen(RFID-IN)")
+            root.after(3000, Thread(target=self.scanning_rfid).start())
+            root.after(5000, self.exec_after_scan)
 
     def folder_progressor(self):
         """
@@ -140,7 +202,7 @@ class WorkstationApp:
             if file_name.endswith("_v"):
                 self.picture_count -= 1
 
-    def picture_progressor(self):
+    def picture_progressor(self, root2):
         """
         - progresses trough the pictures inside a given folder
         - if a file is tagged by "_v", it will browse the folder with the same number
@@ -182,23 +244,37 @@ class WorkstationApp:
             elif self.progression_counter == self.picture_count:
                 print("Das war das letzte Bild")
                 return str(self.progression_counter) + self.PICTURE_TYPE
+                self.workflow_completed(root2)
 
         except FileNotFoundError:
+            self.scan_flag = True
             print("Datei nicht gefunden, bitte überprüfen ob Pfad angelegt ist.")
+            root.after(3000, Thread(target=self.scanning_rfid).start())
+            root.after(5000, self.exec_after_scan)
 
     def workflow_completed(self, root2):
         """
         destroys the workflow window, when "Fertig" is pressed after the last picture
         :param root2: the workflow window
         """
-        if self.progression_counter == self.picture_count:
+        if self.progression_counter >= self.picture_count:
             if self.new_rfid != "no next station":
+                self.button_switcher(button1_btn, "disabled")
                 self.rfid_submit(root2)
-            root2.destroy()
+                print("written_flag " + str(self.written_flag))
+                if not self.written_flag:
+                    while not self.written_flag:
+                        root2.update()
+                    root2.destroy()
+                    self.written_flag = False
+                else:
+                    print("RFID already written!")
+                    root2.destroy()
+                    self.written_flag = False
+                
             self.rfid_scanned = ""
-            root.after(1000, Thread(target=self.scanning_rfid).start())
-            root.after(1000, self.exec_after_scan)
-            
+            #root.after(3000, Thread(target=self.scanning_rfid).start())
+            #root.after(5000, self.exec_after_scan)
 
     def ausschuss_prozess(self, root2):
         """
@@ -206,8 +282,12 @@ class WorkstationApp:
         resets the progression counter
         :param root2: the workflow window
         """
-        self.set_progression_counter(0)
         self.workflow_completed(root2)
+        root2.destroy()
+        self.set_progression_counter(0)
+        if self.scan_flag == False:
+            root.after(3000, Thread(target=self.scanning_rfid).start())
+            root.after(5000, self.exec_after_scan)
 
     def button_switcher(self, button, status):
         """
@@ -240,10 +320,13 @@ class WorkstationApp:
             self.workflow_completed(root2)
         # if there is a next station:
         else:
-            self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
-            self.rfid_scanned = self.new_rfid + self.operation + self.variant
-            print("END: " + self.rfid_scanned)
-            self.rfid_writer(self.rfid_scanned)
+            try:
+                self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
+                self.rfid_scanned = self.new_rfid + self.operation + self.variant
+                print("END: " + self.rfid_scanned)
+                self.rfid_writer(self.rfid_scanned)
+            finally:
+                Client.send(Client.DISCONNECT_MESSAGE)
 
             # client disconnects from the server
         print("Der neue RFID-Präfix: " + self.new_rfid)
@@ -253,7 +336,8 @@ class WorkstationApp:
 
 
     def rfid_writer(self, rfid_scanned):
-        root.after(1000, Thread(target=self.writing_rfid).start())
+        root.after(1000, Thread(target=self.writing_rfid(rfid_scanned)).start())
+        root.after(1500)
 
     def second_window(self):
         """
@@ -273,7 +357,7 @@ class WorkstationApp:
             canvas.grid(columnspan=3, rowspan=3)
 
             # image definition as a image
-            workflow_picture = Image.open(self.main_path + self.picture_progressor())
+            workflow_picture = Image.open(self.main_path + self.picture_progressor(root2))
             # resizing the picture
             workflow_picture = self.workflow_picture_resize(workflow_picture)
             # defining image as a photo image for tkinter
@@ -294,7 +378,7 @@ class WorkstationApp:
             button1_text.set(self.CONFIRM_BUTTON_DONE_TEXT)
             button1_btn = tk.Button(root2, textvariable=button1_text,
                                     command=lambda: (self.workflow_completed(root2),
-                                                     self.change_picture(root2, self.picture_progressor())),
+                                                     self.change_picture(root2, self.picture_progressor(root2))),
                                     width=10, height=5, background="green")
             button1_btn.grid(column=2, row=0)
 
@@ -303,7 +387,7 @@ class WorkstationApp:
             button2_text.set(self.CONFIRM_BUTTON_RESTART_TEXT)
             button2_btn = tk.Button(root2, textvariable=button2_text,
                                     command=lambda: (self.set_progression_counter(0),
-                                                     self.change_picture(root2, self.picture_progressor()),
+                                                     self.change_picture(root2, self.picture_progressor(root2)),
                                                      self.button_switcher(button1_btn, "normal")),
                                     width=10, height=5, background="yellow")
             button2_btn.grid(column=2, row=1)
@@ -324,6 +408,8 @@ class WorkstationApp:
             root2.mainloop()
         except FileNotFoundError:
             print("Datei nicht gefunden, bitte überprüfen ob Pfad angelegt ist.")
+            root.after(3000, Thread(target=self.scanning_rfid).start())
+            root.after(5000, self.exec_after_scan)
 
     def main(self):
         """
@@ -363,5 +449,5 @@ class WorkstationApp:
             Client.send(Client.DISCONNECT_MESSAGE)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     WorkstationApp()

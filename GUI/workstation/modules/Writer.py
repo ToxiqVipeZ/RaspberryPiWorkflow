@@ -1,7 +1,17 @@
-import RPi.GPIO as GPIO
-from mfrc522 import SimpleMFRC522
-import time
-
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print("GPIO import failed.")
+    
+try:
+    from mfrc522 import SimpleMFRC522
+except ImportError:
+    print("SimpleMFRC522 import failed.")
+    
+try:
+    import time
+except ImportError:
+    print("time import failed.")
 
 # Objekt mit Zugriff auf Methoden von SimpleMFRC522
 
@@ -13,17 +23,17 @@ class Writer:
     
     def __init__(self, value):
         self.newRFID = str(value)
+        self.rfid = SimpleMFRC522()
         self.main()
 
     def main(self):
         try:
             input_text = self.newRFID
-            print("Place tag..")
+            print("(Writer) Place tag: ")
 
-            rfid.write(input_text)
-            print("written.")
-            
-            print(rfid.read()[1]+"x")
+            self.rfid.write(input_text)
+            print("Written: " + self.rfid.read()[1][7:])
+
             time.sleep(1)
 
         except KeyboardInterrupt:

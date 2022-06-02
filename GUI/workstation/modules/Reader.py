@@ -1,7 +1,22 @@
-import RPi.GPIO as GPIO
-from mfrc522 import SimpleMFRC522
-from threading import Thread
-import time
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print("GPIO import failed.")
+    
+try:
+    from mfrc522 import SimpleMFRC522
+except ImportError:
+    print("SimpleMFRC522 import failed.")
+    
+try:
+    import time
+except ImportError:
+    print("time import failed.")
+    
+try:
+    from threading import Thread
+except ImportError:
+    print("Thread import failed.")
 
 # Access object for SimpleMFRC522
 

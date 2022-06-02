@@ -1,10 +1,22 @@
-import Reader
-from Writer import Writer
-from threading import Thread
+try:
+    from modules.Reader import Reader
+except ImportError:
+    print("Reader import failed, check correct file location.")
+    
+try:
+    from modules.Writer import Writer
+except ImportError:
+    print("Reader import failed, check correct file location.")
+    
+try:
+    from threading import Thread
+except ImportError:
+    print("Thread import failed.")
 
 
 class WorkstationHandler:
     rfid_scanned = None
+    written_flag = False
 
     def __init__(self):
         self.rfid_scan = ""
@@ -14,7 +26,7 @@ class WorkstationHandler:
         return self.rfid_scanned
 
     def reading_op(self):
-        read = Reader.Reader()
+        read = Reader()
         read.reader()
         self.rfid_scanned = read.get_result()
         read.reset_result()
@@ -24,6 +36,7 @@ class WorkstationHandler:
 
     def writing_op(self, value):
         Writer(value)
+        self.written_flag = True
 
     def start_op(self, op, *args):
         if op == "reader_start":
@@ -31,7 +44,7 @@ class WorkstationHandler:
             thread_reader.start()
 
         elif op == "writer_start":
-            thread_writer = Thread(target=self.writing_op(args[1]))
+            thread_writer = Thread(target=self.writing_op(args[0]))
             thread_writer.start()
             
         elif op == "reset_rfid":
