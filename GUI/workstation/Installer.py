@@ -164,8 +164,9 @@ class Installer:
             time.sleep(2)
 
             os.system("cd /home/pi/Desktop")
-            os.system("echo \"#!/bin/bash\nsleep 10\ncd /home/pi/WorkstationApp\npython3 WorkstationApp.py\ncd /\""
-                      " > WorkstationLauncher.sh")
+            os.system("echo \"#!/bin/bash \nsleep 10 \ncd /home/pi/WorkstationApp \npython3 WorkstationApp.py"
+                      "\ncd /\" > WorkstationLauncher.sh")
+            os.system("sudo chmod 755 WorkstationLauncher.sh")
 
             autostart_workstation_app = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
             autostart_workstation_app.write("@lxterminal -e bash /home/pi/Desktop/WorkstationLauncher.sh")

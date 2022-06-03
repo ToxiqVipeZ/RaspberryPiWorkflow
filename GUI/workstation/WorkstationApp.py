@@ -33,19 +33,19 @@ Other OS related:
         os.system("sudo apt-get update")
         os.system("sudo apt-get upgrade")
         os.system("sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5")
-        
 """
+
 try:
     import os
     from threading import Thread
 except ImportError:
     print("Baseimports failed - check os and threading.")
-    
+
 try:
     import _tkinter
 except ImportError:
     print("_tkinter import failed.")
-    
+
 try:
     import tkinter as tk
 except ImportError:
@@ -55,7 +55,7 @@ try:
     from PIL import Image, ImageTk
 except ImportError:
     print("PIL import failed.")
-    
+
 try:
     from modules import Client
 except ImportError:
@@ -96,7 +96,7 @@ class WorkstationApp:
     new_rfid = ""
     written_flag = False
     scan_flag = False
-    
+
     def workflow_start(self, argument):
         """
         Starts the workflow-steps
@@ -124,15 +124,15 @@ class WorkstationApp:
         self.main()
 
     def scanning_rfid(self):
-        #self.rfid_scanned = ""
         self.scan_flag = True
+        self.rfid_scanned = ""
         work_handler = WorkstationHandler()
         work_handler.start_op("reader_start")
         self.rfid_scanned = work_handler.get_rfid()
         work_handler.reset_rfid()
         self.written_flag = False
         self.scan_flag = False
-        
+
     def writing_rfid(self, rfid_scanned):
         work_handler = WorkstationHandler()
         work_handler.start_op("writer_start", rfid_scanned)
@@ -190,16 +190,17 @@ class WorkstationApp:
         """
         progresses trough the folders and sets the amount of pictures in given folder
         """
-        # putting all filenames from the main_path direction into file_names
-        file_names = os.listdir(self.main_path)
-        # setting the amount of pictures to progress trough based on the filenames
-        self.set_picture_count(len(file_names))
+        if self.rfid_scanned != "no next station":
+            # putting all filenames from the main_path direction into file_names
+            file_names = os.listdir(self.main_path)
+            # setting the amount of pictures to progress trough based on the filenames
+            self.set_picture_count(len(file_names))
 
-        # looking, which of the file_names are ending with a "_v" and exclude them from picture count
-        for file_name in file_names:
-            print(os.path.abspath(os.path.join(self.main_path, file_name)), sep="\n")
-            if file_name.endswith("_v"):
-                self.picture_count -= 1
+            # looking, which of the file_names are ending with a "_v" and exclude them from picture count
+            for file_name in file_names:
+                print(os.path.abspath(os.path.join(self.main_path, file_name)), sep="\n")
+                if file_name.endswith("_v"):
+                    self.picture_count -= 1
 
     def picture_progressor(self, root2):
         """
@@ -209,41 +210,42 @@ class WorkstationApp:
         :return: the next picture in folder
         """
         try:
-            alternative = ""
-            # saving all filenames
-            file_names = os.listdir(self.main_path)
-            print(self.variant)
-            # looking if progression counter is not at the last picture to increment it
-            if self.progression_counter != self.picture_count:
-                self.progression_counter += 1
+            if self.rfid_scanned != "no next station":
+                alternative = ""
+                # saving all filenames
+                file_names = os.listdir(self.main_path)
+                print(self.variant)
+                # looking if progression counter is not at the last picture to increment it
+                if self.progression_counter != self.picture_count:
+                    self.progression_counter += 1
 
-                # looking if there is a variation number given
-                if self.variant != "00":
-                    alternative = str(self.progression_counter) + self.PICTURE_TYPE
-                    alternative = alternative.replace("/", "\\")
+                    # looking if there is a variation number given
+                    if self.variant != "00":
+                        alternative = str(self.progression_counter) + self.PICTURE_TYPE
+                        alternative = alternative.replace("/", "\\")
 
-                    # looking if it is needed to go into a variation folder
-                    if (alternative not in file_names):
-                        return str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
-                    elif (alternative in file_names):
-                        return str(self.progression_counter) + self.PICTURE_TYPE
+                        # looking if it is needed to go into a variation folder
+                        if (alternative not in file_names):
+                            return str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
+                        elif (alternative in file_names):
+                            return str(self.progression_counter) + self.PICTURE_TYPE
 
-                # looking if there is no variation number given:
-                elif self.variant == "00":
-                    alternative = str(self.progression_counter) + self.PICTURE_TYPE
-                    alternative = alternative.replace("/", "\\")
+                    # looking if there is no variation number given:
+                    elif self.variant == "00":
+                        alternative = str(self.progression_counter) + self.PICTURE_TYPE
+                        alternative = alternative.replace("/", "\\")
 
-                    # if no variation number, then the default picture will be given back
-                    if (alternative not in file_names):
-                        return str(self.progression_counter) +"_v" + self.PICTURE_TYPE
-                    elif (alternative in file_names):
-                        return str(self.progression_counter) + self.PICTURE_TYPE
+                        # if no variation number, then the default picture will be given back
+                        if (alternative not in file_names):
+                            return str(self.progression_counter) +"_v" + self.PICTURE_TYPE
+                        elif (alternative in file_names):
+                            return str(self.progression_counter) + self.PICTURE_TYPE
 
-            # looking if the progression counter is at the last picture
-            elif self.progression_counter == self.picture_count:
-                print("Das war das letzte Bild")
-                return str(self.progression_counter) + self.PICTURE_TYPE
-                self.workflow_completed(root2)
+                # looking if the progression counter is at the last picture
+                elif self.progression_counter == self.picture_count:
+                    print("Das war das letzte Bild")
+                    self.workflow_completed(root2)
+                    return str(self.progression_counter) + self.PICTURE_TYPE
 
         except FileNotFoundError:
             self.scan_flag = True
@@ -270,7 +272,7 @@ class WorkstationApp:
                     print("RFID already written!")
                     root2.destroy()
                     self.written_flag = False
-                
+
             self.rfid_scanned = ""
             #root.after(3000, Thread(target=self.scanning_rfid).start())
             #root.after(5000, self.exec_after_scan)
