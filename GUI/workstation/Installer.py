@@ -14,6 +14,7 @@ class Installer:
     def test_connection(self):
         try:
             socket.create_connection(("Google.de", 80))
+            return True
         except OSError:
             return False
 
