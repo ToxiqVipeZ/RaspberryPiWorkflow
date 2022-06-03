@@ -148,7 +148,7 @@ class Installer:
             from PIL import Image, ImageTk
 
         try:
-            os.system("cd /home/pi/WorkflowApp")
+            os.system("cd /home/pi/WorkstationApp")
             from modules import Client
             from modules.Writer import Writer
             from modules.Reader import Reader
