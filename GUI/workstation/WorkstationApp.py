@@ -73,7 +73,7 @@ class WorkstationApp:
     and shows related workflow steps.
     """
     # static global variables:
-    MAIN_PATH_PRE = "/home/pi/Fileserver/"
+    MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
     WINDOW_WIDTH = 1280
