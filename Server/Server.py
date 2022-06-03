@@ -31,7 +31,7 @@ class Server:
         workflow_procedure = msg[2:5]
         variation = msg[5:]
 
-        # passing the information to the stationSwapper, which gives back the next statin
+        # passing the information to the stationSwapper, which gives back the next station
         next_station = StationSwapper.main(workflow_procedure, station, variation)
 
         # sending the next station back to the client

@@ -5,8 +5,7 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
     c = cursor
     c.execute("SELECT article_id FROM article_procedure_table WHERE procedure=(?)", (procedure,))
     article_id_queue = c.fetchone()
-    if article_id_queue != None:
-        article_id_queue = article_id_queue[0] + "-" + variation_value
+    article_id_queue = article_id_queue[0] + "-" + variation_value
     print("test: article_id_queue: " + article_id_queue)
     # queue position where procedure and station matches
     c.execute("SELECT MIN(queue_pos) FROM article_queue WHERE article_id=(?) AND next_station=(?)",
