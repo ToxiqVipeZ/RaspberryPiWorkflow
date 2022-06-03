@@ -1,14 +1,21 @@
 import os
+import socket
 import time
 import sys
 
-# autostart des Programms WorkstationApp hinzufügen
+
 class Installer:
     def __init__(self):
         if sys.argv[1] == "setup_network":
             self.Setup_Network(sys.argv[2])
         elif sys.argv[1] == "setup_workstation":
             self.Setup_Workstation()
+
+    def test_connection(self):
+        try:
+            socket.create_connection(("Google.de", 80))
+        except OSError:
+            return False
 
     def Setup_Network(self, address):
         os.system("sudo systemctl stop dhcpcd")
@@ -25,13 +32,29 @@ class Installer:
         write_netconfig.close()
         os.system("sudo systemctl restart networking")
         os.system("cat /etc/resolv.conf")
+
         print("\n################################\n"
-              "rebooting the system in 3s...\n"
+              "Press \"Y\" to reboot. It's necessary.\n"
               "################################\n")
-        time.sleep(3)
-        os.system("sudo reboot")
+        confirmation = input()
+        if confirmation != "Y":
+            while confirmation != "Y":
+                print("\n################################\n"
+                      "Press \"Y\" to reboot. It's necessary.\n"
+                      "################################\n")
+                confirmation = input()
+        if confirmation == "Y":
+            print("\n################################\n"
+                  "rebooting the system in 3s...\n"
+                  "################################\n")
+            time.sleep(3)
+            os.system("sudo reboot")
 
     def Setup_Workstation(self):
+        while not self.test_connection():
+            print("sleeping for 3s .. retrying internet connection ..")
+            time.sleep(3)
+
         try:
             print("\n################################\n"
                   "Setting raspi-config options...\n"
@@ -39,7 +62,9 @@ class Installer:
             time.sleep(2)
             os.system("sudo raspi-config nonint do_spi 0")
             os.system("sudo raspi-config nonint do_vnc 0")
+            os.system("sudo raspi-config nonint do_ssh 0")
             os.system("lsmod | grep spi")
+            print("\n")
 
             print("\n################################\n"
                   "Installing os dependency's...\n"
@@ -58,21 +83,21 @@ class Installer:
                   "Creating Fileserver links ...\n"
                   "################################\n")
             time.sleep(2)
-            os.system("mkdir /home/pi/Desktop/Fileserver")
+            os.system("mkdir /home/pi/Fileserver")
             os.system("sudo mount -t cifs -o username=pi,password=raspberry "
-                      "//169.254.0.2/WorkflowInstructions /home/pi/Desktop/Fileserver")
-            os.system("sudo chmod -R 777 /home/pi/Desktop/Fileserver")
+                      "//169.254.0.2/WorkflowInstructions /home/pi/Fileserver")
+            os.system("sudo chmod -R 755 /home/pi/Fileserver")
 
             print("\n################################\n"
-                  "Fetching the WorkflowApp from the Fileserver\n"
+                  "Fetching the WorkstationApp from the Fileserver\n"
                   "################################\n")
             os.system("mkdir /home/pi/WorkstationApp")
-            os.system("sudo mount -t cifs -o username=pi, password=raspberry "
+            os.system("sudo mount -t cifs -o username=pi,password=raspberry "
                       "//169.254.0.2/WorkflowInstructions/WorkstationApp /home/pi/WorkstationApp")
-            os.system("sudo chmod -R 777 /home/pi/WorkflowApp")
+            os.system("sudo chmod -R 755 /home/pi/WorkstationApp")
 
             automount_fstab = open("/etc/fstab", "a")
-            automount_fstab.write("//169.254.0.2/WorkflowInstructions /home/pi/Desktop/Fileserver cifs "
+            automount_fstab.write("//169.254.0.2/WorkflowInstructions /home/pi/Fileserver cifs "
                                   "username=pi,password=raspberry 0 0\n")
             automount_fstab.write("//169.254.0.2/WorkflowInstructions/WorkstationApp /home/pi/WorkstationApp cifs "
                                   "username=pi,password=raspberry 0 0\n")
@@ -131,11 +156,41 @@ class Installer:
                   "module loading failed, check modules directory.\n"
                   "################################\n")
 
+        try:
+            print("\n################################\n"
+                  "Setup of autonomic WorkstationApp start at launch...\n"
+                  "################################\n")
+            time.sleep(2)
+
+            os.system("cd /home/pi/Desktop")
+            os.system("echo \"#!/bin/bash\nsleep 10\ncd /home/pi/WorkstationApp\npython3 WorkstationApp.py\ncd /\""
+                      " > WorkstationLauncher.sh")
+
+            autostart_workstation_app = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
+            autostart_workstation_app.write("@lxterminal -e bash /home/pi/Desktop/WorkstationLauncher.sh")
+            autostart_workstation_app.close()
+        except:
+            print("\n################################\n"
+                  "Setup of autonomic WorkstationApp start at launch failed.\n"
+                  "################################\n")
+
         print("\n################################\n"
-              "Rebooting the system in 5s...\n"
+              "Press \"Y\" to reboot. It's necessary.\n"
               "################################\n")
-        time.sleep(5)
-        os.system("sudo reboot")
+        confirmation = input()
+
+        if confirmation != "Y":
+            print("\n################################\n"
+                  "Press \"Y\" to reboot. It's necessary.\n"
+                  "################################\n")
+            confirmation = input()
+
+        elif confirmation == "Y":
+            print("\n################################\n"
+                  "Rebooting the system in 5s...\n"
+                  "################################\n")
+            time.sleep(5)
+            os.system("sudo reboot")
 
 if __name__ == "__main__":
     Installer()
