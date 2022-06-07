@@ -1,11 +1,11 @@
 try:
-    from modules.Reader import Reader
+    from Reader import Reader
 except ImportError:
     print("Reader import failed, check correct file location.")
     from Reader import Reader
     
 try:
-    from modules.Writer import Writer
+    from Writer import Writer
 except ImportError:
     print("Reader import failed, check correct file location.")
     from Writer import Writer

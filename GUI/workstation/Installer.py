@@ -94,13 +94,13 @@ class Installer:
                   "################################\n")
             os.system("mkdir /home/pi/WorkstationApp")
             os.system("sudo mount -t cifs -o username=pi,password=raspberry "
-                      "//169.254.0.2/WorkflowInstructions/WorkstationApp /home/pi/WorkstationApp")
+                      "//169.254.0.2/WorkstationApp /home/pi/WorkstationApp")
             os.system("sudo chmod -R 755 /home/pi/WorkstationApp")
 
             automount_fstab = open("/etc/fstab", "a")
             automount_fstab.write("//169.254.0.2/WorkflowInstructions /home/pi/WorkflowInstructions cifs "
                                   "username=pi,password=raspberry 0 0\n")
-            automount_fstab.write("//169.254.0.2/WorkflowInstructions/WorkstationApp /home/pi/WorkstationApp cifs "
+            automount_fstab.write("//169.254.0.2/WorkstationApp /home/pi/WorkstationApp cifs "
                                   "username=pi,password=raspberry 0 0\n")
             automount_fstab.close()
 
@@ -163,8 +163,8 @@ class Installer:
                   "################################\n")
             time.sleep(2)
 
-            os.system("cd /home/pi/WorkstationApp")
-            os.system("echo \"#!/bin/bash \nsleep 10 \ncd /home/pi/WorkstationApp \npython3 WorkstationApp.py"
+            os.system("cd /home/pi/WorkstationApp/")
+            os.system("echo \"#!/bin/bash\nsleep 10\ncd /home/pi/WorkstationApp\npython3 WorkstationApp.py"
                       "\ncd /\" > WorkstationLauncher.sh")
             os.system("sudo chmod 755 WorkstationLauncher.sh")
 
@@ -172,16 +172,13 @@ class Installer:
             autostart_workstation_app.write("@lxterminal -e bash /home/pi/WorkstationApp/WorkstationLauncher.sh")
             autostart_workstation_app.close()
 
-            os.system("cd /home/pi/Desktop")
+            os.system("cd /home/pi/Desktop/")
             os.system("echo \"[Desktop Entry]\n"
                       "Type=Application\n"
                       "Name=WorkstationApp\n"
                       "Terminal=true\n"
                       "Exec=/home/pi/WorkstationApp/WorkstationLauncher.sh\n"
-                      "Icon=/home/pi/WorkstationApp/Logos/desktoplogo.png\n\"")
-            desktop_workstation_app = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
-            desktop_workstation_app.write("@lxterminal -e bash /home/pi/WorkstationApp/WorkstationLauncher.sh")
-            desktop_workstation_app.close()
+                      "Icon=/home/pi/WorkstationApp/Logos/desktoplogo.png\n\" > WorkstationApp.desktop")
 
         except:
             print("\n################################\n"
