@@ -148,16 +148,6 @@ class Installer:
             from PIL import Image, ImageTk
 
         try:
-            os.system("cd /home/pi/WorkstationApp")
-            from modules import Client
-            from modules.Writer import Writer
-            from modules.Reader import Reader
-        except:
-            print("\n################################\n"
-                  "module loading failed, check modules directory.\n"
-                  "################################\n")
-
-        try:
             print("\n################################\n"
                   "Setup of autonomic WorkstationApp start at launch...\n"
                   "################################\n")
@@ -165,8 +155,8 @@ class Installer:
 
             os.system("cd /home/pi/WorkstationApp/")
             os.system("echo \"#!/bin/bash\nsleep 10\ncd /home/pi/WorkstationApp\npython3 WorkstationApp.py"
-                      "\ncd /\" > WorkstationLauncher.sh")
-            os.system("sudo chmod 755 WorkstationLauncher.sh")
+                      "\ncd /\" > /home/pi/WorkstationApp/WorkstationLauncher.sh")
+            os.system("sudo chmod 755 /home/pi/WorkstationApp/WorkstationLauncher.sh")
 
             autostart_workstation_app = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
             autostart_workstation_app.write("@lxterminal -e bash /home/pi/WorkstationApp/WorkstationLauncher.sh")
@@ -178,7 +168,7 @@ class Installer:
                       "Name=WorkstationApp\n"
                       "Terminal=true\n"
                       "Exec=/home/pi/WorkstationApp/WorkstationLauncher.sh\n"
-                      "Icon=/home/pi/WorkstationApp/Logos/desktoplogo.png\n\" > WorkstationApp.desktop")
+                      "Icon=/home/pi/WorkstationApp/Logos/desktoplogo.png\n\" > /home/pi/Desktop/WorkstationApp.desktop")
 
         except:
             print("\n################################\n"
