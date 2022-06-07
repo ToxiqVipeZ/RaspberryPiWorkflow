@@ -134,11 +134,12 @@ class WorkstationApp:
         self.scan_flag = False
 
     def writing_rfid(self, rfid_scanned):
+        self.written_flag = True
         work_handler = WorkstationHandler()
         work_handler.start_op("writer_start", rfid_scanned)
         work_handler.reset_rfid()
-        self.written_flag = True
         self.rfid_scanned = ""
+        self.written_flag = False
 
     def exec_after_scan(self):
         if self.rfid_scanned != "":
@@ -260,23 +261,19 @@ class WorkstationApp:
         """
         if self.progression_counter >= self.picture_count:
             if self.new_rfid != "no next station":
-                self.button_switcher(button1_btn, "disabled")
                 root2.update()
                 self.rfid_submit(root2)
                 print("written_flag " + str(self.written_flag))
-                if not self.written_flag:
-                    while not self.written_flag:
+                if self.written_flag:
+                    while self.written_flag:
                         root2.update()
                     root2.destroy()
-                    self.written_flag = False
                 else:
                     print("RFID already written!")
                     root2.destroy()
                     self.written_flag = False
-
+                    self.rfid_scanned = ""
             self.rfid_scanned = ""
-            #root.after(3000, Thread(target=self.scanning_rfid).start())
-            #root.after(5000, self.exec_after_scan)
 
     def ausschuss_prozess(self, root2):
         """
@@ -326,13 +323,13 @@ class WorkstationApp:
                 self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
                 self.rfid_scanned = self.new_rfid + self.operation + self.variant
                 print("END: " + self.rfid_scanned)
-                self.rfid_writer(self.rfid_scanned)
+                root2.after(500, Thread(target=self.rfid_writer(self.rfid_scanned)).start())
                 self.new_rfid = ""
             finally:
+                # client disconnects from the server
                 Client.send(Client.DISCONNECT_MESSAGE)
 
-            # client disconnects from the server
-        print("Der neue RFID-Präfix: " + self.new_rfid)
+        print("Received RFID: " + self.rfid_scanned)
 
     def rfid_readed(self, rfid_scan):
         self.workflow_start(rfid_scan)
