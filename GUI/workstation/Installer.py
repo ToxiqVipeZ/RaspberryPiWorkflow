@@ -170,6 +170,8 @@ class Installer:
                       "Exec=/home/pi/WorkstationApp/WorkstationLauncher.sh\n"
                       "Icon=/home/pi/WorkstationApp/Logos/desktoplogo.png\n\" > /home/pi/Desktop/WorkstationApp.desktop")
 
+            os.system("sudo rm /etc/xdg/lxsession/LXDE-pi/sshpwd.sh")
+
         except:
             print("\n################################\n"
                   "Setup of autonomic WorkstationApp start at launch failed.\n"
