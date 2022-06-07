@@ -85,14 +85,12 @@ class WorkstationApp:
 
     # global variables:
     rfid_scanned = ""
-    article_id_global = 0
     station = 0
     operation = 0
     variant = 0
     main_path = "0"
     progression_counter = 0
-    rfid_out_trigger = 0
-    alternative_path = ""
+    picture_count = 0
     new_rfid = ""
     written_flag = False
     scan_flag = False
@@ -102,6 +100,8 @@ class WorkstationApp:
         Starts the workflow-steps
         :param argument: given rfid-id
         """
+        self.set_progression_counter(0)
+        self.set_picture_count(0)
         self.rfid_scanned = argument
         article_id = argument
         self.station = article_id[0:2]
@@ -261,6 +261,7 @@ class WorkstationApp:
         if self.progression_counter >= self.picture_count:
             if self.new_rfid != "no next station":
                 self.button_switcher(button1_btn, "disabled")
+                root2.update()
                 self.rfid_submit(root2)
                 print("written_flag " + str(self.written_flag))
                 if not self.written_flag:
@@ -326,6 +327,7 @@ class WorkstationApp:
                 self.rfid_scanned = self.new_rfid + self.operation + self.variant
                 print("END: " + self.rfid_scanned)
                 self.rfid_writer(self.rfid_scanned)
+                self.new_rfid = ""
             finally:
                 Client.send(Client.DISCONNECT_MESSAGE)
 
