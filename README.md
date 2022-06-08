@@ -18,11 +18,11 @@ IP: 169.254.0.3 <br>
 ID: pi <br>
 PW: raspberry <br>
 
-# phpMyAdmin Login: <br>
+### phpMyAdmin Login: <br>
 ID: pi <br>
 PW: raspberry <br>
 
-# Shop Login: <br>
+### Shop Login: <br>
 ID: pi <br>
 PW: raspberry <br><br>
 
