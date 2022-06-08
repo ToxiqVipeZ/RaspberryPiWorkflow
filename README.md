@@ -1,5 +1,4 @@
-# RaspberryPiWorkflow
-# Pi-Informationen:
+# Pi-Informationen:<br><br>
 
 ## pi@i40Mail/Router <br>
 IP: 169.254.0.1 <br>
@@ -26,7 +25,7 @@ PW: raspberry <br>
 ID: pi <br>
 PW: raspberry <br><br>
 
-## WorkstationX: <br>
+## pi@WorkstationX: <br>
 IP: 169.254.1.01-99  <br> 
 ID: pi  <br> 
 PW: raspberry  <br><br>
