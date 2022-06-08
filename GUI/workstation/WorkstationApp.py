@@ -94,6 +94,7 @@ class WorkstationApp:
     new_rfid = ""
     written_flag = False
     scan_flag = False
+    ausschuss_procedure = False
 
     def workflow_start(self, argument):
         """
@@ -119,8 +120,8 @@ class WorkstationApp:
         """
         Initialisation method
         """
-        #T1 = Thread(target=self.main()).start()
-        #T2 = Thread(target=self.scanning_rfid()).start()
+        # T1 = Thread(target=self.main()).start()
+        # T2 = Thread(target=self.scanning_rfid()).start()
         self.main()
 
     def scanning_rfid(self):
@@ -130,16 +131,14 @@ class WorkstationApp:
         work_handler.start_op("reader_start")
         self.rfid_scanned = work_handler.get_rfid()
         work_handler.reset_rfid()
-        self.written_flag = False
         self.scan_flag = False
 
     def writing_rfid(self, rfid_scanned):
-        self.written_flag = True
         work_handler = WorkstationHandler()
         work_handler.start_op("writer_start", rfid_scanned)
         work_handler.reset_rfid()
-        self.rfid_scanned = ""
-        self.written_flag = False
+        self.set_progression_counter(0)
+        self.written_flag = True
 
     def exec_after_scan(self):
         if self.rfid_scanned != "":
@@ -238,12 +237,12 @@ class WorkstationApp:
 
                         # if no variation number, then the default picture will be given back
                         if (alternative not in file_names):
-                            return str(self.progression_counter) +"_v" + self.PICTURE_TYPE
+                            return str(self.progression_counter) + "_v" + self.PICTURE_TYPE
                         elif (alternative in file_names):
                             return str(self.progression_counter) + self.PICTURE_TYPE
 
                 # looking if the progression counter is at the last picture
-                elif self.progression_counter == self.picture_count:
+                elif self.progression_counter >= self.picture_count:
                     print("Das war das letzte Bild")
                     self.workflow_completed(root2)
                     return str(self.progression_counter) + self.PICTURE_TYPE
@@ -259,21 +258,16 @@ class WorkstationApp:
         destroys the workflow window, when "Fertig" is pressed after the last picture
         :param root2: the workflow window
         """
-        if self.progression_counter >= self.picture_count:
-            if self.new_rfid != "no next station":
+        if not self.ausschuss_procedure:
+            if self.progression_counter >= self.picture_count:
+                root.update()
                 root2.update()
                 self.rfid_submit(root2)
-                print("written_flag " + str(self.written_flag))
-                if self.written_flag:
-                    while self.written_flag:
-                        root2.update()
-                    root2.destroy()
-                else:
-                    print("RFID already written!")
-                    root2.destroy()
-                    self.written_flag = False
-                    self.rfid_scanned = ""
-            self.rfid_scanned = ""
+                print("RFID already written!")
+                root2.destroy()
+        else:
+            root2.update()
+            root2.destroy()
 
     def ausschuss_prozess(self, root2):
         """
@@ -281,8 +275,9 @@ class WorkstationApp:
         resets the progression counter
         :param root2: the workflow window
         """
+        self.ausschuss_procedure = True
         self.workflow_completed(root2)
-        root2.destroy()
+        self.ausschuss_procedure = False
         self.set_progression_counter(0)
         if self.scan_flag == False:
             root.after(3000, Thread(target=self.scanning_rfid).start())
@@ -313,27 +308,24 @@ class WorkstationApp:
         self.progression_counter = number
 
     def rfid_submit(self, root2):
-        # checks if there is a next station to write on to the rfid chip
-        if self.new_rfid == "no next station":
-            # calls the workflow_completed method
-            self.workflow_completed(root2)
-        # if there is a next station:
-        else:
-            try:
-                self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
-                self.rfid_scanned = self.new_rfid + self.operation + self.variant
-                print("END: " + self.rfid_scanned)
-                root2.after(500, Thread(target=self.rfid_writer(self.rfid_scanned)).start())
-                self.new_rfid = ""
-            finally:
-                # client disconnects from the server
-                Client.send(Client.DISCONNECT_MESSAGE)
+        self.written_flag = False
+        print("Old RFID: " + self.rfid_scanned)
+        self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
+        self.rfid_scanned = self.new_rfid + self.operation + self.variant
+        print("New RFID: " + self.rfid_scanned)
+        root2.update()
+        if not self.written_flag:
+            root.after(1, Thread(target=self.rfid_writer(self.rfid_scanned)).start())
+            while not self.written_flag:
+                root.update()
+                root2.update()
 
-        print("Received RFID: " + self.rfid_scanned)
+    # finally:
+    #    # client disconnects from the server
+    #    Client.send(Client.DISCONNECT_MESSAGE)
 
     def rfid_readed(self, rfid_scan):
         self.workflow_start(rfid_scan)
-
 
     def rfid_writer(self, rfid_scanned):
         root.after(1000, Thread(target=self.writing_rfid(rfid_scanned)).start())
@@ -442,11 +434,12 @@ class WorkstationApp:
 
             root.after(1000, Thread(target=self.scanning_rfid).start())
             root.after(1000, self.exec_after_scan)
-            #root.after(5000, self.check_scan)
+            # root.after(5000, self.check_scan)
             # loop of the window - END!
             root.mainloop()
         finally:
             Client.send(Client.DISCONNECT_MESSAGE)
+            exit()
 
 
 if __name__ == "__main__":

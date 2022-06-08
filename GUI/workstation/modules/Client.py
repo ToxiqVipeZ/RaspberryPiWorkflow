@@ -26,22 +26,11 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
 
-def test_connection():
-    try:
-        socket.create_connection((SERVER, PORT))
-        return True
-    except OSError:
-        return False
-
-
 def send(msg, *args):
     """
     the method to send messages to the server
     :param msg: the message that gets send to the server
     """
-    while not test_connection():
-        print("sleeping for 3s .. retrying internet connection ..")
-        time.sleep(3)
 
     # formatting the message
     message = msg.encode(FORMAT)

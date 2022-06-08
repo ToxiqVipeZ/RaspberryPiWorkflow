@@ -32,7 +32,7 @@ class Writer:
             print("(Writer) Place tag: ")
 
             self.rfid.write(input_text)
-            print("Written: " + self.rfid.read()[1][7:])
+            print("Written: " + self.rfid.read()[1][:7])
 
             time.sleep(1)
 
