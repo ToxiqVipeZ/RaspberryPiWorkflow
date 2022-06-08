@@ -1,52 +1,33 @@
 # RaspberryPiWorkflow
-
 # Pi-Informationen:
-## pi@shop <br>
-IP: 169.254.237.185 <br>
+
+## pi@i40Mail/Router <br>
+IP: 169.254.0.1 <br>
 ID: pi <br>
-PW: raspberry <br>
-
-phpMyAdmin Login: <br>
-ID: phpmyadmin <br>
-PW: 1234 <br>
-
-Shop Login: <br>
-ID: Shop <br>
-PW: Shop123 <br>
- <br> 
-
-## pi@pickone <br>
-IP: 169.254.131.108 <br>
-ID: pi <br>
-PW: raspberry <br>
- <br>
-
-## pi@i40Mail <br>
-IP: 169.254.85.247 <br>
-ID: pi <br>
-PW: raspberry <br>
- <br>
-
-## pi@Fertigung <br>
-IP: 169.254.188.45 <br>
-ID: pi <br>
-PW: raspberry <br>
- <br>
-
-## pi@raspberrypi <br>
-IP: 169.254.237.185 <br>
-ID: FRANK <br>
-PW: ----------?!MISSING!?------------- <br>
- <br>
-
-## pi@celospi <br>
-IP: 169.254.58.117 <br>
-ID: pi <br>
-PW: raspberry <br>
-
+PW: raspberry <br><br>
+ 
 ## pi@fileserver <br>
-IP: 169.254.8.124 <br>
+IP: 169.254.0.2 <br>
 ID: pi <br>
 PW: raspberry <br>
 Fileserver: OpenMediaVault (OMV) <br>
-  Login: admin & raspberry <br>
+ - Login: admin & raspberry <br><br>
+  
+## pi@shop <br>
+IP: 169.254.0.3 <br>
+ID: pi <br>
+PW: raspberry <br>
+
+# phpMyAdmin Login: <br>
+ID: pi <br>
+PW: raspberry <br>
+
+# Shop Login: <br>
+ID: pi <br>
+PW: raspberry <br><br>
+
+## WorkstationX: <br>
+IP: 169.254.1.01-99  <br> 
+ID: pi  <br> 
+PW: raspberry  <br><br>
+
