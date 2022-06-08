@@ -1,7 +1,12 @@
 try:
     import socket
 except ImportError:
-    print("socket import failed.")
+    print("[Client.py] socket import failed.")
+
+try:
+    import time
+except ImportError:
+    print("[Client.py] time import failed.")
     
     
 HEADER = 64
@@ -26,6 +31,7 @@ def send(msg, *args):
     the method to send messages to the server
     :param msg: the message that gets send to the server
     """
+
     # formatting the message
     message = msg.encode(FORMAT)
 

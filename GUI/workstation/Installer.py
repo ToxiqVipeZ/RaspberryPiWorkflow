@@ -84,23 +84,23 @@ class Installer:
                   "Creating Fileserver links ...\n"
                   "################################\n")
             time.sleep(2)
-            os.system("mkdir /home/pi/Fileserver")
+            os.system("mkdir /home/pi/WorkflowInstructions")
             os.system("sudo mount -t cifs -o username=pi,password=raspberry "
-                      "//169.254.0.2/WorkflowInstructions /home/pi/Fileserver")
-            os.system("sudo chmod -R 755 /home/pi/Fileserver")
+                      "//169.254.0.2/WorkflowInstructions /home/pi/WorkflowInstructions")
+            os.system("sudo chmod -R 755 /home/pi/WorkflowInstructions")
 
             print("\n################################\n"
                   "Fetching the WorkstationApp from the Fileserver\n"
                   "################################\n")
             os.system("mkdir /home/pi/WorkstationApp")
             os.system("sudo mount -t cifs -o username=pi,password=raspberry "
-                      "//169.254.0.2/WorkflowInstructions/WorkstationApp /home/pi/WorkstationApp")
+                      "//169.254.0.2/WorkstationApp /home/pi/WorkstationApp")
             os.system("sudo chmod -R 755 /home/pi/WorkstationApp")
 
             automount_fstab = open("/etc/fstab", "a")
-            automount_fstab.write("//169.254.0.2/WorkflowInstructions /home/pi/Fileserver cifs "
+            automount_fstab.write("//169.254.0.2/WorkflowInstructions /home/pi/WorkflowInstructions cifs "
                                   "username=pi,password=raspberry 0 0\n")
-            automount_fstab.write("//169.254.0.2/WorkflowInstructions/WorkstationApp /home/pi/WorkstationApp cifs "
+            automount_fstab.write("//169.254.0.2/WorkstationApp /home/pi/WorkstationApp cifs "
                                   "username=pi,password=raspberry 0 0\n")
             automount_fstab.close()
 
@@ -148,28 +148,30 @@ class Installer:
             from PIL import Image, ImageTk
 
         try:
-            os.system("cd /home/pi/WorkflowApp")
-            from modules import Client
-            from modules.Writer import Writer
-            from modules.Reader import Reader
-        except:
-            print("\n################################\n"
-                  "module loading failed, check modules directory.\n"
-                  "################################\n")
-
-        try:
             print("\n################################\n"
                   "Setup of autonomic WorkstationApp start at launch...\n"
                   "################################\n")
             time.sleep(2)
 
-            os.system("cd /home/pi/Desktop")
-            os.system("echo \"#!/bin/bash\nsleep 10\ncd /home/pi/WorkstationApp\npython3 WorkstationApp.py\ncd /\""
-                      " > WorkstationLauncher.sh")
+            os.system("cd /home/pi/WorkstationApp/")
+            os.system("echo \"#!/bin/bash\nsleep 10\ncd /home/pi/WorkstationApp\npython3 WorkstationApp.py"
+                      "\ncd /\" > /home/pi/WorkstationApp/WorkstationLauncher.sh")
+            os.system("sudo chmod 755 /home/pi/WorkstationApp/WorkstationLauncher.sh")
 
             autostart_workstation_app = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
-            autostart_workstation_app.write("@lxterminal -e bash /home/pi/Desktop/WorkstationLauncher.sh")
+            autostart_workstation_app.write("@lxterminal -e bash /home/pi/WorkstationApp/WorkstationLauncher.sh")
             autostart_workstation_app.close()
+
+            os.system("cd /home/pi/Desktop/")
+            os.system("echo \"[Desktop Entry]\n"
+                      "Type=Application\n"
+                      "Name=WorkstationApp\n"
+                      "Terminal=true\n"
+                      "Exec=/home/pi/WorkstationApp/WorkstationLauncher.sh\n"
+                      "Icon=/home/pi/WorkstationApp/Logos/desktoplogo.png\n\" > /home/pi/Desktop/WorkstationApp.desktop")
+
+            os.system("sudo rm /etc/xdg/lxsession/LXDE-pi/sshpwd.sh")
+
         except:
             print("\n################################\n"
                   "Setup of autonomic WorkstationApp start at launch failed.\n"

@@ -33,19 +33,19 @@ Other OS related:
         os.system("sudo apt-get update")
         os.system("sudo apt-get upgrade")
         os.system("sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5")
-        
 """
+
 try:
     import os
     from threading import Thread
 except ImportError:
     print("Baseimports failed - check os and threading.")
-    
+
 try:
     import _tkinter
 except ImportError:
     print("_tkinter import failed.")
-    
+
 try:
     import tkinter as tk
 except ImportError:
@@ -55,7 +55,7 @@ try:
     from PIL import Image, ImageTk
 except ImportError:
     print("PIL import failed.")
-    
+
 try:
     from modules import Client
 except ImportError:
@@ -73,7 +73,7 @@ class WorkstationApp:
     and shows related workflow steps.
     """
     # static global variables:
-    MAIN_PATH_PRE = "/home/pi/Desktop/Fileserver/"
+    MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
     WINDOW_WIDTH = 1280
@@ -85,23 +85,24 @@ class WorkstationApp:
 
     # global variables:
     rfid_scanned = ""
-    article_id_global = 0
     station = 0
     operation = 0
     variant = 0
     main_path = "0"
     progression_counter = 0
-    rfid_out_trigger = 0
-    alternative_path = ""
+    picture_count = 0
     new_rfid = ""
     written_flag = False
     scan_flag = False
-    
+    ausschuss_procedure = False
+
     def workflow_start(self, argument):
         """
         Starts the workflow-steps
         :param argument: given rfid-id
         """
+        self.set_progression_counter(0)
+        self.set_picture_count(0)
         self.rfid_scanned = argument
         article_id = argument
         self.station = article_id[0:2]
@@ -119,26 +120,25 @@ class WorkstationApp:
         """
         Initialisation method
         """
-        #T1 = Thread(target=self.main()).start()
-        #T2 = Thread(target=self.scanning_rfid()).start()
+        # T1 = Thread(target=self.main()).start()
+        # T2 = Thread(target=self.scanning_rfid()).start()
         self.main()
 
     def scanning_rfid(self):
-        #self.rfid_scanned = ""
         self.scan_flag = True
+        self.rfid_scanned = ""
         work_handler = WorkstationHandler()
         work_handler.start_op("reader_start")
         self.rfid_scanned = work_handler.get_rfid()
         work_handler.reset_rfid()
-        self.written_flag = False
         self.scan_flag = False
-        
+
     def writing_rfid(self, rfid_scanned):
         work_handler = WorkstationHandler()
         work_handler.start_op("writer_start", rfid_scanned)
         work_handler.reset_rfid()
+        self.set_progression_counter(0)
         self.written_flag = True
-        self.rfid_scanned = ""
 
     def exec_after_scan(self):
         if self.rfid_scanned != "":
@@ -190,16 +190,17 @@ class WorkstationApp:
         """
         progresses trough the folders and sets the amount of pictures in given folder
         """
-        # putting all filenames from the main_path direction into file_names
-        file_names = os.listdir(self.main_path)
-        # setting the amount of pictures to progress trough based on the filenames
-        self.set_picture_count(len(file_names))
+        if self.rfid_scanned != "no next station":
+            # putting all filenames from the main_path direction into file_names
+            file_names = os.listdir(self.main_path)
+            # setting the amount of pictures to progress trough based on the filenames
+            self.set_picture_count(len(file_names))
 
-        # looking, which of the file_names are ending with a "_v" and exclude them from picture count
-        for file_name in file_names:
-            print(os.path.abspath(os.path.join(self.main_path, file_name)), sep="\n")
-            if file_name.endswith("_v"):
-                self.picture_count -= 1
+            # looking, which of the file_names are ending with a "_v" and exclude them from picture count
+            for file_name in file_names:
+                print(os.path.abspath(os.path.join(self.main_path, file_name)), sep="\n")
+                if file_name.endswith("_v"):
+                    self.picture_count -= 1
 
     def picture_progressor(self, root2):
         """
@@ -209,41 +210,42 @@ class WorkstationApp:
         :return: the next picture in folder
         """
         try:
-            alternative = ""
-            # saving all filenames
-            file_names = os.listdir(self.main_path)
-            print(self.variant)
-            # looking if progression counter is not at the last picture to increment it
-            if self.progression_counter != self.picture_count:
-                self.progression_counter += 1
+            if self.rfid_scanned != "no next station":
+                alternative = ""
+                # saving all filenames
+                file_names = os.listdir(self.main_path)
+                print(self.variant)
+                # looking if progression counter is not at the last picture to increment it
+                if self.progression_counter != self.picture_count:
+                    self.progression_counter += 1
 
-                # looking if there is a variation number given
-                if self.variant != "00":
-                    alternative = str(self.progression_counter) + self.PICTURE_TYPE
-                    alternative = alternative.replace("/", "\\")
+                    # looking if there is a variation number given
+                    if self.variant != "00":
+                        alternative = str(self.progression_counter) + self.PICTURE_TYPE
+                        alternative = alternative.replace("/", "\\")
 
-                    # looking if it is needed to go into a variation folder
-                    if (alternative not in file_names):
-                        return str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
-                    elif (alternative in file_names):
-                        return str(self.progression_counter) + self.PICTURE_TYPE
+                        # looking if it is needed to go into a variation folder
+                        if (alternative not in file_names):
+                            return str(self.progression_counter) + "_v/" + self.variant + self.PICTURE_TYPE
+                        elif (alternative in file_names):
+                            return str(self.progression_counter) + self.PICTURE_TYPE
 
-                # looking if there is no variation number given:
-                elif self.variant == "00":
-                    alternative = str(self.progression_counter) + self.PICTURE_TYPE
-                    alternative = alternative.replace("/", "\\")
+                    # looking if there is no variation number given:
+                    elif self.variant == "00":
+                        alternative = str(self.progression_counter) + self.PICTURE_TYPE
+                        alternative = alternative.replace("/", "\\")
 
-                    # if no variation number, then the default picture will be given back
-                    if (alternative not in file_names):
-                        return str(self.progression_counter) +"_v" + self.PICTURE_TYPE
-                    elif (alternative in file_names):
-                        return str(self.progression_counter) + self.PICTURE_TYPE
+                        # if no variation number, then the default picture will be given back
+                        if (alternative not in file_names):
+                            return str(self.progression_counter) + "_v" + self.PICTURE_TYPE
+                        elif (alternative in file_names):
+                            return str(self.progression_counter) + self.PICTURE_TYPE
 
-            # looking if the progression counter is at the last picture
-            elif self.progression_counter == self.picture_count:
-                print("Das war das letzte Bild")
-                return str(self.progression_counter) + self.PICTURE_TYPE
-                self.workflow_completed(root2)
+                # looking if the progression counter is at the last picture
+                elif self.progression_counter >= self.picture_count:
+                    print("Das war das letzte Bild")
+                    self.workflow_completed(root2)
+                    return str(self.progression_counter) + self.PICTURE_TYPE
 
         except FileNotFoundError:
             self.scan_flag = True
@@ -256,24 +258,16 @@ class WorkstationApp:
         destroys the workflow window, when "Fertig" is pressed after the last picture
         :param root2: the workflow window
         """
-        if self.progression_counter >= self.picture_count:
-            if self.new_rfid != "no next station":
-                self.button_switcher(button1_btn, "disabled")
+        if not self.ausschuss_procedure:
+            if self.progression_counter >= self.picture_count:
+                root.update()
+                root2.update()
                 self.rfid_submit(root2)
-                print("written_flag " + str(self.written_flag))
-                if not self.written_flag:
-                    while not self.written_flag:
-                        root2.update()
-                    root2.destroy()
-                    self.written_flag = False
-                else:
-                    print("RFID already written!")
-                    root2.destroy()
-                    self.written_flag = False
-                
-            self.rfid_scanned = ""
-            #root.after(3000, Thread(target=self.scanning_rfid).start())
-            #root.after(5000, self.exec_after_scan)
+                print("RFID already written!")
+                root2.destroy()
+        else:
+            root2.update()
+            root2.destroy()
 
     def ausschuss_prozess(self, root2):
         """
@@ -281,8 +275,9 @@ class WorkstationApp:
         resets the progression counter
         :param root2: the workflow window
         """
+        self.ausschuss_procedure = True
         self.workflow_completed(root2)
-        root2.destroy()
+        self.ausschuss_procedure = False
         self.set_progression_counter(0)
         if self.scan_flag == False:
             root.after(3000, Thread(target=self.scanning_rfid).start())
@@ -313,26 +308,24 @@ class WorkstationApp:
         self.progression_counter = number
 
     def rfid_submit(self, root2):
-        # checks if there is a next station to write on to the rfid chip
-        if self.new_rfid == "no next station":
-            # calls the workflow_completed method
-            self.workflow_completed(root2)
-        # if there is a next station:
-        else:
-            try:
-                self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
-                self.rfid_scanned = self.new_rfid + self.operation + self.variant
-                print("END: " + self.rfid_scanned)
-                self.rfid_writer(self.rfid_scanned)
-            finally:
-                Client.send(Client.DISCONNECT_MESSAGE)
+        self.written_flag = False
+        print("Old RFID: " + self.rfid_scanned)
+        self.new_rfid = Client.send(Client.SENDING_RFID, self.rfid_scanned)
+        self.rfid_scanned = self.new_rfid + self.operation + self.variant
+        print("New RFID: " + self.rfid_scanned)
+        root2.update()
+        if not self.written_flag:
+            root.after(1, Thread(target=self.rfid_writer(self.rfid_scanned)).start())
+            while not self.written_flag:
+                root.update()
+                root2.update()
 
-            # client disconnects from the server
-        print("Der neue RFID-Präfix: " + self.new_rfid)
+    # finally:
+    #    # client disconnects from the server
+    #    Client.send(Client.DISCONNECT_MESSAGE)
 
     def rfid_readed(self, rfid_scan):
         self.workflow_start(rfid_scan)
-
 
     def rfid_writer(self, rfid_scanned):
         root.after(1000, Thread(target=self.writing_rfid(rfid_scanned)).start())
@@ -441,11 +434,12 @@ class WorkstationApp:
 
             root.after(1000, Thread(target=self.scanning_rfid).start())
             root.after(1000, self.exec_after_scan)
-            #root.after(5000, self.check_scan)
+            # root.after(5000, self.check_scan)
             # loop of the window - END!
             root.mainloop()
         finally:
             Client.send(Client.DISCONNECT_MESSAGE)
+            exit()
 
 
 if __name__ == "__main__":
