@@ -46,12 +46,9 @@ class Server:
         station = message_queue[1]
 
         if received_status == "IN":
-            ServerHandler().station_in()
+            ServerHandler().station_in(rfid, station)
         elif received_status == "OUT":
-            ServerHandler().station_out()
-
-        print(rfid)
-        print(station)
+            ServerHandler().station_out(rfid, station)
 
 
     def handle_client(self, conn, addr):
@@ -97,13 +94,14 @@ class Server:
                 if self.receive_stats_mode is True:
                     # excluding the first message, so that only the arguments in args join into this section
                     if msg != TRACKING_STATS_IN and msg != TRACKING_STATS_OUT:
-                        self.message_queue[self.message_queue_counter] = msg
-                        self.message_queue_counter += 1
+                        message_queue_counter = 0
+                        self.message_queue[message_queue_counter] = msg
+                        message_queue_counter += 1
                         # exiting the receive_stats_mode
-                        if self.message_queue_counter == 2:
+                        if message_queue_counter == 2:
                             self.track_stats(self.message_queue, self.receive_status)
                             self.message_queue = [0, 1]
-                            self.message_queue_counter = 0
+                            message_queue_counter = 0
                             self.receive_status = ""
                             self.receive_stats_mode = False
 

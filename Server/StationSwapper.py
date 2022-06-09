@@ -1,6 +1,6 @@
 import sqlite3
 
-DATABASE_PATH = "/Database/productionDatabase.db"
+DATABASE_PATH = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
 def next_in_queue(connection, cursor, procedure, station, next_station, variation_value):
     c = cursor
