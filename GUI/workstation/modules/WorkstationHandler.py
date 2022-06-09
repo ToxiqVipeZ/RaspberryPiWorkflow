@@ -28,10 +28,17 @@ class WorkstationHandler:
         return self.rfid_scanned
 
     def reading_op(self):
-        read = Reader()
-        read.reader()
-        self.rfid_scanned = read.get_result()
-        read.reset_result()
+        try:
+            read = Reader()
+            read.reader()
+            self.rfid_scanned = read.get_result()
+            read.reset_result()
+        except:
+            print("Auth Error, try again...")
+            read = Reader()
+            read.reader()
+            self.rfid_scanned = read.get_result()
+            read.reset_result()
     
     def reset_rfid(self):
         self.rfid_scanned = ""

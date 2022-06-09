@@ -1,5 +1,6 @@
 import sqlite3
 
+DATABASE_PATH = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
 def next_in_queue(connection, cursor, procedure, station, next_station, variation_value):
     c = cursor
@@ -98,8 +99,7 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
 def main(*args):
     try:
         # connection holds the connection to the database
-        connection = sqlite3.connect(
-            "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+        connection = sqlite3.connect(DATABASE_PATH)
 
         # cursor instance:
         c = connection.cursor()

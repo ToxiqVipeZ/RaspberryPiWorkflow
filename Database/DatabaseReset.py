@@ -9,15 +9,15 @@ def main():
     c = connection.cursor()
 
     # process-time-table
-    #ptt_reset(connection, c)
+    ptt_reset(connection, c)
     # workflow-planner-table
     #wpt_reset(connection, c)
     # article-procedure-table
     #apt_reset(connection, c)
     # shop-info-table
-    sit_reset(connection, c)
+    #sit_reset(connection, c)
     # article-queue
-    aq_reset(connection, c)
+    #aq_reset(connection, c)
 
     # closing the connection
     connection.close()
@@ -29,10 +29,12 @@ def ptt_reset(connection, c):
     # creating a table:
     c.execute("""
     CREATE TABLE process_time_table (
-    process_id INTEGER PRIMARY KEY,
-    article_id INTEGER NOT NULL,
-    station INTEGER,
-    last_station INTEGER,
+    process_id INTEGER,
+    article_id TEXT NOT NULL,
+    order_id INTEGER NOT NULL,
+    station TEXT NOT NULL,
+    next_station TEXT NOT NULL,
+    last_station TEXT NOT NULL,
     process_start TEXT,
     process_end TEXT
     )""")
