@@ -34,6 +34,7 @@ Other OS related:
         os.system("sudo apt-get upgrade")
         os.system("sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5")
 """
+import time
 
 try:
     import os
@@ -120,23 +121,45 @@ class WorkstationApp:
         """
         Initialisation method
         """
-        # T1 = Thread(target=self.main()).start()
-        # T2 = Thread(target=self.scanning_rfid()).start()
         self.main()
 
+    def get_station_number(self):
+        ip_address = str(Client.get_ip_address())
+        this_station = ip_address.split(".")
+        if this_station[2] != 0:
+            if len(this_station[3]) == 1:
+                this_station = str("0" + str(this_station[3]))
+                return this_station
+            if len(this_station[3]) == 2:
+                this_station = str(str(this_station[3]))
+                return this_station
+        else:
+            print("Stations-IP hat keine \"1\" an der dritten Stelle.")
+
     def scanning_rfid(self):
+
         self.scan_flag = True
         self.rfid_scanned = ""
         work_handler = WorkstationHandler()
         work_handler.start_op("reader_start")
         self.rfid_scanned = work_handler.get_rfid()
         work_handler.reset_rfid()
+        self.statistic_tracker("IN")
         self.scan_flag = False
+
+    def statistic_tracker(self, in_or_out):
+        station_number = self.get_station_number()
+        print("statistic_tracker station_number: " + station_number)
+        if in_or_out == "IN":
+            Client.send(Client.TRACKING_STATS_IN, self.rfid_scanned, station_number)
+        elif in_or_out == "OUT":
+            Client.send(Client.TRACKING_STATS_IN, self.rfid_scanned, station_number)
 
     def writing_rfid(self, rfid_scanned):
         work_handler = WorkstationHandler()
         work_handler.start_op("writer_start", rfid_scanned)
         work_handler.reset_rfid()
+        self.statistic_tracker("OUT")
         self.set_progression_counter(0)
         self.written_flag = True
 

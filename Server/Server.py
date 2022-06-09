@@ -1,7 +1,7 @@
 import socket
 import threading
 
-from Database import StationSwapper
+import StationSwapper
 
 HEADER = 64
 PORT = 5050
@@ -9,20 +9,22 @@ SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 FORMAT = "utf-8"
 DISCONNECT_MESSAGE = "DISCONNECT"
+TRACKING_STATS_IN = "TRACKING-STATS-IN"
+TRACKING_STATS_OUT = "TRACKING-STATS-OUT"
 RECEIVING_RFID = "C-S-RFID"
 SENDING_RFID = "S-C-RFID"
-QUEUE_REQUEST = "QUEUE-REQUEST"
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
 
 class Server:
     receive_rfid_mode = False
-    add_to_queue_mode = False
+    receive_stats_mode = False
+    message_queue = [0, 1]
+    message_queue_counter = 0
 
     def add_to_queue(self, production_number):
         print("Versuche Produktionsnummer: " + production_number + " zur Warteschlange hinzuzufügen.")
-
 
     @staticmethod
     def switch_station(msg):
@@ -36,6 +38,13 @@ class Server:
 
         # sending the next station back to the client
         return next_station.encode(FORMAT)
+
+    def track_stats(self, message_queue):
+        rfid = message_queue[0]
+        station = message_queue[1]
+        print(rfid)
+        print(station)
+
 
     def handle_client(self, conn, addr):
         """
@@ -69,13 +78,21 @@ class Server:
                         # exiting the receive_rfid_mode
                         self.receive_rfid_mode = False
 
-                # starting add_to_queue_mode
-                if msg == QUEUE_REQUEST:
-                    self.add_to_queue_mode = True
-                if self.add_to_queue_mode is True:
-                    if msg != QUEUE_REQUEST:
-                        self.add_to_queue(msg)
-                        self.add_to_queue_mode = False
+                # starting receive_stats_mode
+                if msg == TRACKING_STATS_IN or msg == TRACKING_STATS_OUT:
+                    self.receive_stats_mode = True
+                # if in receive_stats_mode
+                if self.receive_stats_mode is True:
+                    # excluding the first message, so that only the arguments in args join into this section
+                    if msg != TRACKING_STATS_IN and msg != TRACKING_STATS_OUT:
+                        self.message_queue[self.message_queue_counter] = msg
+                        self.message_queue_counter += 1
+                        # exiting the receive_stats_mode
+                        if self.message_queue_counter == 2:
+                            self.track_stats(self.message_queue)
+                            self.message_queue = [0, 1]
+                            self.message_queue_counter = 0
+                            self.receive_stats_mode = False
 
                 # killing the thread when the message from the client equals the DISCONNECT_MESSAGE
                 if msg == DISCONNECT_MESSAGE:
@@ -94,7 +111,6 @@ class Server:
         print(f"Waiting for a client to connect to {SERVER} \n")
         # waiting for a client to establish a connection:
         while True:
-
             # server.accept() gets client address information into conn, addr
             conn, addr = server.accept()
 
