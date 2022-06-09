@@ -2,6 +2,7 @@ import socket
 import threading
 
 import StationSwapper
+from ServerHandler import ServerHandler
 
 HEADER = 64
 PORT = 5050
@@ -22,6 +23,7 @@ class Server:
     receive_stats_mode = False
     message_queue = [0, 1]
     message_queue_counter = 0
+    receive_status = ""
 
     def add_to_queue(self, production_number):
         print("Versuche Produktionsnummer: " + production_number + " zur Warteschlange hinzuzufügen.")
@@ -39,9 +41,15 @@ class Server:
         # sending the next station back to the client
         return next_station.encode(FORMAT)
 
-    def track_stats(self, message_queue):
+    def track_stats(self, message_queue, received_status):
         rfid = message_queue[0]
         station = message_queue[1]
+
+        if received_status == "IN":
+            ServerHandler().station_in()
+        elif received_status == "OUT":
+            ServerHandler().station_out()
+
         print(rfid)
         print(station)
 
@@ -79,8 +87,12 @@ class Server:
                         self.receive_rfid_mode = False
 
                 # starting receive_stats_mode
-                if msg == TRACKING_STATS_IN or msg == TRACKING_STATS_OUT:
+                if msg == TRACKING_STATS_IN:
                     self.receive_stats_mode = True
+                    self.receive_status = "IN"
+                elif msg == TRACKING_STATS_OUT:
+                    self.receive_stats_mode = True
+                    self.receive_status = "OUT"
                 # if in receive_stats_mode
                 if self.receive_stats_mode is True:
                     # excluding the first message, so that only the arguments in args join into this section
@@ -89,9 +101,10 @@ class Server:
                         self.message_queue_counter += 1
                         # exiting the receive_stats_mode
                         if self.message_queue_counter == 2:
-                            self.track_stats(self.message_queue)
+                            self.track_stats(self.message_queue, self.receive_status)
                             self.message_queue = [0, 1]
                             self.message_queue_counter = 0
+                            self.receive_status = ""
                             self.receive_stats_mode = False
 
                 # killing the thread when the message from the client equals the DISCONNECT_MESSAGE
