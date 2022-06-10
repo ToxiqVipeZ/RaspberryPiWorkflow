@@ -93,17 +93,17 @@ class Server:
                 # if in receive_stats_mode
                 if self.receive_stats_mode is True:
                     # excluding the first message, so that only the arguments in args join into this section
-                    if msg != TRACKING_STATS_IN and msg != TRACKING_STATS_OUT:
-                        message_queue_counter = 0
-                        self.message_queue[message_queue_counter] = msg
-                        message_queue_counter += 1
-                        # exiting the receive_stats_mode
-                        if message_queue_counter == 2:
-                            self.track_stats(self.message_queue, self.receive_status)
-                            self.message_queue = [0, 1]
-                            message_queue_counter = 0
-                            self.receive_status = ""
-                            self.receive_stats_mode = False
+                    if msg != TRACKING_STATS_IN:
+                        if msg != TRACKING_STATS_OUT:
+                            self.message_queue[self.message_queue_counter] = msg
+                            self.message_queue_counter += 1
+                            # exiting the receive_stats_mode
+                            if self.message_queue_counter == 2:
+                                self.track_stats(self.message_queue, self.receive_status)
+                                self.message_queue = [0, 1]
+                                self.message_queue_counter = 0
+                                self.receive_status = ""
+                                self.receive_stats_mode = False
 
                 # killing the thread when the message from the client equals the DISCONNECT_MESSAGE
                 if msg == DISCONNECT_MESSAGE:

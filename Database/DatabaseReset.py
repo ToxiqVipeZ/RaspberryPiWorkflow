@@ -15,9 +15,9 @@ def main():
     # article-procedure-table
     #apt_reset(connection, c)
     # shop-info-table
-    #sit_reset(connection, c)
+    sit_reset(connection, c)
     # article-queue
-    #aq_reset(connection, c)
+    aq_reset(connection, c)
 
     # closing the connection
     connection.close()

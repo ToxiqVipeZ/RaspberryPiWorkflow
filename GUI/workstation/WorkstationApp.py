@@ -128,16 +128,15 @@ class WorkstationApp:
         this_station = ip_address.split(".")
         if this_station[2] != 0:
             if len(this_station[3]) == 1:
-                this_station = str("0" + str(this_station[3]))
+                this_station = "0" + str(this_station[3])
                 return this_station
             if len(this_station[3]) == 2:
-                this_station = str(str(this_station[3]))
+                this_station = str(this_station[3])
                 return this_station
         else:
             print("Stations-IP hat keine \"1\" an der dritten Stelle.")
 
     def scanning_rfid(self):
-
         self.scan_flag = True
         self.rfid_scanned = ""
         work_handler = WorkstationHandler()
@@ -151,9 +150,9 @@ class WorkstationApp:
         station_number = self.get_station_number()
         print("statistic_tracker station_number: " + station_number)
         if in_or_out == "IN":
-            Client.send(Client.TRACKING_STATS_IN, self.rfid_scanned, station_number)
+            Thread(target=Client.send(Client.TRACKING_STATS_IN, self.rfid_scanned, station_number)).start()
         elif in_or_out == "OUT":
-            Client.send(Client.TRACKING_STATS_IN, self.rfid_scanned, station_number)
+            Thread(target=Client.send(Client.TRACKING_STATS_OUT, self.rfid_scanned, station_number)).start()
 
     def writing_rfid(self, rfid_scanned):
         work_handler = WorkstationHandler()
@@ -286,7 +285,7 @@ class WorkstationApp:
                 root.update()
                 root2.update()
                 self.rfid_submit(root2)
-                print("RFID already written!")
+                print("RFID written!")
                 root2.destroy()
         else:
             root2.update()

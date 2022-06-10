@@ -41,6 +41,14 @@ for item in items:
     print(item)
 
 
+print("\n\nprocess_time_table: ")
+
+c.execute("SELECT * FROM process_time_table")
+items = c.fetchall()
+
+for item in items:
+    print(item)
+
 current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
 print("\n" + current_datetime)
