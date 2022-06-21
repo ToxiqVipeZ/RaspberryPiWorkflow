@@ -4,6 +4,8 @@ import time
 ADD_TO_QUEUE = "RFID-QUEUE-ADD"
 STAT_ORDER_IN = "ORDER-IN"
 STAT_QUEUED = "QUEUED"
+PRODUCTION_DATABASE = "/home/pi/ProductionDatabase/ProductionDatabase.db"
+#PRODUCTION_DATABASE = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
 
 def queue_order(connection, cursor, production_number):
@@ -33,7 +35,7 @@ class DatabaseQueue:
             try:
                 # connection holds the connection to the database
                 connection = sqlite3.connect(
-                    "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+                    PRODUCTION_DATABASE)
                 cursor = connection.cursor()
 
                 cursor.execute("SELECT MIN(production_number) FROM shop_info_table WHERE status_ident IS (?)",
