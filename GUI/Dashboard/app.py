@@ -119,10 +119,11 @@ app.layout = html.Div(children=[
         dbc.Col(children=[html.H3(className="text-center", style={"text-decoration": "underline"},
                                   children="Workflow Dashboard")])]),
 
-    dbc.Row(id="update_p", style={"height": "20%", "margin": 5, "margin-top": 0}, children=[
+    dbc.Row(style={"height": "20%", "margin": 5, "margin-top": 0}, children=[
         dbc.Col(width=8, children=html.Div(children=[
             html.H5("Letzte Aktivitäten: "),
             dash_table.DataTable(
+                id="activity_log",
                 data=df_logs.to_dict("records"),
                 columns=[{"name": i, "id": i} for i in df_logs.columns],
                 fixed_rows={"headers": True},
@@ -143,6 +144,7 @@ app.layout = html.Div(children=[
         dbc.Col(width=4, align="right", children=html.Div(children=[
             html.H5("Nächste Stationen: "),
             dash_table.DataTable(
+                id="next_station_log",
                 data=df_stations_await.to_dict("records"),
                 columns=[{"name": i, "id": i} for i in df_stations_await.columns],
                 fixed_rows={"headers": True},
@@ -185,16 +187,65 @@ app.layout = html.Div(children=[
     #        html.Div(id="return_input_time_limit")
     #    ])
     ]),
-    dcc.Interval(interval=15*1000, n_intervals=0, id="refresh")
+    dcc.Interval(interval=3*1000, n_intervals=0, id="refresh")
 ])
 
+
 @app.callback(
-    Output(component_id='graph_update', component_property='figure'),
-    [Input(component_id='refresh', component_property='n_intervals')]
+    Output(component_id="activity_log", component_property="data"),
+    Input(component_id="refresh", component_property="n_intervals")
+)
+def update_activity_log(n_intervals):
+    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+
+    production_connection = sqlite3.connect(SQLITE3_HOST)
+    prod_cursor = production_connection.cursor()
+
+    df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
+
+    production_connection.close()
+
+    return df_logs.to_dict("records")
+
+
+@app.callback(
+    Output(component_id="next_station_log", component_property="data"),
+    Input(component_id="refresh", component_property="n_intervals")
+)
+def update_next_station(n_intervals):
+    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+
+    production_connection = sqlite3.connect(SQLITE3_HOST)
+    prod_cursor = production_connection.cursor()
+
+    df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
+
+    production_connection.close()
+    return df_stations_await.to_dict("records")
+
+
+@app.callback(
+    Output(component_id="graph_update", component_property="figure"),
+    [Input(component_id="refresh", component_property="n_intervals")]
 )
 def update(n_intervals):
-    return n_intervals
+    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
+    production_connection = sqlite3.connect(SQLITE3_HOST)
+    prod_cursor = production_connection.cursor()
+
+    # full process-time-table (ptt_table) query
+    prod_cursor.execute("SELECT * FROM process_time_table")
+    ptt_table = prod_cursor.fetchall()
+
+    figure_station_times = stations_time_fig(ptt_table, "station-times-bar")
+
+    production_connection.close()
+
+    return figure_station_times
 
 # Connection closing
 production_connection.close()
