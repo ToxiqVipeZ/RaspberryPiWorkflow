@@ -9,7 +9,7 @@ def main():
     c = connection.cursor()
 
     c.execute("INSERT INTO process_time_table VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-              (8, "0010013-01", 105, "02", "05", "05", "20.06.2022 7:22:00", "20.06.2022 7:27:00"))
+              (9, "test", 105, "01", "02", "05", "25.06.2022 7:22:00", "25.06.2022 7:27:00"))
 
     #c.execute("UPDATE shop_info_table SET status_ident=(?) WHERE status_ident IS NULL", ("ORDER-IN", ))
     #c.execute("SELECT status_ident FROM shop_info_table WHERE production_number=(?)", ("1"))
