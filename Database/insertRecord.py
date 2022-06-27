@@ -8,8 +8,10 @@ def main():
     # cursor instance:
     c = connection.cursor()
 
-    c.execute("INSERT INTO process_time_table VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-              (12, "test3", 108, "07", "08", "08", "25.06.2022 9:25:00", "25.06.2022 9:41:00"))
+    c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
+              " next_station, last_station, process_start) VALUES "
+              "(?, ?, ?, ?, ?, ?, ?)",
+              (15, "135718-13", 113, "01", "05", "05", "27.06.2022 15:25:00"))
 
     #c.execute("UPDATE shop_info_table SET status_ident=(?) WHERE status_ident IS NULL", ("ORDER-IN", ))
     #c.execute("SELECT status_ident FROM shop_info_table WHERE production_number=(?)", ("1"))

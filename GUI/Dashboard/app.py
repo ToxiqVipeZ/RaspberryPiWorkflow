@@ -4,6 +4,7 @@ import pandas as pd
 from dash import Dash, html, dcc, dash_table
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
+import dash_daq as daq
 import sqlite3
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
@@ -14,6 +15,7 @@ TIME_LIMIT = 11
 
 def __init__(*args):
     TIME_LIMIT = args[0]
+
 
 def stations_time_fig(data_table, mode):
     """
@@ -36,14 +38,16 @@ def stations_time_fig(data_table, mode):
         for x in range(0, len(data_table)):
             if int(data_table[x][3]) in list_x:
                 for y in range(0, len(list_x)):
+                    if data_table[x][7] != None:
+                        time_difference = datetime.strptime(data_table[x][7], "%d.%m.%Y %S:%M:%H") - \
+                                          datetime.strptime(data_table[x][6], "%d.%m.%Y %S:%M:%H")
+                        list_y[y] += int(time_difference.seconds / 60)
+            else:
+                if data_table[x][7] != None:
+                    list_x.append(int(data_table[x][3]))
                     time_difference = datetime.strptime(data_table[x][7], "%d.%m.%Y %S:%M:%H") - \
                                       datetime.strptime(data_table[x][6], "%d.%m.%Y %S:%M:%H")
-                    list_y[y] += int(time_difference.seconds / 60)
-            else:
-                list_x.append(int(data_table[x][3]))
-                time_difference = datetime.strptime(data_table[x][7], "%d.%m.%Y %S:%M:%H") - \
-                                  datetime.strptime(data_table[x][6], "%d.%m.%Y %S:%M:%H")
-                list_y.append(int(time_difference.seconds / 60))
+                    list_y.append(int(time_difference.seconds / 60))
 
         for x in range(0, len(data_table)):
             if int(data_table[x][3]) in list_x:
@@ -61,8 +65,6 @@ def stations_time_fig(data_table, mode):
                 showlegend=True
             )
         )
-        print("test")
-        print(len(fig_station_times._data))
 
         fig_station_times.add_trace(go.Scatter(
             x=[0, int(graph_length) + 1],
@@ -84,6 +86,7 @@ def stations_time_fig(data_table, mode):
         })
         load_figure_template()
         return fig
+
 
 SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
@@ -165,6 +168,23 @@ app.layout = html.Div(children=[
     # Platzhalter für weiteren Content:
     dbc.Row(style={"height": 300, "margin": 5}, children=[
         dbc.Col(
+            html.Div([
+                daq.Gauge(
+                    id="station_activity",
+                    label="Default",
+                    value=0
+                )])
+        ),
+        dbc.Col(
+            html.Div("Platzhalter")
+        ),
+        dbc.Col(
+            html.Div("Platzhalter")
+        ),
+        dbc.Col(
+            html.Div("Platzhalter")
+        ),
+        dbc.Col(
             html.Div("Platzhalter")
         ),
         dbc.Col(
@@ -177,18 +197,46 @@ app.layout = html.Div(children=[
     dbc.Row(style={"height": 450, "margin": 5}, children=[
         dbc.Col(width=12, children=html.Div(children=[
             dcc.Graph(id="graph_update", figure={})
-        ]))#,
-    #    dbc.Col(width=2, style={"margin-top": 200}, children=[
-    #        dcc.Input(
-    #            id="input_time_limit".format("number"),
-    #            type="number",
-    #            placeholder="enter time limit".format("number")
-    #        ),
-    #        html.Div(id="return_input_time_limit")
-    #    ])
+        ]))  # ,
+        #    dbc.Col(width=2, style={"margin-top": 200}, children=[
+        #        dcc.Input(
+        #            id="input_time_limit".format("number"),
+        #            type="number",
+        #            placeholder="enter time limit".format("number")
+        #        ),
+        #        html.Div(id="return_input_time_limit")
+        #    ])
     ]),
-    dcc.Interval(interval=3*1000, n_intervals=0, id="refresh")
+    dcc.Interval(interval=3 * 1000, n_intervals=0, id="refresh")
 ])
+
+
+@app.callback(
+    Output(component_id="station_activity", component_property="label"),
+    Input(component_id="refresh", component_property="n_intervals")
+)
+def update_gauges(n_intervals):
+    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+
+    production_connection = sqlite3.connect(SQLITE3_HOST)
+    prod_cursor = production_connection.cursor()
+    prod_cursor.execute("SELECT station, process_start FROM process_time_table WHERE process_end IS (?)", (None,))
+    p_end_empty = prod_cursor.fetchone()
+    print("test----x: " + str(p_end_empty))
+
+    production_connection.close()
+    return p_end_empty[0]
+
+
+def call_database():
+    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+
+    production_connection = sqlite3.connect(SQLITE3_HOST)
+    prod_cursor = production_connection.cursor()
+
+    return production_connection, prod_cursor
 
 
 @app.callback(
@@ -247,19 +295,18 @@ def update(n_intervals):
 
     return figure_station_times
 
+
 # Connection closing
 production_connection.close()
 print("Datenbase disconnected.")
 
-
-#@app.callback(
+# @app.callback(
 #    Output("return_input_time_limit", "children"),
 #    [Input("input_time_limit".format("number"), "value")]
-#)
-#def time_limit_setter(value):
+# )
+# def time_limit_setter(value):
 #    figure_station_times.update_traces(selector=1, overwrite=True, y=[value, value])
 #    return str(value)
-
 
 
 if __name__ == "__main__":
