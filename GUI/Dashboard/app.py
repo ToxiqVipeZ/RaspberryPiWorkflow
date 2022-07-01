@@ -190,7 +190,6 @@ app.layout = html.Div(children=[
     dcc.Interval(interval=1 * 500, n_intervals=0, id="refresh_cards")
 ])
 
-
 @app.callback(
     Output("my_cards", "children"),
     [Input("refresh", "n_intervals")],
@@ -236,8 +235,6 @@ def make_cards(n_intervals, children):
             station_ref, time = prod_cursor.fetchone()
             station_ref = station_ref.split(";")
             times = time.split(";")
-            print(station_ref)
-            print(times)
             stations_times_df = pd.DataFrame(data=([station_ref, times]))
             stations_times_df = stations_times_df.T
             stations_times_df.columns = ["stations", "times"]
@@ -271,7 +268,9 @@ def make_cards(n_intervals, children):
             # print("now: " + str(t1) + " check in: " + str(t2) + "difference: " + str(difference))
             children.append(
                 dbc.Card(
-                    style={"width": 100, "height": 100, "margin-left": 10, "text-align": "center",
+                    id="card_container_" + station,
+
+                    style={"width": 100, "height": 100, "margin-left": 10, "textAlign": "center",
                            "display": "inline-block", "verticalAlign": "top"},
 
                     children=["Station: " + station, dbc.CardBody(
@@ -280,6 +279,8 @@ def make_cards(n_intervals, children):
                     )]
                 )
             )
+
+            print(str(children))
 
     if len(children) == len(card_df):
         for x in range(0, len(card_df)):
@@ -291,17 +292,16 @@ def make_cards(n_intervals, children):
 
             difference = str(t1 - t2)
 
-            print(difference)
-
     return children
 
 
 @app.callback(
     Output({"type": "card_time_text", "index": MATCH}, "children"),
     [Input("refresh_cards", "n_intervals")],
+    State({"type": "card_time_text", "index": MATCH}, "children"),
     blocking=True
 )
-def display_time(children):
+def display_time(n_intervals, children):
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
@@ -314,8 +314,7 @@ def display_time(children):
     card_text_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
     card_text_df = card_text_df.sort_values(by="station")
     card_text_df = card_text_df.reset_index(drop=True)
-    print("hi" + str(datetime.now()))
-    print("---")
+
     for x in range(0, len(card_text_df)):
         station = card_text_df.get("station")[x]
 
@@ -327,7 +326,9 @@ def display_time(children):
 
         difference = str(t1 - t2)
 
-        return html.Div(id={"type": "card_time_text", "index": "card_" + station}, children=[html.P([difference])])
+        #print(str(html.Div(id={"type": "card_time_text", "index": "card_" + card_text_df.get("station")[x]}, children=[html.P([difference])])))
+
+        return html.Div(id={"type": "card_time_text", "index": "card_" + card_text_df.get("station")[x]}, children=[html.P([difference])])
 
 
 # print(str(children.index("id")))
