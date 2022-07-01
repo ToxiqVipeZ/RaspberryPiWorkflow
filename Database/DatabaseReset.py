@@ -15,9 +15,9 @@ def main():
     # article-procedure-table
     #apt_reset(connection, c)
     # shop-info-table
-    sit_reset(connection, c)
+    #sit_reset(connection, c)
     # article-queue
-    aq_reset(connection, c)
+    #aq_reset(connection, c)
 
     # closing the connection
     connection.close()
@@ -51,7 +51,8 @@ def wpt_reset(connection, c):
     c.execute("""
     CREATE TABLE workflow_planner_table (
     workflow_procedure TEXT UNIQUE,
-    stations TEXT
+    stations TEXT,
+    times TEXT UNIQUE
     )""")
 
     # committing the created table:
