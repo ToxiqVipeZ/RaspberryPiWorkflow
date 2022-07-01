@@ -1,5 +1,7 @@
 import math
 from datetime import datetime
+
+import dash.dependencies
 import pandas as pd
 from dash import Dash, html, dcc, dash_table
 import dash_bootstrap_components as dbc
@@ -8,7 +10,7 @@ from dash_bootstrap_templates import load_figure_template
 import dash_daq as daq
 import sqlite3
 import plotly.graph_objects as go
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, MATCH
 import plotly.express as px
 
 TIME_LIMIT = 11
@@ -168,8 +170,8 @@ app.layout = html.Div(children=[
         ]))
     ]),
     # Platzhalter für weiteren Content:
-    dbc.Row(style={"height": 300, "margin": 5}, children=[
-        dbc.Col(html.Div(id='my_cards', children=[]))
+    dbc.Row(id="card_row", style={"display": "inline-block", "height": 300, "margin": 10}, children=[
+        dbc.Col(style={"display": "inline-block"}, id='my_cards', children=[])
     ]),
     dbc.Row(style={"height": 450, "margin": 5}, children=[
         dbc.Col(width=12, children=html.Div(children=[
@@ -184,88 +186,215 @@ app.layout = html.Div(children=[
         #        html.Div(id="return_input_time_limit")
         #    ])
     ]),
-    dcc.Interval(interval=3 * 1000, n_intervals=0, id="refresh")
+    dcc.Interval(interval=3 * 1000, n_intervals=-1, id="refresh"),
+    dcc.Interval(interval=1 * 500, n_intervals=0, id="refresh_cards")
 ])
-cards_made = []
+
 
 @app.callback(
     Output("my_cards", "children"),
     [Input("refresh", "n_intervals")],
-    State("my_cards", "children")
+    State("my_cards", "children"),
+    blocking=True
 )
 def make_cards(n_intervals, children):
     """Makes cards for each id"""
+
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
     production_connection = sqlite3.connect(SQLITE3_HOST)
     prod_cursor = production_connection.cursor()
 
-    prod_cursor.execute("SELECT station, process_start, article_id"
-                        " FROM process_time_table WHERE process_end IS (?)", (None,))
-    p_end_empty = prod_cursor.fetchall()
+    SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
+                      "FROM process_time_table WHERE process_end IS NULL"
 
-    if not p_end_empty:
-        raise PreventUpdate
+    card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+    card_df = card_df.sort_values(by="station")
+    card_df = card_df.reset_index(drop=True)
 
-    stations = [p_end_empty[x][0] for x in range(0, len(p_end_empty))]
-    values = [p_end_empty[x][1] for x in range(0, len(p_end_empty))]
-    article_id = [p_end_empty[x][2][:-3] for x in range(0, len(p_end_empty))]
-    times = 0
+    print(datetime.now())
 
-    for x in range(0, len(stations)):
-        prod_cursor.execute("SELECT procedure FROM article_procedure_table WHERE article_id=(?)",
-                            (article_id[x],))
-        procedure = prod_cursor.fetchone()[0]
-        prod_cursor.execute("SELECT stations, times FROM workflow_planner_table WHERE workflow_procedure=(?)",
-                            (procedure,))
-        station_ref, time = prod_cursor.fetchone()
-        station_ref = station_ref.split(";")
-        times = time.split(";")
-        print("time " + str(times))
-        print("stations " + str(stations))
+    # print(card_df)
+    # print(card_df.get("station")[1])
 
-        # print(str(children.index("id")))
-        children_ids = []
+    # stations = [p_end_empty[x][0] for x in range(0, len(p_end_empty))]
+    # values = [p_end_empty[x][1] for x in range(0, len(p_end_empty))]
+    # article_id = [p_end_empty[x][2][:-3] for x in range(0, len(p_end_empty))]
+    # times = 0
 
-        #for item in children:
-        #    if item == "id":
-        #        children_ids.append(item)
+    if len(children) < len(card_df):
+        for x in range(0, len(card_df)):
+            article_id = card_df.get("article_id")[x]
+            article_id = article_id[:-3]
+            prod_cursor.execute("SELECT procedure FROM article_procedure_table WHERE article_id=(?)",
+                                (article_id,))
+            procedure = prod_cursor.fetchone()[0]
 
-        # children_ids = [x["id"] for x in children]
-        #print(str(children_ids))
-    print("%card%" in children)
-    for x in range(0, len(stations)):
-        index = station_ref.index(stations[x])
-        station_name = "Station: " + stations[x]
-        station_time = "Timelimit: " + times[index]
-        # contained_child = False
-        # for y in range(0, len(children_ids)):
-        # if "card_" + stations[x] == children_ids[y]:
-        # contained_child = True
-        # if not contained_child:
+            prod_cursor.execute("SELECT stations, times FROM workflow_planner_table WHERE workflow_procedure=(?)",
+                                (procedure,))
+            station_ref, time = prod_cursor.fetchone()
+            station_ref = station_ref.split(";")
+            times = time.split(";")
+            print(station_ref)
+            print(times)
+            stations_times_df = pd.DataFrame(data=([station_ref, times]))
+            stations_times_df = stations_times_df.T
+            stations_times_df.columns = ["stations", "times"]
+            station = card_df.get("station")[x]
 
-        for item in cards_made:
-            if item == "Div":
-                print("poooop")
+            # print(station + "< station station_ref >" + station_ref[x])
+            # station_index = station_time.__pos__(station)
+            # print(card_df)
+            # print(station_ref)
+            print("-----------------------")
+            # print(station_time)
+            # print(str(station_index) + "iiiiiiiiiiiiiiiiiiiiiindex")
+            # times_df = pd.DataFrame(data=times)
+            # card_df[x] += times[x]
+            # print("time " + str(times))
 
-        if "card_" + stations[x] not in cards_made:
-            my_card = html.Div(id="test", children=dbc.Card(id="card_" + stations[x], children=[
-                station_name,
-                dbc.CardBody(station_time)
-            ], className="text-center"))
-            cards_made.append(my_card)
-            children.append(my_card)
-    print("mycard: " + str(my_card))
-    print(cards_made)
+            # card_df = card_df.__set("times", times)
+            # print(card_df)
+
+            # for x in range(0, len(card_df)):
+            # datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+            # print(stations_times_df.get("times"))
+            now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+            check_in = card_df.get("process_start")[x]
+
+            t1 = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
+            t2 = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
+
+            difference = str(t1 - t2)
+            print("station: " + station)
+            # print("now: " + str(t1) + " check in: " + str(t2) + "difference: " + str(difference))
+            children.append(
+                dbc.Card(
+                    style={"width": 100, "height": 100, "margin-left": 10, "text-align": "center",
+                           "display": "inline-block", "verticalAlign": "top"},
+
+                    children=["Station: " + station, dbc.CardBody(
+                        children=[html.Div(id={"type": "card_time_text", "index": "card_" + station},
+                                           children=[html.P([difference])])]
+                    )]
+                )
+            )
+
+    if len(children) == len(card_df):
+        for x in range(0, len(card_df)):
+            now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+            check_in = card_df.get("process_start")[x]
+
+            t1 = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
+            t2 = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
+
+            difference = str(t1 - t2)
+
+            print(difference)
 
     return children
 
 
 @app.callback(
-    Output(component_id="station_activity", component_property="label"),
-    Input(component_id="refresh", component_property="n_intervals")
+    Output({"type": "card_time_text", "index": MATCH}, "children"),
+    [Input("refresh_cards", "n_intervals")],
+    blocking=True
 )
+def display_time(children):
+    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+
+    production_connection = sqlite3.connect(SQLITE3_HOST)
+    prod_cursor = production_connection.cursor()
+
+    SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
+                      "FROM process_time_table WHERE process_end IS NULL"
+
+    card_text_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+    card_text_df = card_text_df.sort_values(by="station")
+    card_text_df = card_text_df.reset_index(drop=True)
+    print("hi" + str(datetime.now()))
+    print("---")
+    for x in range(0, len(card_text_df)):
+        station = card_text_df.get("station")[x]
+
+        now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+        check_in = card_text_df.get("process_start")[x]
+
+        t1 = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
+        t2 = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
+
+        difference = str(t1 - t2)
+
+        return html.Div(id={"type": "card_time_text", "index": "card_" + station}, children=[html.P([difference])])
+
+
+# print(str(children.index("id")))
+# children_ids = []
+
+# for item in children:
+#    if item == "id":
+#        children_ids.append(item)
+
+# children_ids = [x["id"] for x in children]
+# print(str(children_ids))
+
+
+"""
+print("%card%" in children)
+for x in range(0, len(stations)):
+    index = station_ref.index(stations[x])
+    station_name = "Station: " + stations[x]
+    station_time = "Timelimit: " + times[index]
+    # contained_child = False
+    # for y in range(0, len(children_ids)):
+    # if "card_" + stations[x] == children_ids[y]:
+    # contained_child = True
+    # if not contained_child:
+
+    for item in cards_made:
+        if item == "Div":
+            print("poooop")
+
+    if "card_" + stations[x] not in cards_made:
+        fig_card = figure(
+            data=[go.Box(children=dbc.Card(id="card_" + stations[x], children=[
+                    station_name,
+                    dbc.CardBody(station_time)
+                    ], className="text-center"
+                )
+            )]
+        )
+        fig_card.to_dict()
+        cards_made.append(fig_card)
+        children.append(fig_card)
+
+        #my_card = go.figure(id="test", children=dbc.Card(id="card_" + stations[x], children=[
+        #    station_name,
+        #    dbc.CardBody(station_time)
+        #], className="text-center"))
+        #my_card_dict = my_card.to_dict()
+        #cards_made.append(my_card)
+        #children.append(my_card)
+        print("mycard: " + str(fig_card))
+        print(cards_made)
+
+# fig_station_times = go.Figure(
+#    data=[go.Bar(x=list_x, y=list_y)],
+#    layout=go.Layout(
+#        title=go.layout.Title(text="x = Stationen ; y = durchschnittliche Bearbeitungsdauer",
+#                              font={"family": "Arial Black"}, y=0.82),
+#        showlegend=True
+#    )
+# )
+"""
+
+
+# @app.callback(
+#    Output(component_id="station_activity", component_property="label"),
+#    Input(component_id="refresh", component_property="n_intervals")
+# )
 def update_gauges(n_intervals):
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"

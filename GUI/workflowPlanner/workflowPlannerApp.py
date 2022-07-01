@@ -269,8 +269,8 @@ class WorkflowPlannerApp:
         # textbox to save a procedure workflow
         text_save_times_window = tk.Text(root, height=5, width=40)
         # label above the text_save_window
-        text_times_label = tk.Label(root, text="Zeiten in Sekunden pro Station: \n"
-                                               "30, 30, 45, 55 ...")
+        text_times_label = tk.Label(root, text="Form: \"Verfahren;Zeitlimit Station-Fertigung;Zeitlimit Station-Montage; ...\" \n"
+                                               "Beispiel: 001;35;25;30; ...")
         text_times_label.config(font=("Arial", 14))
         text_times_label.pack(pady=(10, 0))
         text_save_times_window.pack(pady=(0, 10))

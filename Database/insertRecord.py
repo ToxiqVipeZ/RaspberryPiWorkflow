@@ -8,6 +8,15 @@ def main():
     # cursor instance:
     c = connection.cursor()
 
+    #c.execute("DELETE FROM process_time_table WHERE process_id=10")
+
+    c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
+              " next_station, last_station, process_start) VALUES "
+              "(?, ?, ?, ?, ?, ?, ?)",
+              (10, "0010013-01", 11, "03", "04", "05", "29.06.2022 11:30:00"))
+
+    """
+    
     c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
               " next_station, last_station, process_start, process_end) VALUES "
               "(?, ?, ?, ?, ?, ?, ?, ?)",
@@ -44,7 +53,7 @@ def main():
               " next_station, last_station, process_start) VALUES "
               "(?, ?, ?, ?, ?, ?, ?)",
               (9, "0010012-01", 2, "02", "05", "05", "28.06.2022 01:16:00"))
-
+"""
 
     #c.execute("UPDATE shop_info_table SET status_ident=(?) WHERE status_ident IS NULL", ("ORDER-IN", ))
     #c.execute("SELECT status_ident FROM shop_info_table WHERE production_number=(?)", ("1"))
