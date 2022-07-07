@@ -171,7 +171,67 @@ app.layout = html.Div(children=[
     ]),
     # Platzhalter für weiteren Content:
     dbc.Row(id="card_row", style={"display": "inline-block", "height": 300, "margin": 10}, children=[
-        dbc.Col(style={"display": "inline-block"}, id='my_cards', children=[])
+        dbc.Col(style={"display": "inline-block"}, id='my_cards', children=[
+            dbc.Card(
+                id="card_container_01",
+
+                style={"width": 100, "height": 100, "margin-left": 10, "textAlign": "center",
+                       "display": "inline-block", "verticalAlign": "top"},
+
+                children=["Station: 01", dbc.CardBody(
+                    children=[html.Div(id={"type": "card_time_text", "index": "card_01"},
+                                       children=[]
+                    )]
+                )]
+            ),
+            dbc.Card(
+                id="card_container_02",
+
+                style={"width": 100, "height": 100, "margin-left": 10, "textAlign": "center",
+                       "display": "inline-block", "verticalAlign": "top"},
+
+                children=["Station: 02", dbc.CardBody(
+                    children=[html.Div(id={"type": "card_time_text", "index": "card_02"},
+                                       children=[]
+                    )]
+                )]
+            ),
+            dbc.Card(
+                id="card_container_03",
+
+                style={"width": 100, "height": 100, "margin-left": 10, "textAlign": "center",
+                       "display": "inline-block", "verticalAlign": "top"},
+
+                children=["Station: 03", dbc.CardBody(
+                    children=[html.Div(id={"type": "card_time_text", "index": "card_03"},
+                                       children=[]
+                    )]
+                )]
+            ),
+            dbc.Card(
+                id="card_container_04",
+
+                style={"width": 100, "height": 100, "margin-left": 10, "textAlign": "center",
+                       "display": "inline-block", "verticalAlign": "top"},
+
+                children=["Station: 04", dbc.CardBody(
+                    children=[html.Div(id={"type": "card_time_text", "index": "card_04"},
+                                       children=[]
+                    )]
+                )]
+            ),
+            dbc.Card(
+                id="card_container_05",
+
+                style={"width": 100, "height": 100, "margin-left": 10, "textAlign": "center",
+                       "display": "inline-block", "verticalAlign": "top"},
+
+                children=["Station: 05", dbc.CardBody(
+                    children=[html.Div(id={"type": "card_time_text", "index": "card_05"},
+                                       children=[]
+                )]
+            )]
+        )
     ]),
     dbc.Row(style={"height": 450, "margin": 5}, children=[
         dbc.Col(width=12, children=html.Div(children=[
@@ -189,7 +249,67 @@ app.layout = html.Div(children=[
     dcc.Interval(interval=3 * 1000, n_intervals=-1, id="refresh"),
     dcc.Interval(interval=1 * 500, n_intervals=0, id="refresh_cards")
 ])
+])
 
+@app.callback(
+    Output({"type": "card_time_text", "index": MATCH}, "children"),
+    [Input("refresh_cards", "n_intervals")],
+    State({"type": "card_time_text", "index": MATCH}, "id"),
+    blocking=True
+)
+def display_time(n_intervals, children):
+    try:
+        SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+        # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+
+        production_connection = sqlite3.connect(SQLITE3_HOST)
+        prod_cursor = production_connection.cursor()
+
+        SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
+                          "FROM process_time_table WHERE process_end IS NULL"
+        child = str(children)
+        child.split(",")
+        station = child[42:44]
+        card_text_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+        card_text_df = card_text_df.sort_values(by="station")
+        card_text_df = card_text_df.reset_index(drop=True)
+        print(card_text_df)
+        x = 0
+
+        for item in card_text_df.get("station"):
+            if item == station:
+                break
+            x += 1
+
+        now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+
+        check_in = card_text_df.get("process_start")[x]
+
+        t1 = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
+        t2 = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
+
+        difference = str(t1 - t2)
+        print("update" + str(children))
+
+        # print(str(html.Div(id={"type": "card_time_text", "index": "card_" + card_text_df.get("station")[x]}, children=[html.P([difference])])))
+
+        return html.P(difference)
+    except KeyError:
+        pass
+
+
+# print(str(children.index("id")))
+# children_ids = []
+
+# for item in children:
+#    if item == "id":
+#        children_ids.append(item)
+
+# children_ids = [x["id"] for x in children]
+# print(str(children_ids))
+
+
+"""
 @app.callback(
     Output("my_cards", "children"),
     [Input("refresh", "n_intervals")],
@@ -197,7 +317,6 @@ app.layout = html.Div(children=[
     blocking=True
 )
 def make_cards(n_intervals, children):
-    """Makes cards for each id"""
 
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
@@ -221,9 +340,11 @@ def make_cards(n_intervals, children):
     # values = [p_end_empty[x][1] for x in range(0, len(p_end_empty))]
     # article_id = [p_end_empty[x][2][:-3] for x in range(0, len(p_end_empty))]
     # times = 0
+    child_arr = children
 
     if len(children) < len(card_df):
         for x in range(0, len(card_df)):
+
             article_id = card_df.get("article_id")[x]
             article_id = article_id[:-3]
             prod_cursor.execute("SELECT procedure FROM article_procedure_table WHERE article_id=(?)",
@@ -245,6 +366,8 @@ def make_cards(n_intervals, children):
             # print(card_df)
             # print(station_ref)
             print("-----------------------")
+            # print(len(children))
+            print(len(card_df))
             # print(station_time)
             # print(str(station_index) + "iiiiiiiiiiiiiiiiiiiiiindex")
             # times_df = pd.DataFrame(data=times)
@@ -266,83 +389,35 @@ def make_cards(n_intervals, children):
             difference = str(t1 - t2)
             print("station: " + station)
             # print("now: " + str(t1) + " check in: " + str(t2) + "difference: " + str(difference))
-            children.append(
-                dbc.Card(
-                    id="card_container_" + station,
 
-                    style={"width": 100, "height": 100, "margin-left": 10, "textAlign": "center",
-                           "display": "inline-block", "verticalAlign": "top"},
+            if ("id={'type': 'card_time_text', 'index': 'card_" + station + "'}") not in children:
+                children.append(
+                    dbc.Card(
+                        id="card_container_" + station,
 
-                    children=["Station: " + station, dbc.CardBody(
-                        children=[html.Div(id={"type": "card_time_text", "index": "card_" + station},
-                                           children=[html.P([difference])])]
-                    )]
+                        style={"width": 100, "height": 100, "margin-left": 10, "textAlign": "center",
+                               "display": "inline-block", "verticalAlign": "top"},
+
+                        children=["Station: " + station, dbc.CardBody(
+                            children=[html.Div(id={"type": "card_time_text", "index": "card_" + station},
+                                               children=[html.P([difference])])]
+                        )]
+                    )
                 )
-            )
+                print("0: " + str(children))
 
-            print(str(children))
+        # for items in child_arr:
+        #    children.append(items)
+        #    print("item = " + str(items))
+        # print(str(child_arr))
 
     if len(children) == len(card_df):
-        for x in range(0, len(card_df)):
-            now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-            check_in = card_df.get("process_start")[x]
-
-            t1 = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
-            t2 = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
-
-            difference = str(t1 - t2)
+        print("children full")
 
     return children
 
 
-@app.callback(
-    Output({"type": "card_time_text", "index": MATCH}, "children"),
-    [Input("refresh_cards", "n_intervals")],
-    State({"type": "card_time_text", "index": MATCH}, "children"),
-    blocking=True
-)
-def display_time(n_intervals, children):
-    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
-    production_connection = sqlite3.connect(SQLITE3_HOST)
-    prod_cursor = production_connection.cursor()
-
-    SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
-                      "FROM process_time_table WHERE process_end IS NULL"
-
-    card_text_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
-    card_text_df = card_text_df.sort_values(by="station")
-    card_text_df = card_text_df.reset_index(drop=True)
-
-    for x in range(0, len(card_text_df)):
-        station = card_text_df.get("station")[x]
-
-        now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-        check_in = card_text_df.get("process_start")[x]
-
-        t1 = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
-        t2 = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
-
-        difference = str(t1 - t2)
-
-        #print(str(html.Div(id={"type": "card_time_text", "index": "card_" + card_text_df.get("station")[x]}, children=[html.P([difference])])))
-
-        return html.Div(id={"type": "card_time_text", "index": "card_" + card_text_df.get("station")[x]}, children=[html.P([difference])])
-
-
-# print(str(children.index("id")))
-# children_ids = []
-
-# for item in children:
-#    if item == "id":
-#        children_ids.append(item)
-
-# children_ids = [x["id"] for x in children]
-# print(str(children_ids))
-
-
-"""
 print("%card%" in children)
 for x in range(0, len(stations)):
     index = station_ref.index(stations[x])
