@@ -1,0 +1,20 @@
+.dt-table-container__row::-webkit-scrollbar {
+    width: 15px;
+}
+
+.dt-table-container__row::-webkit-scrollbar-corner {
+    background-color: #5b80b2;
+    border-style: groove;
+    border-radius: 10px;
+}
+
+.dt-table-container__row::-webkit-scrollbar-thumb {
+    background-color: #5b80b2;
+    border-style: outset;
+    border-color: darkblue;
+    border-radius: 10px;
+}
+
+.dt-table-container__row::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 10px #5b80b2;
+}

@@ -21,10 +21,13 @@ SQL_QUERY_PTT_2 = "SELECT DISTINCT(article_id), next_station FROM process_time_t
 
 # Dataframes
 df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
+df_test = df_logs
+
+table = dbc.Table.from_dataframe(df_test)
 df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
 
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG],
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, ".assets/stylesheet.css"],
                 meta_tags=[{"name": "viewport",
                             "content": "width=device-width, initial-scale=1.0"}]
                 )
@@ -33,13 +36,18 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col(
             html.H2(children="Workstation Dashboard",
-                    className="text-center text-primary"
+                    className="text-center text-primary",
+                    style={"margin": 20,
+                           "border-color": "blue",
+                           "border-style": "outset",
+                           "border-width": "4px"
+                           }
                     ),
             width=12
         )
     ]),
     dbc.Row(
-        style={"display": "inline-block", "height": 150, "margin": 10},
+        style={"display": "inline-block", "height": 200},
         children=[
             dbc.Col(
                 style={"display": "inline-block"},
@@ -53,8 +61,38 @@ app.layout = dbc.Container([
             )
         ]
     ),
-    dbc.Row([
+    dbc.Row(children=[
+        dbc.Col(children=[
+            html.H5(children=["Logs: "], className="text-center text-primary"),
+            dash_table.DataTable(
+                id="activity_log",
+                data=df_logs.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df_logs.columns],
+                fixed_rows={"headers": True},
+                style_header={
+                    "fontWeight": "bold",
+                    "border": "2px solid black",
+                    "border-bottom": "2px solid blue"
+                },
+                style_table={
+                    "height": 150,
+                    "border-color": "blue",
+                    "border-style": "outset",
+                    "border-width": "4px"
+                },
+                style_cell={
+                    "width": "10%",
+                    "text-align": "center",
+                    "fontWeight": "bold",
+                    "font-size": 12,
+                    "background-color": "black",
+                    "font-style": "Open Sans"
+                },
+                style_as_list_view=True
+            )
+        ], width=9)
     ]),
+    dbc.Row(dbc.Col()),
     dcc.Interval(interval=1 * 500, n_intervals=0, id="add-card"),
     dcc.Interval(interval=1 * 500, n_intervals=0, id="add-time")
 ])
@@ -88,7 +126,7 @@ def display_cards(n_intervals, div_children):
         if len(div_children) < len(card_df):
             if n_intervals in range(0, len(card_df)):
                 new_card = html.Div(
-                    style={"width": 200, "height": 150, "margin": 5, "textAlign": "center",
+                    style={"width": 210, "height": 150, "margin": 5, "textAlign": "center",
                            "display": "inline-block", "verticalAlign": "top", "horizontalAlign": "right"},
                     children=[
                         dbc.Card(
@@ -105,7 +143,10 @@ def display_cards(n_intervals, div_children):
                                     },
                                     children=[]
                                 ),
-                            ]
+                            ],
+                            style={"border-color": "blue",
+                                "border-style": "outset",
+                                "border-width": "4px"}
                         )
                     ]
                 )
@@ -125,7 +166,8 @@ def display_cards(n_intervals, div_children):
 @app.callback(
     Output({"type": "dynamic-cards-text", "index": MATCH}, "children"),
     [Input("add-time", "n_intervals")],
-    [State({"type": "dynamic-cards-text", "index": MATCH}, "children")]
+    [State({"type": "dynamic-cards-text", "index": MATCH}, "children")],
+    blocking=True
 )
 def display_time(n_intervals, children):
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
@@ -176,16 +218,11 @@ def display_time(n_intervals, children):
                     elif minus_time_limit > 0:
                         color = "green"
 
-
                     footer_child = dbc.CardFooter(
                         children=["time limit: " + str(minus_time_limit), "\n" + str(article_id)],
                         style={"display": "inline-block", "background-color": color}
                     )
                     return [body_child, footer_child]
-
-
-
-
 
 
 if __name__ == "__main__":
