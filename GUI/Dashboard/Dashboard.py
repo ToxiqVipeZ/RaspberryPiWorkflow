@@ -1,4 +1,4 @@
-from dash import dash, dcc, html, dash_table
+from dash import dash, dcc, html, dash_table, callback_context
 from dash.dependencies import Output, Input, State, MATCH
 import plotly.express as px
 import dash_bootstrap_components as dbc
@@ -10,7 +10,6 @@ SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/prod
 # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
 production_connection = sqlite3.connect(SQLITE3_HOST)
-print("Datenbase connected.")
 prod_cursor = production_connection.cursor()
 
 # Dataquery's for data frames
@@ -25,10 +24,6 @@ df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
 df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
 
 
-print(df_logs)
-print("-------------------")
-print(df_stations_await)
-
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG],
                 meta_tags=[{"name": "viewport",
                             "content": "width=device-width, initial-scale=1.0"}]
@@ -37,27 +32,30 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG],
 app.layout = dbc.Container([
     dbc.Row([
         dbc.Col(
-            html.H1("Workstation Dashboard",
-                    className="text-center text-primary, mb-4"),
+            html.H2(children="Workstation Dashboard",
+                    className="text-center text-primary"
+                    ),
             width=12
         )
     ]),
+    dbc.Row(
+        style={"display": "inline-block", "height": 150, "margin": 10},
+        children=[
+            dbc.Col(
+                style={"display": "inline-block"},
+                children=[
+                    html.Div(
+                        style={"display": "inline-block"},
+                        id="card-container",
+                        children=[]
+                    )
+                ]
+            )
+        ]
+    ),
     dbc.Row([
-        dbc.Col(
-            width=12,
-            style={"display": "inline-block"},
-            children=[
-                html.Div(
-                    id="card-container",
-                    children=[]
-                )
-            ]
-        )
     ]),
-    dbc.Row([
-
-    ]),
-    dcc.Interval(interval=1 * 1000, n_intervals=0, id="add-card"),
+    dcc.Interval(interval=1 * 500, n_intervals=0, id="add-card"),
     dcc.Interval(interval=1 * 500, n_intervals=0, id="add-time")
 ])
 
@@ -67,14 +65,14 @@ production_connection.close()
 @app.callback(
     Output("card-container", "children"),
     [Input("add-card", "n_intervals")],
-    [State("card-container", "children")]
+    [State("card-container", "children")],
+    blocking=True
 )
 def display_cards(n_intervals, div_children):
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
     production_connection = sqlite3.connect(SQLITE3_HOST)
-    print("Datenbase connected.")
     prod_cursor = production_connection.cursor()
 
     SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
@@ -87,31 +85,25 @@ def display_cards(n_intervals, div_children):
     n_intervals = n_intervals % len(card_df)
     station_nr = card_df.get("station")[n_intervals]
     if div_children is not None:
-        print(len(div_children))
-        print(len(card_df))
         if len(div_children) < len(card_df):
             if n_intervals in range(0, len(card_df)):
                 new_card = html.Div(
+                    style={"width": 200, "height": 150, "margin": 5, "textAlign": "center",
+                           "display": "inline-block", "verticalAlign": "top", "horizontalAlign": "right"},
                     children=[
                         dbc.Card(
                             id={
                                 "type": "dynamic-cards",
                                 "index": station_nr
                             },
-
-                            style={"width": 125, "height": 125, "margin-left": 10, "textAlign": "center",
-                                   "display": "inline-block", "verticalAlign": "top"},
-
                             children=[
                                 dbc.CardHeader("Station: " + station_nr),
                                 dbc.CardBody(
-                                    html.P(
-                                        id={
-                                            "type": "dynamic-cards-text",
-                                            "index": station_nr
-                                        },
-                                        children=[]
-                                    )
+                                    id={
+                                        "type": "dynamic-cards-text",
+                                        "index": station_nr
+                                    },
+                                    children=[]
                                 ),
                             ]
                         )
@@ -142,26 +134,59 @@ def display_time(n_intervals, children):
     production_connection = sqlite3.connect(SQLITE3_HOST)
     prod_cur = production_connection.cursor()
 
-    prod_cur.execute("SELECT station, process_start, article_id FROM process_time_table WHERE process_end IS NULL")
+    SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id FROM process_time_table WHERE process_end IS NULL"
 
-    data = prod_cur.fetchall()
-    data.sort("station")
+    children_index = str(callback_context.outputs_grouping)
+    children_index = children_index.split("\'index\': \'")[1][:2]
+    card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+    card_df = card_df.sort_values(by="station")
+    card_df = card_df.reset_index(drop=True)
 
-    #card_df = pd.read_sql(SQL_QUERY_PTT_4, production_connection)
-    #card_df = card_df.sort_values(by="station")
-    #card_df = card_df.reset_index(drop=True)
+    now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+    time_now = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
 
-    print(children)
-    #child.split(",")
-    #station = child[42:44]
+    for x in range(0, len(card_df)):
+        if card_df["station"][x] == children_index:
+            check_in = card_df["process_start"][x]
+            article_id = card_df["article_id"][x]
 
-    #index = data.index(station)
+            prod_cur.execute("SELECT procedure FROM article_procedure_table "
+                             "WHERE article_id=(?)", (article_id[:-3],))
+            procedure = prod_cur.fetchone()[0]
 
-    #print(index)
-    print(data)
+            prod_cur.execute("SELECT stations, times FROM workflow_planner_table "
+                             "WHERE workflow_procedure=(?)", (procedure,))
+            time_limit = prod_cur.fetchone()
+            time_limit_stations = time_limit[0].split(";")
+            time_limit_times = time_limit[1].split(";")
+            for y in range(0, len(time_limit[0])):
+                if children_index == time_limit_stations[y]:
+                    time_limit_station = int(time_limit_times[y])
+                    #time_limit_station = datetime.strptime(time_limit_station, "%S")
+                    time_check_in = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
+                    difference = time_now - time_check_in
+                    body_child = str(difference)
+                    difference_in_sec = int(difference.total_seconds())
+                    minus_time_limit = time_limit_station-difference_in_sec
+                    color = "grey"
+                    if minus_time_limit < 0:
+                        color = "yellow"
+                        if minus_time_limit <= -20:
+                            color = "red"
+                    elif minus_time_limit > 0:
+                        color = "green"
 
 
-    return children
+                    footer_child = dbc.CardFooter(
+                        children=["time limit: " + str(minus_time_limit), "\n" + str(article_id)],
+                        style={"display": "inline-block", "background-color": color}
+                    )
+                    return [body_child, footer_child]
+
+
+
+
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)
