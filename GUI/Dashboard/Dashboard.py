@@ -220,7 +220,14 @@ def display_time(n_intervals, children):
 
                     footer_child = dbc.CardFooter(
                         children=["time limit: " + str(minus_time_limit), "\n" + str(article_id)],
-                        style={"display": "inline-block", "background-color": color}
+                        style={
+                            "margin-top": "10px",
+                            "border-style": "outset",
+                            "border-color": "darkblue",
+                            "border-radius": "10px",
+                            "display": "inline-block",
+                            "background-color": color
+                        }
                     )
                     return [body_child, footer_child]
 
