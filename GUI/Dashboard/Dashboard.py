@@ -1,6 +1,6 @@
 from dash import dash, dcc, html, dash_table, callback_context
 from dash.dependencies import Output, Input, State, MATCH
-import plotly.express as px
+import math
 import dash_bootstrap_components as dbc
 import pandas as pd
 import sqlite3
@@ -21,9 +21,7 @@ SQL_QUERY_PTT_2 = "SELECT DISTINCT(article_id), next_station FROM process_time_t
 
 # Dataframes
 df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
-df_test = df_logs
 
-table = dbc.Table.from_dataframe(df_test)
 df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
 
 
@@ -37,7 +35,8 @@ app.layout = dbc.Container([
         dbc.Col(
             html.H2(children="Workstation Dashboard",
                     className="text-center text-primary",
-                    style={"margin": 20,
+                    style={"margin-top": 20,
+                            "margin-bottom": 20,
                            "border-color": "blue",
                            "border-style": "outset",
                            "border-width": "4px"
@@ -63,7 +62,7 @@ app.layout = dbc.Container([
     ),
     dbc.Row(children=[
         dbc.Col(children=[
-            html.H5(children=["Logs: "], className="text-center text-primary"),
+            html.H5(children=["Logs: "], className="text-primary", style={"margin-top": 10}),
             dash_table.DataTable(
                 id="activity_log",
                 data=df_logs.to_dict("records"),
@@ -90,7 +89,36 @@ app.layout = dbc.Container([
                 },
                 style_as_list_view=True
             )
-        ], width=9)
+        ], width=8),
+            dbc.Col(width=4, align="right", children=html.Div(children=[
+            html.H5(children=["Stationen erwarten: "], className="text-primary", style={"margin-top": 10}),
+            dash_table.DataTable(
+                id="next_station_log",
+                data=df_stations_await.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df_stations_await.columns],
+                fixed_rows={"headers": True},
+                style_header={
+                    "fontWeight": "bold",
+                    "border": "2px solid black",
+                    "border-bottom": "2px solid blue"
+                },
+                style_table={
+                    "height": 150,
+                    "border-color": "blue",
+                    "border-style": "outset",
+                    "border-width": "4px"
+                },
+                style_cell={
+                    "width": "10%",
+                    "text-align": "center",
+                    "fontWeight": "bold",
+                    "font-size": 12,
+                    "background-color": "black",
+                    "font-style": "Open Sans"
+                },
+                style_as_list_view=True
+            )
+        ]))
     ]),
     dbc.Row(dbc.Col()),
     dcc.Interval(interval=1 * 500, n_intervals=0, id="add-card"),
@@ -126,7 +154,7 @@ def display_cards(n_intervals, div_children):
         if len(div_children) < len(card_df):
             if n_intervals in range(0, len(card_df)):
                 new_card = html.Div(
-                    style={"width": 210, "height": 150, "margin": 5, "textAlign": "center",
+                    style={"width": 210, "height": 150, "margin": 10, "margin-left": 0, "textAlign": "center",
                            "display": "inline-block", "verticalAlign": "top", "horizontalAlign": "right"},
                     children=[
                         dbc.Card(
@@ -215,6 +243,8 @@ def display_time(n_intervals, children):
                         color = "yellow"
                         if minus_time_limit <= -20:
                             color = "red"
+                            if minus_time_limit <= -200001:
+                                minus_time_limit = math.ceil(minus_time_limit / 10000)
                     elif minus_time_limit > 0:
                         color = "green"
 
