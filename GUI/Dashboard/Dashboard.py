@@ -15,16 +15,21 @@ prod_cursor = production_connection.cursor()
 # Dataquery's for data frames
 SQL_QUERY_PTT_1 = "SELECT * FROM process_time_table WHERE next_station!=\"Kunde\"" \
                   " ORDER BY ROWID DESC"
-SQL_QUERY_PTT_2 = "SELECT DISTINCT(article_id), next_station FROM process_time_table " \
+SQL_QUERY_PTT_2 = "SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, next_station AS Pull" \
+                  " FROM process_time_table " \
                   "WHERE next_station!=\"Kunde\" ORDER BY ROWID DESC"
-
+SQL_QUERY_PTT_5 = "SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, next_station AS Pull, process_end AS Checkout " \
+                  "FROM process_time_table " \
+                  "WHERE next_station!=\"Kunde\"" \
+                  "AND process_end!=\"None\" ORDER BY ROWID DESC"
 
 # Dataframes
 df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
-
 df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
+df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
 
-
+df_logs_columns = ["ProzessID", "ArtikelID", "BestellID", "Station",
+                   "Weiter", "Endstation", "Startzeit", "Endzeit"]
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, ".assets/stylesheet.css"],
                 meta_tags=[{"name": "viewport",
                             "content": "width=device-width, initial-scale=1.0"}]
@@ -36,7 +41,7 @@ app.layout = dbc.Container([
             html.H2(children="Workstation Dashboard",
                     className="text-center text-primary",
                     style={"margin-top": 20,
-                            "margin-bottom": 20,
+                           "margin-bottom": 20,
                            "border-color": "blue",
                            "border-style": "outset",
                            "border-width": "4px"
@@ -46,18 +51,20 @@ app.layout = dbc.Container([
         )
     ]),
     dbc.Row(
-        style={"display": "inline-block", "height": 200},
+        style={"display": "inline-block"
+               },
         children=[
+            html.H5(children=["Aktive Stationen: "], className="text-primary"),
             dbc.Col(
-                style={"display": "inline-block"},
+                style={"display": "inline-block", "padding-bottom": 30},
                 children=[
                     html.Div(
                         style={"display": "inline-block"},
                         id="card-container",
                         children=[]
                     )
-                ]
-            )
+                ], width=12
+            ),
         ]
     ),
     dbc.Row(children=[
@@ -66,7 +73,10 @@ app.layout = dbc.Container([
             dash_table.DataTable(
                 id="activity_log",
                 data=df_logs.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in df_logs.columns],
+                columns=[{
+                    'name': col,
+                    'id': df_logs.columns[idx]
+                } for (idx, col) in enumerate(df_logs_columns)],
                 fixed_rows={"headers": True},
                 style_header={
                     "fontWeight": "bold",
@@ -90,7 +100,7 @@ app.layout = dbc.Container([
                 style_as_list_view=True
             )
         ], width=8),
-            dbc.Col(width=4, align="right", children=html.Div(children=[
+        dbc.Col(width=4, align="right", children=html.Div(children=[
             html.H5(children=["Stationen erwarten: "], className="text-primary", style={"margin-top": 10}),
             dash_table.DataTable(
                 id="next_station_log",
@@ -127,6 +137,24 @@ app.layout = dbc.Container([
 
 production_connection.close()
 
+@app.callback(
+    Output("next_station_log", "data"),
+    [Input("add-card", "n_intervals")],
+    blocking=True
+)
+def stations_puffer_time(n_intervals):
+    for x in range(0, len(df_stations_await_plus["Checkout"])):
+        now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+        time_now = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
+        check_out = str(df_stations_await_plus["Checkout"][x])
+        time_now = now.total_seconds()
+        time_check_out = time_check_out.total_seconds()
+
+        difference = time_check_out - time_now
+        difference_in_sec = int(difference.total_seconds())
+        df_stations_await_plus["Checkout"][x] = str(difference)
+
+    return df_stations_await_plus
 
 @app.callback(
     Output("card-container", "children"),
@@ -173,8 +201,8 @@ def display_cards(n_intervals, div_children):
                                 ),
                             ],
                             style={"border-color": "blue",
-                                "border-style": "outset",
-                                "border-width": "4px"}
+                                   "border-style": "outset",
+                                   "border-width": "4px"}
                         )
                     ]
                 )
@@ -190,6 +218,7 @@ def display_cards(n_intervals, div_children):
     else:
         production_connection.close()
         return dash.no_update
+
 
 @app.callback(
     Output({"type": "dynamic-cards-text", "index": MATCH}, "children"),
@@ -232,12 +261,12 @@ def display_time(n_intervals, children):
             for y in range(0, len(time_limit[0])):
                 if children_index == time_limit_stations[y]:
                     time_limit_station = int(time_limit_times[y])
-                    #time_limit_station = datetime.strptime(time_limit_station, "%S")
+                    # time_limit_station = datetime.strptime(time_limit_station, "%S")
                     time_check_in = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
                     difference = time_now - time_check_in
                     body_child = str(difference)
                     difference_in_sec = int(difference.total_seconds())
-                    minus_time_limit = time_limit_station-difference_in_sec
+                    minus_time_limit = time_limit_station - difference_in_sec
                     color = "grey"
                     if minus_time_limit < 0:
                         color = "yellow"
