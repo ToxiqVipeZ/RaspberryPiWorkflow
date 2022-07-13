@@ -23,19 +23,21 @@ SQL_QUERY_PTT_5 = "SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, ne
                   "WHERE next_station!=\"Kunde\"" \
                   "AND process_end!=\"None\" ORDER BY ROWID DESC"
 
+df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
+print(df_stations_await_plus)
 # Dataframes
 df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
 df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
-df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
 
 df_logs_columns = ["ProzessID", "ArtikelID", "BestellID", "Station",
-                   "Weiter", "Endstation", "Startzeit", "Endzeit"]
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, ".assets/stylesheet.css"],
+                   "Nächste Station", "Endstation", "Startzeit", "Endzeit"]
+df_stations_await_plus_columns = ["ArtikelID", "Puffer von", "für", "seit"]
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, ".assets/stylesheet.css"],
                 meta_tags=[{"name": "viewport",
-                            "content": "width=device-width, initial-scale=1.0"}]
+                            "content": "width=device-width, initial-scale=1"}]
                 )
 
-app.layout = dbc.Container([
+app.layout = html.Div([
     dbc.Row([
         dbc.Col(
             html.H2(children="Workstation Dashboard",
@@ -84,7 +86,7 @@ app.layout = dbc.Container([
                     "border-bottom": "2px solid blue"
                 },
                 style_table={
-                    "height": 150,
+                    "height": 200,
                     "border-color": "blue",
                     "border-style": "outset",
                     "border-width": "4px"
@@ -93,7 +95,7 @@ app.layout = dbc.Container([
                     "width": "10%",
                     "text-align": "center",
                     "fontWeight": "bold",
-                    "font-size": 12,
+                    "font-size": 16,
                     "background-color": "black",
                     "font-style": "Open Sans"
                 },
@@ -104,8 +106,11 @@ app.layout = dbc.Container([
             html.H5(children=["Stationen erwarten: "], className="text-primary", style={"margin-top": 10}),
             dash_table.DataTable(
                 id="next_station_log",
-                data=df_stations_await.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in df_stations_await.columns],
+                data=df_stations_await_plus.to_dict("records"),
+                columns=[{
+                    'name': col,
+                    'id': df_stations_await_plus.columns[idx]
+                } for (idx, col) in enumerate(df_stations_await_plus_columns)],
                 fixed_rows={"headers": True},
                 style_header={
                     "fontWeight": "bold",
@@ -113,7 +118,7 @@ app.layout = dbc.Container([
                     "border-bottom": "2px solid blue"
                 },
                 style_table={
-                    "height": 150,
+                    "height": 200,
                     "border-color": "blue",
                     "border-style": "outset",
                     "border-width": "4px"
@@ -122,7 +127,7 @@ app.layout = dbc.Container([
                     "width": "10%",
                     "text-align": "center",
                     "fontWeight": "bold",
-                    "font-size": 12,
+                    "font-size": 16,
                     "background-color": "black",
                     "font-style": "Open Sans"
                 },
@@ -132,29 +137,34 @@ app.layout = dbc.Container([
     ]),
     dbc.Row(dbc.Col()),
     dcc.Interval(interval=1 * 500, n_intervals=0, id="add-card"),
-    dcc.Interval(interval=1 * 500, n_intervals=0, id="add-time")
-])
+    dcc.Interval(interval=1 * 500, n_intervals=0, id="add-time"),
+    dcc.Interval(interval=1 * 500, n_intervals=0, id="puffer_time_check")
+], style={"margin": 20})
 
 production_connection.close()
 
+
 @app.callback(
-    Output("next_station_log", "data"),
-    [Input("add-card", "n_intervals")],
-    blocking=True
+    Output(component_id="next_station_log", component_property="data"),
+    Input(component_id="puffer_time_check", component_property="n_intervals")
 )
 def stations_puffer_time(n_intervals):
-    for x in range(0, len(df_stations_await_plus["Checkout"])):
+    production_connection = sqlite3.connect(SQLITE3_HOST)
+
+    df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
+
+    for x in range(0, len(df_stations_await_plus)):
         now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
         time_now = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
-        check_out = str(df_stations_await_plus["Checkout"][x])
-        time_now = now.total_seconds()
-        time_check_out = time_check_out.total_seconds()
+        checkout = datetime.strptime(df_stations_await_plus["Checkout"][x], "%d.%m.%Y %H:%M:%S")
+        difference = (time_now - checkout)
 
-        difference = time_check_out - time_now
-        difference_in_sec = int(difference.total_seconds())
         df_stations_await_plus["Checkout"][x] = str(difference)
 
-    return df_stations_await_plus
+    production_connection.close()
+    # print(df_stations_await_plus.to_dict("records"))
+    return df_stations_await_plus.to_dict("records")
+
 
 @app.callback(
     Output("card-container", "children"),
@@ -197,12 +207,15 @@ def display_cards(n_intervals, div_children):
                                         "type": "dynamic-cards-text",
                                         "index": station_nr
                                     },
-                                    children=[]
+                                    children=[],
+                                    className="text-white"
                                 ),
                             ],
                             style={"border-color": "blue",
                                    "border-style": "outset",
-                                   "border-width": "4px"}
+                                   "border-width": "4px"
+                                   },
+                            className="text-white"
                         )
                     ]
                 )
@@ -286,7 +299,8 @@ def display_time(n_intervals, children):
                             "border-radius": "10px",
                             "display": "inline-block",
                             "background-color": color
-                        }
+                        },
+                        className="text-white"
                     )
                     return [body_child, footer_child]
 

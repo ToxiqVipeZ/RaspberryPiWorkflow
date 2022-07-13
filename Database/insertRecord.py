@@ -8,7 +8,11 @@ def main():
     # cursor instance:
     c = connection.cursor()
 
-    c.execute("DELETE FROM process_time_table WHERE process_id=10")
+
+    c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
+              " next_station, last_station, process_start, process_end) VALUES "
+              "(?, ?, ?, ?, ?, ?, ?, ?)",
+              (7, "0010013-01", 2, "02", "05", "05", "13.07.2022 15:11:00", "13.07.2022 15:13:00"))
 
     #c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
     #          " next_station, last_station, process_start) VALUES "
@@ -41,10 +45,7 @@ def main():
               " next_station, last_station, process_start, process_end) VALUES "
               "(?, ?, ?, ?, ?, ?, ?, ?)",
               (6, "0010012-01", 2, "01", "02", "05", "28.06.2022 01:06:00", "28.06.2022 01:10:00"))
-    c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
-              " next_station, last_station, process_start, process_end) VALUES "
-              "(?, ?, ?, ?, ?, ?, ?, ?)",
-              (7, "0010012-01", 2, "02", "05", "05", "28.06.2022 01:11:00", "28.06.2022 01:15:00"))
+    
     c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
               " next_station, last_station, process_start) VALUES "
               "(?, ?, ?, ?, ?, ?, ?)",
