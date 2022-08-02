@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 
 def main():
@@ -8,13 +9,36 @@ def main():
     # cursor instance:
     c = connection.cursor()
 
+    #c.execute("DELETE FROM process_time_table WHERE process_id=(?)",(12,))
 
-    c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
-              " next_station, last_station, process_start, process_end) VALUES "
-              "(?, ?, ?, ?, ?, ?, ?, ?)",
-              (7, "0010013-01", 2, "02", "05", "05", "13.07.2022 15:11:00", "13.07.2022 15:13:00"))
+    time_now = "21.07.2022 10:42:30"
+    process_id = 9
+
+    #c.execute("UPDATE process_time_table SET process_start=(?) WHERE process_id=(?)", (time_now, process_id))
 
     #c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
+    #          " next_station, last_station, process_start) VALUES "
+    #          "(?, ?, ?, ?, ?, ?, ?)",
+    #          (12, "0010013-05", 3, "04", "05", "05", "21.07.2022 08:55:00"))
+
+    c.execute("UPDATE process_time_table SET process_end=(?) WHERE process_id=(?)", (time_now,process_id ))
+
+    # c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
+    #          " next_station, last_station, process_start, process_end) VALUES "
+    #          "(?, ?, ?, ?, ?, ?, ?, ?)",
+    #          (7, "0010013-01", 2, "02", "05", "05", "13.07.2022 15:11:00", "13.07.2022 15:13:00"))
+
+    # c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
+    #          " next_station, last_station, process_start) VALUES "
+    #          "(?, ?, ?, ?, ?, ?, ?)",
+    #          (10, "0010013-01", 11, "03", "04", "05", "08.07.2022 10:52:00"))
+
+    # c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
+    #          " next_station, last_station, process_start) VALUES "
+    #          "(?, ?, ?, ?, ?, ?, ?)",
+    #          (10, "0010013-01", 11, "03", "04", "05", "08.07.2022 10:52:00"))
+
+    # c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
     #          " next_station, last_station, process_start) VALUES "
     #          "(?, ?, ?, ?, ?, ?, ?)",
     #          (10, "0010013-01", 11, "03", "04", "05", "08.07.2022 10:52:00"))
@@ -56,10 +80,9 @@ def main():
               (9, "0010012-01", 2, "02", "05", "05", "28.06.2022 01:16:00"))
 """
 
-    #c.execute("UPDATE shop_info_table SET status_ident=(?) WHERE status_ident IS NULL", ("ORDER-IN", ))
-    #c.execute("SELECT status_ident FROM shop_info_table WHERE production_number=(?)", ("1"))
-    #print(c.fetchone())
-
+    # c.execute("UPDATE shop_info_table SET status_ident=(?) WHERE status_ident IS NULL", ("ORDER-IN", ))
+    # c.execute("SELECT status_ident FROM shop_info_table WHERE production_number=(?)", ("1"))
+    # print(c.fetchone())
 
     # testprint
     print("execute ausgeführt!")
@@ -69,6 +92,7 @@ def main():
 
     # closing the connection
     connection.close()
+
 
 main()
 

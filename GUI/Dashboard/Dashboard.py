@@ -31,8 +31,8 @@ df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
 
 df_logs_columns = ["ProzessID", "ArtikelID", "BestellID", "Station",
                    "Nächste Station", "Endstation", "Startzeit", "Endzeit"]
-df_stations_await_plus_columns = ["ArtikelID", "Puffer von", "für", "seit"]
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, ".assets/stylesheet.css"],
+df_stations_await_plus_columns = ["ArtikelID", "Push", "Pull", "Wartezeit"]
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, ".assets/stylesheet.css"],
                 meta_tags=[{"name": "viewport",
                             "content": "width=device-width, initial-scale=1"}]
                 )
@@ -52,23 +52,53 @@ app.layout = html.Div([
             width=12
         )
     ]),
-    dbc.Row(
-        style={"display": "inline-block"
-               },
-        children=[
-            html.H5(children=["Aktive Stationen: "], className="text-primary"),
-            dbc.Col(
-                style={"display": "inline-block", "padding-bottom": 30},
-                children=[
-                    html.Div(
-                        style={"display": "inline-block"},
-                        id="card-container",
-                        children=[]
-                    )
-                ], width=12
+    dbc.Row([
+        dbc.Col(style={"display": "block"}, width=3, align="left", children=html.Div(children=[
+            html.H5(children=["Stationen erwarten: "], className="text-primary", style={"margin-top": 10}),
+            dash_table.DataTable(
+                id="next_station_log",
+                data=df_stations_await_plus.to_dict("records"),
+                columns=[{
+                    'name': col,
+                    'id': df_stations_await_plus.columns[idx]
+                } for (idx, col) in enumerate(df_stations_await_plus_columns)],
+                fixed_rows={"headers": True},
+                style_header={
+                    "fontWeight": "bold",
+                    "border": "2px solid black",
+                    "border-bottom": "2px solid blue"
+                },
+                style_table={
+                    "height": 400,
+                    "border-color": "blue",
+                    "border-style": "outset",
+                    "border-width": "4px"
+                },
+                style_cell={
+                    "width": "10%",
+                    "text-align": "center",
+                    "fontWeight": "bold",
+                    "font-size": 14,
+                    "background-color": "black",
+                    "font-style": "Open Sans"
+                },
+                style_as_list_view=True
             ),
-        ]
-    ),
+        ])),
+        dbc.Col(
+            style={"display": "inline-block", "padding-bottom": 30},
+            children=[
+                html.H5(children=["Aktive Stationen: "],
+                        style={"display": "block", "margin-top": 10, "margin-bottom": -2},
+                        className="text-primary"),
+                html.Div(
+                    style={"display": "inline-block", "height": 400},
+                    id="card-container",
+                    children=[]
+                )
+            ], width=9
+        ),
+    ]),
     dbc.Row(children=[
         dbc.Col(children=[
             html.H5(children=["Logs: "], className="text-primary", style={"margin-top": 10}),
@@ -95,45 +125,20 @@ app.layout = html.Div([
                     "width": "10%",
                     "text-align": "center",
                     "fontWeight": "bold",
-                    "font-size": 16,
+                    "font-size": 14,
                     "background-color": "black",
                     "font-style": "Open Sans"
                 },
                 style_as_list_view=True
             )
         ], width=8),
-        dbc.Col(width=4, align="right", children=html.Div(children=[
-            html.H5(children=["Stationen erwarten: "], className="text-primary", style={"margin-top": 10}),
-            dash_table.DataTable(
-                id="next_station_log",
-                data=df_stations_await_plus.to_dict("records"),
-                columns=[{
-                    'name': col,
-                    'id': df_stations_await_plus.columns[idx]
-                } for (idx, col) in enumerate(df_stations_await_plus_columns)],
-                fixed_rows={"headers": True},
-                style_header={
-                    "fontWeight": "bold",
-                    "border": "2px solid black",
-                    "border-bottom": "2px solid blue"
-                },
-                style_table={
-                    "height": 200,
-                    "border-color": "blue",
-                    "border-style": "outset",
-                    "border-width": "4px"
-                },
-                style_cell={
-                    "width": "10%",
-                    "text-align": "center",
-                    "fontWeight": "bold",
-                    "font-size": 16,
-                    "background-color": "black",
-                    "font-style": "Open Sans"
-                },
-                style_as_list_view=True
-            )
-        ]))
+        dbc.Col(width=3, children=[
+            html.H5(children=["Fehlermeldungen: "], className="text-primary", style={"margin-top": 10}),
+            dbc.Card(style={"border-color": "blue", "border-style": "outset", "border-width": "4px"},
+                     children=[dbc.CardHeader("Station 01"),
+                               dbc.CardBody("Fehler: XYZ"),
+                               dbc.CardFooter("Betroffene Stationen: 02, 03, 05")])
+        ])
     ]),
     dbc.Row(dbc.Col()),
     dcc.Interval(interval=1 * 500, n_intervals=0, id="add-card"),
@@ -173,6 +178,12 @@ def stations_puffer_time(n_intervals):
     blocking=True
 )
 def display_cards(n_intervals, div_children):
+    """
+    This method gets called every 0,5 seconds.
+    This method creates cards depending on entry's inside the "process_time_table" - database table.
+    If a entry has no "check-out"-time, them it means a station is working, therefore a card will be created.
+    The method gives back a card as children to the card-container div.
+    """
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
@@ -192,8 +203,10 @@ def display_cards(n_intervals, div_children):
         if len(div_children) < len(card_df):
             if n_intervals in range(0, len(card_df)):
                 new_card = html.Div(
-                    style={"width": 210, "height": 150, "margin": 10, "margin-left": 0, "textAlign": "center",
-                           "display": "inline-block", "verticalAlign": "top", "horizontalAlign": "right"},
+                    style={"width": 210, "height": 180,
+                           "margin": 10, "margin-left": 0, "textAlign": "center",
+                           "display": "inline-block", "verticalAlign": "top",
+                           "horizontalAlign": "right"},
                     children=[
                         dbc.Card(
                             id={
@@ -240,6 +253,11 @@ def display_cards(n_intervals, div_children):
     blocking=True
 )
 def display_time(n_intervals, children):
+    """
+    This method calculates and displays the time inside a Stationcard.
+    The time and the time-limit get passed as children to the card-object.
+    This method gets called every 0.5 seconds to display the time correctly.
+    """
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
@@ -281,17 +299,21 @@ def display_time(n_intervals, children):
                     difference_in_sec = int(difference.total_seconds())
                     minus_time_limit = time_limit_station - difference_in_sec
                     color = "grey"
+                    textColor = "text-white"
                     if minus_time_limit < 0:
                         color = "yellow"
+                        textColor = "text-black"
                         if minus_time_limit <= -20:
-                            color = "red"
+                            color = "darkred"
+                            textColor = "text-white"
                             if minus_time_limit <= -200001:
                                 minus_time_limit = math.ceil(minus_time_limit / 10000)
                     elif minus_time_limit > 0:
                         color = "green"
-
+                        textColor = "text-white"
+                    minus_time_limit = "Zeitlimit: " + str(minus_time_limit) + "\n"
                     footer_child = dbc.CardFooter(
-                        children=["time limit: " + str(minus_time_limit), "\n" + str(article_id)],
+                        children=[minus_time_limit, str(article_id)],
                         style={
                             "margin-top": "10px",
                             "border-style": "outset",
@@ -300,7 +322,7 @@ def display_time(n_intervals, children):
                             "display": "inline-block",
                             "background-color": color
                         },
-                        className="text-white"
+                        className=textColor
                     )
                     return [body_child, footer_child]
 
