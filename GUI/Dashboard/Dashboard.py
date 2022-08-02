@@ -43,7 +43,7 @@ app.layout = html.Div([
             html.H2(children="Workstation Dashboard",
                     className="text-center text-primary",
                     style={
-                        "margin-top": 20,
+                        "margin-top": 0,
                         "margin-bottom": 20,
                         "border-color": "blue",
                         "border-style": "outset",
@@ -66,7 +66,7 @@ app.layout = html.Div([
                 } for (idx, col) in enumerate(df_stations_await_plus_columns)],
                 fixed_rows={"headers": True},
                 style_header={
-                    "fontWeight": "bold",
+                    "font-weight": "bold",
                     "border": "2px solid black",
                     "background-color": "#282828",
                     "border-top": "2px solid #282828",
@@ -82,10 +82,12 @@ app.layout = html.Div([
                 style_cell={
                     "width": "10%",
                     "text-align": "center",
-                    "fontWeight": "bold",
-                    "font-size": 14,
+                    "color": "white",
+                    "font-weight": "lighter",
+                    "font-size": 16,
                     "background-color": "#282828",
-                    "font-style": "Open Sans"
+                    "height": 40,
+                    "font-style": "Prox"
                 },
                 style_as_list_view=True
             ),
@@ -116,7 +118,7 @@ app.layout = html.Div([
                 } for (idx, col) in enumerate(df_logs_columns)],
                 fixed_rows={"headers": True},
                 style_header={
-                    "fontWeight": "bold",
+                    "font-weight": "bold",
                     "border": "2px solid black",
                     "background-color": "#282828",
                     "border-top": "2px solid #282828",
@@ -132,10 +134,12 @@ app.layout = html.Div([
                 style_cell={
                     "width": "10%",
                     "text-align": "center",
-                    "fontWeight": "bold",
-                    "font-size": 14,
+                    "color": "white",
+                    "font-weight": "lighter",
+                    "font-size": 16,
                     "background-color": "#282828",
-                    "font-style": "Open Sans"
+                    "height": 40,
+                    "font-style": "Helvetica"
                 },
                 style_as_list_view=True
             )
@@ -143,9 +147,9 @@ app.layout = html.Div([
         dbc.Col(width=3, children=[
             html.H5(children=["Fehlermeldungen: "], className="text-primary", style={"margin-top": 10}),
             dbc.Card(style={"border-color": "blue", "border-style": "outset", "border-width": "4px"},
-                     children=[dbc.CardHeader("Station 01"),
-                               dbc.CardBody("Fehler: XYZ"),
-                               dbc.CardFooter("Betroffene Stationen: 02, 03, 05")])
+                     children=[dbc.CardHeader("Station 01", className="text-white"),
+                               dbc.CardBody("Fehler: XYZ", className="text-white"),
+                               dbc.CardFooter("Betroffene Stationen: 02, 03, 05", className="text-white")])
         ])
     ]),
     dbc.Row(dbc.Col()),
@@ -224,7 +228,7 @@ def display_cards(n_intervals, div_children):
                             children=[
                                 dbc.CardHeader(
                                     children=["Station: " + station_nr],
-                                    style={"border-bottom": "3px solid blue"}
+                                    style={"border-bottom": "3px solid blue", "font-weight": "bold", "font-size": 18}
                                 ),
                                 dbc.CardBody(
                                     id={
