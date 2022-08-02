@@ -42,12 +42,14 @@ app.layout = html.Div([
         dbc.Col(
             html.H2(children="Workstation Dashboard",
                     className="text-center text-primary",
-                    style={"margin-top": 20,
-                           "margin-bottom": 20,
-                           "border-color": "blue",
-                           "border-style": "outset",
-                           "border-width": "4px"
-                           }
+                    style={
+                        "margin-top": 20,
+                        "margin-bottom": 20,
+                        "border-color": "blue",
+                        "border-style": "outset",
+                        "border-width": "4px",
+                        "background-color": "#282828"
+                        }
                     ),
             width=12
         )
@@ -66,20 +68,23 @@ app.layout = html.Div([
                 style_header={
                     "fontWeight": "bold",
                     "border": "2px solid black",
-                    "border-bottom": "2px solid blue"
+                    "background-color": "#282828",
+                    "border-top": "2px solid #282828",
+                    "border-bottom": "3px solid blue"
                 },
                 style_table={
                     "height": 400,
                     "border-color": "blue",
                     "border-style": "outset",
-                    "border-width": "4px"
+                    "border-width": "4px",
+                    "background-color": "#282828"
                 },
                 style_cell={
                     "width": "10%",
                     "text-align": "center",
                     "fontWeight": "bold",
                     "font-size": 14,
-                    "background-color": "black",
+                    "background-color": "#282828",
                     "font-style": "Open Sans"
                 },
                 style_as_list_view=True
@@ -113,12 +118,15 @@ app.layout = html.Div([
                 style_header={
                     "fontWeight": "bold",
                     "border": "2px solid black",
-                    "border-bottom": "2px solid blue"
+                    "background-color": "#282828",
+                    "border-top": "2px solid #282828",
+                    "border-bottom": "3px solid blue"
                 },
                 style_table={
-                    "height": 200,
+                    "height": 300,
                     "border-color": "blue",
                     "border-style": "outset",
+                    "background-color": "#282828",
                     "border-width": "4px"
                 },
                 style_cell={
@@ -126,7 +134,7 @@ app.layout = html.Div([
                     "text-align": "center",
                     "fontWeight": "bold",
                     "font-size": 14,
-                    "background-color": "black",
+                    "background-color": "#282828",
                     "font-style": "Open Sans"
                 },
                 style_as_list_view=True
@@ -214,7 +222,10 @@ def display_cards(n_intervals, div_children):
                                 "index": station_nr
                             },
                             children=[
-                                dbc.CardHeader("Station: " + station_nr),
+                                dbc.CardHeader(
+                                    children=["Station: " + station_nr],
+                                    style={"border-bottom": "3px solid blue"}
+                                ),
                                 dbc.CardBody(
                                     id={
                                         "type": "dynamic-cards-text",
@@ -317,7 +328,8 @@ def display_time(n_intervals, children):
                         style={
                             "margin-top": "10px",
                             "border-style": "outset",
-                            "border-color": "darkblue",
+                            "border-color": "blue",
+                            "border-width": "4px",
                             "border-radius": "10px",
                             "display": "inline-block",
                             "background-color": color
