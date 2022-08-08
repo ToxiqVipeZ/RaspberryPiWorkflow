@@ -62,10 +62,11 @@ try:
 except ImportError:
     print("Client import failed, check for correct file location.")
 
-try:
-    from modules.WorkstationHandler import WorkstationHandler
-except ImportError:
-    print("WorkstationHandler import failed, check for correct file location.")
+# C.O.S - Comment in:
+# try:
+#     from modules.WorkstationHandler import WorkstationHandler
+# except ImportError:
+#     print("WorkstationHandler import failed, check for correct file location.")
 
 
 class WorkstationApp:
@@ -74,14 +75,16 @@ class WorkstationApp:
     and shows related workflow steps.
     """
     # static global variables:
-    MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
+    #MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
+    MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
-    WINDOW_WIDTH = 1280
-    WINDOW_HEIGHT = 720
+    WINDOW_WIDTH = 1920
+    WINDOW_HEIGHT = 1080
     CONFIRM_BUTTON_DONE_TEXT = "Fertig"
     CONFIRM_BUTTON_RESTART_TEXT = "Neustart"
     CONFIRM_BUTTON_ABORT_TEXT = "Ausschuss"
+    ALARM_BUTTOM = "ALARM!"
     PICTURE_TYPE = ".png"
 
     # global variables:
@@ -169,6 +172,50 @@ class WorkstationApp:
             root.update()
             root.after(100, self.exec_after_scan)
 
+    def alarm_button_pressed(self, root2):
+        popup = tk.Toplevel(root2, )
+        popup.geometry("%dx%d+0+0" % (popup.winfo_screenwidth(), popup.winfo_screenheight()))
+        # window size
+        canvas_root = tk.Canvas(popup, width=popup.winfo_screenwidth(), height=popup.winfo_screenheight())
+        # window grid
+        canvas_root.grid(columnspan=4, rowspan=4)
+
+        OptionList = [
+            "Aries",
+            "Taurus",
+            "Gemini",
+            "Cancer"
+        ]
+
+        picked_option = tk.StringVar(popup)
+        picked_option.set("Hier Klicken.")
+
+        # spaceholder for button-alignment
+        spaceholder_picture_buttons = tk.Label(popup, width=10)
+        spaceholder_picture_buttons.grid(column=0, rowspan=4)
+
+        # spaceholder for button-alignment
+        spaceholder_picture_buttons2 = tk.Label(popup, width=10)
+        spaceholder_picture_buttons2.grid(column=4, rowspan=4)
+
+        error_type_picker_label = tk.Label(popup, text="Wähle Fehlertyp: ", font=("Arial Black", 30))
+        error_type_picker = tk.OptionMenu(popup, picked_option, *OptionList)
+        error_type_picker.config(width=30, font=("Arial Black", 30))
+        error_comment_label = tk.Label(popup, text="Beschreibe Fehler: ", font=("Arial", 20))
+
+        error_comment_entry = tk.Text(popup, width=100, height=10, font=("Arial", 20))
+        popup_confirm_button = tk.Button(popup,
+                                         text="Speichern",
+                                         command=lambda: (),
+                                         width=30,
+                                         font=("Arial", 20)
+                                         )
+        error_type_picker_label.grid(column=1, row=0)
+        error_type_picker.grid(column=2, row=0)
+        error_comment_label.grid(column=1, row=1)
+        error_comment_entry.grid(column=2, row=1)
+        popup_confirm_button.grid(column=2, row=2)
+
     def workflow_picture_resize(self, workflow_pictures):
         """
         Takes one workflow picture and downscales it, if its > 720p in height
@@ -176,8 +223,8 @@ class WorkstationApp:
         :return: the given workflow picture after downscaling
         """
         if workflow_pictures.width > 720:
-            size_matcher_width = workflow_pictures.width / 1280
-            size_matcher_height = workflow_pictures.height / 720
+            size_matcher_width = workflow_pictures.width / (self.WINDOW_WIDTH * 0.8)
+            size_matcher_height = workflow_pictures.height / (self.WINDOW_HEIGHT * 0.8)
             workflow_pictures = workflow_pictures.resize(
                 (int(workflow_pictures.width / size_matcher_width),
                  int(workflow_pictures.height / size_matcher_height)))
@@ -368,7 +415,7 @@ class WorkstationApp:
             # window size
             canvas = tk.Canvas(root2, width=self.WINDOW_WIDTH, height=self.WINDOW_HEIGHT)
             # window grid
-            canvas.grid(columnspan=3, rowspan=3)
+            canvas.grid(columnspan=4, rowspan=4)
 
             # image definition as a image
             workflow_picture = Image.open(self.main_path + self.picture_progressor(root2))
@@ -381,10 +428,10 @@ class WorkstationApp:
             # insert image into label
             workflow_picture_label.image = workflow_picture
             # label position inside root2 grid
-            workflow_picture_label.grid(column=0, row=0, rowspan=3)
+            workflow_picture_label.grid(column=0, row=0, rowspan=4)
 
             # spaceholder for button-alignment
-            spaceholder_picture_buttons = tk.Label(root2, width=10, height=20)
+            spaceholder_picture_buttons = tk.Label(root2, width=10)
             spaceholder_picture_buttons.grid(column=1, row=0)
 
             # button1 definition
@@ -411,8 +458,16 @@ class WorkstationApp:
             button3_text.set(self.CONFIRM_BUTTON_ABORT_TEXT)
             button3_btn = tk.Button(root2, textvariable=button3_text,
                                     command=lambda: (self.ausschuss_prozess(root2)),
-                                    width=10, height=5, background="red")
+                                    width=10, height=5, background="orange")
             button3_btn.grid(column=2, row=2)
+
+            # button4 definition
+            button4_text = tk.StringVar()
+            button4_text.set(self.ALARM_BUTTOM)
+            button4_btn = tk.Button(root2, textvariable=button4_text,
+                                    command=lambda: (self.alarm_button_pressed(root2)),
+                                    width=10, height=5, background="red")
+            button4_btn.grid(column=2, row=3)
 
             # window size adjustment
             width, height = root2.winfo_screenwidth(), root2.winfo_screenheight()
@@ -424,6 +479,10 @@ class WorkstationApp:
             print("Datei nicht gefunden, bitte überprüfen ob Pfad angelegt ist.")
             root.after(3000, Thread(target=self.scanning_rfid).start())
             root.after(5000, self.exec_after_scan)
+
+    # C.O.S - Delete after test:
+    def test(self):
+        self.rfid_scanned = "01001-01"
 
     def main(self):
         """
@@ -454,9 +513,18 @@ class WorkstationApp:
 
             root.geometry("%dx%d+0+0" % (width, height))
 
-            root.after(1000, Thread(target=self.scanning_rfid).start())
+            # C.O.S - Delete:
+            # button1 definition
+            button1_text = tk.StringVar()
+            button1_text.set("TestB")
+            button1_btn = tk.Button(root, textvariable=button1_text,
+                                    command=lambda: (self.test()),
+                                    width=10, height=5, background="green")
+            button1_btn.grid(column=2, row=0)
+            # C.O.S - Comment in:
+            #root.after(1000, Thread(target=self.scanning_rfid).start())
             root.after(1000, self.exec_after_scan)
-            # root.after(5000, self.check_scan)
+
             # loop of the window - END!
             root.mainloop()
         finally:
