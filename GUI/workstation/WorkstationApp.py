@@ -53,6 +53,11 @@ except ImportError:
     print("tkinter import failed.")
 
 try:
+    import ttkthemes as ttk
+except ImportError:
+    print("ttkthemes import failed.")
+
+try:
     from PIL import Image, ImageTk
 except ImportError:
     print("PIL import failed.")
@@ -173,8 +178,11 @@ class WorkstationApp:
             root.after(100, self.exec_after_scan)
 
     def alarm_button_pressed(self, root2):
-        popup = tk.Toplevel(root2, )
+        popup = ttk.ThemedTk(theme="Adapta")
+
         popup.geometry("%dx%d+0+0" % (popup.winfo_screenwidth(), popup.winfo_screenheight()))
+
+
         # window size
         canvas_root = tk.Canvas(popup, width=popup.winfo_screenwidth(), height=popup.winfo_screenheight())
         # window grid
@@ -191,30 +199,37 @@ class WorkstationApp:
         picked_option.set("Hier Klicken.")
 
         # spaceholder for button-alignment
-        spaceholder_picture_buttons = tk.Label(popup, width=10)
-        spaceholder_picture_buttons.grid(column=0, rowspan=4)
+        spaceholder1 = tk.Label(popup, width=10)
 
         # spaceholder for button-alignment
-        spaceholder_picture_buttons2 = tk.Label(popup, width=10)
-        spaceholder_picture_buttons2.grid(column=4, rowspan=4)
+        spaceholder2 = tk.Label(popup, width=10)
 
+        # definition of error type section
         error_type_picker_label = tk.Label(popup, text="Wähle Fehlertyp: ", font=("Arial Black", 30))
         error_type_picker = tk.OptionMenu(popup, picked_option, *OptionList)
-        error_type_picker.config(width=30, font=("Arial Black", 30))
-        error_comment_label = tk.Label(popup, text="Beschreibe Fehler: ", font=("Arial", 20))
+        error_type_picker.config(width=30, font=("Arial", 30))
 
-        error_comment_entry = tk.Text(popup, width=100, height=10, font=("Arial", 20))
+        # definition of error comment section
+        error_comment_label = tk.Label(popup, text="Beschreibe Fehler: ", font=("Arial Black", 30))
+
+        error_comment_entry = tk.Text(popup, width=50, height=10, font=("Arial", 20))
+
+        # definition of the button
         popup_confirm_button = tk.Button(popup,
-                                         text="Speichern",
+                                         text="Absenden",
                                          command=lambda: (),
                                          width=30,
                                          font=("Arial", 20)
                                          )
+
+        # integration into the scene and alignment
+        spaceholder1.grid(column=0, rowspan=4)
         error_type_picker_label.grid(column=1, row=0)
         error_type_picker.grid(column=2, row=0)
         error_comment_label.grid(column=1, row=1)
         error_comment_entry.grid(column=2, row=1)
         popup_confirm_button.grid(column=2, row=2)
+        spaceholder2.grid(column=3, rowspan=4)
 
     def workflow_picture_resize(self, workflow_pictures):
         """
@@ -413,9 +428,11 @@ class WorkstationApp:
             root2 = tk.Toplevel()
 
             # window size
-            canvas = tk.Canvas(root2, width=self.WINDOW_WIDTH, height=self.WINDOW_HEIGHT)
+            canvas = tk.Canvas(root2, width=root2.winfo_screenwidth(), height=root2.winfo_screenheight())
+            canvas.config(background="Darkgrey", borderwidth=0)
+
             # window grid
-            canvas.grid(columnspan=4, rowspan=4)
+            canvas.grid(columnspan=2, rowspan=6)
 
             # image definition as a image
             workflow_picture = Image.open(self.main_path + self.picture_progressor(root2))
@@ -427,12 +444,13 @@ class WorkstationApp:
             workflow_picture_label = tk.Label(root2, image=workflow_picture)
             # insert image into label
             workflow_picture_label.image = workflow_picture
+            workflow_picture_label.config(borderwidth=0)
             # label position inside root2 grid
-            workflow_picture_label.grid(column=0, row=0, rowspan=4)
+            workflow_picture_label.grid(column=0, row=0, rowspan=5)
 
             # spaceholder for button-alignment
-            spaceholder_picture_buttons = tk.Label(root2, width=10)
-            spaceholder_picture_buttons.grid(column=1, row=0)
+            spaceholder_picture_buttons = tk.Label(root2, height=1)
+
 
             # button1 definition
             button1_text = tk.StringVar()
@@ -441,7 +459,7 @@ class WorkstationApp:
                                     command=lambda: (self.workflow_completed(root2),
                                                      self.change_picture(root2, self.picture_progressor(root2))),
                                     width=10, height=5, background="green")
-            button1_btn.grid(column=2, row=0)
+            button1_btn.grid(column=1, row=1)
 
             # button2 definition
             button2_text = tk.StringVar()
@@ -451,7 +469,7 @@ class WorkstationApp:
                                                      self.change_picture(root2, self.picture_progressor(root2)),
                                                      self.button_switcher(button1_btn, "normal")),
                                     width=10, height=5, background="yellow")
-            button2_btn.grid(column=2, row=1)
+            button2_btn.grid(column=1, row=2)
 
             # button3 definition
             button3_text = tk.StringVar()
@@ -459,7 +477,7 @@ class WorkstationApp:
             button3_btn = tk.Button(root2, textvariable=button3_text,
                                     command=lambda: (self.ausschuss_prozess(root2)),
                                     width=10, height=5, background="orange")
-            button3_btn.grid(column=2, row=2)
+            button3_btn.grid(column=1, row=3)
 
             # button4 definition
             button4_text = tk.StringVar()
@@ -467,7 +485,9 @@ class WorkstationApp:
             button4_btn = tk.Button(root2, textvariable=button4_text,
                                     command=lambda: (self.alarm_button_pressed(root2)),
                                     width=10, height=5, background="red")
-            button4_btn.grid(column=2, row=3)
+            button4_btn.grid(column=1, row=4)
+
+            #spaceholder_picture_buttons.grid(column=1, row=0)
 
             # window size adjustment
             width, height = root2.winfo_screenwidth(), root2.winfo_screenheight()
@@ -491,6 +511,7 @@ class WorkstationApp:
         try:
             global root
             root = tk.Tk()
+
             width, height = root.winfo_screenwidth(), root.winfo_screenheight()
 
             # window size
