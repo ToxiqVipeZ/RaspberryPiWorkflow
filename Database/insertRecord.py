@@ -4,15 +4,20 @@ from datetime import datetime
 
 def main():
     # connection holds the connection to the database
-    connection = sqlite3.connect("C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+    #connection = sqlite3.connect("C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+    connection = sqlite3.connect("productionDatabase.db")
 
     # cursor instance:
     c = connection.cursor()
 
+    c.execute("INSERT INTO error_list_table (error_id, error_type, error_message) VALUES (?,?,?)",
+              (2, "emotional damage", "Arbeiter dreht durch"))
+
+
     #c.execute("DELETE FROM process_time_table WHERE process_id=(?)",(12,))
 
-    time_now = "21.07.2022 10:42:30"
-    process_id = 9
+    #time_now = "21.07.2022 10:42:30"
+    #process_id = 9
 
     #c.execute("UPDATE process_time_table SET process_start=(?) WHERE process_id=(?)", (time_now, process_id))
 
@@ -21,7 +26,7 @@ def main():
     #          "(?, ?, ?, ?, ?, ?, ?)",
     #          (12, "0010013-05", 3, "04", "05", "05", "21.07.2022 08:55:00"))
 
-    c.execute("UPDATE process_time_table SET process_end=(?) WHERE process_id=(?)", (time_now,process_id ))
+    #c.execute("UPDATE process_time_table SET process_end=(?) WHERE process_id=(?)", (time_now,process_id ))
 
     # c.execute("INSERT INTO process_time_table (process_id, article_id, order_id, station,"
     #          " next_station, last_station, process_start, process_end) VALUES "

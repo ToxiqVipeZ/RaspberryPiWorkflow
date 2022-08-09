@@ -10,6 +10,7 @@ SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 FORMAT = "utf-8"
 DISCONNECT_MESSAGE = "DISCONNECT"
+GET_ERROR_LIST = "GET-ERROR-LIST"
 TRACKING_STATS_IN = "TRACKING-STATS-IN"
 TRACKING_STATS_OUT = "TRACKING-STATS-OUT"
 RECEIVING_RFID = "C-S-RFID"
@@ -49,7 +50,6 @@ class Server:
             ServerHandler().station_in(rfid, station)
         elif received_status == "OUT":
             ServerHandler().station_out(rfid, station)
-
 
     def handle_client(self, conn, addr):
         """
@@ -104,6 +104,27 @@ class Server:
                                 self.message_queue_counter = 0
                                 self.receive_status = ""
                                 self.receive_stats_mode = False
+
+                if msg == GET_ERROR_LIST:
+                    print("test:")
+                    print(ServerHandler().get_error_list())
+                    print(":test")
+                    gathered_list = ServerHandler().get_error_list()
+
+                    sendable_list = ""
+                    for x in range(0, len(gathered_list)):
+                        y = 0
+                        if y >= 2:
+                            y = 0
+
+                        for item in gathered_list[x]:
+                            sendable_list += str(gathered_list[x][y]) + ";"
+                            print(sendable_list)
+                            y += 1
+
+                    sendable_list = sendable_list.encode(FORMAT)
+
+                    conn.send(sendable_list)
 
                 # killing the thread when the message from the client equals the DISCONNECT_MESSAGE
                 if msg == DISCONNECT_MESSAGE:

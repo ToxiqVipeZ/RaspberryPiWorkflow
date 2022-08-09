@@ -89,7 +89,7 @@ class WorkstationApp:
     CONFIRM_BUTTON_DONE_TEXT = "Fertig"
     CONFIRM_BUTTON_RESTART_TEXT = "Neustart"
     CONFIRM_BUTTON_ABORT_TEXT = "Ausschuss"
-    ALARM_BUTTOM = "ALARM!"
+    ALARM_BUTTOM = "Alarm!"
     PICTURE_TYPE = ".png"
 
     # global variables:
@@ -178,7 +178,7 @@ class WorkstationApp:
             root.after(100, self.exec_after_scan)
 
     def alarm_button_pressed(self, root2):
-        popup = ttk.ThemedTk(theme="Adapta")
+        popup = tk.Toplevel(root2, )
 
         popup.geometry("%dx%d+0+0" % (popup.winfo_screenwidth(), popup.winfo_screenheight()))
 
@@ -187,13 +187,17 @@ class WorkstationApp:
         canvas_root = tk.Canvas(popup, width=popup.winfo_screenwidth(), height=popup.winfo_screenheight())
         # window grid
         canvas_root.grid(columnspan=4, rowspan=4)
+        error_list = Client.send(Client.GET_ERROR_LIST, "")
+        error_list.split(";")
+        # !!! FÜRS NÄCHSTE MAL: error_message WIRD BEI ART DER ERRORS NICHT BENÖTIGT !!!
 
-        OptionList = [
-            "Aries",
-            "Taurus",
-            "Gemini",
-            "Cancer"
-        ]
+
+        option_list = ""
+
+        for item in error_list:
+            option_list += item
+
+        print(option_list)
 
         picked_option = tk.StringVar(popup)
         picked_option.set("Hier Klicken.")
@@ -206,7 +210,7 @@ class WorkstationApp:
 
         # definition of error type section
         error_type_picker_label = tk.Label(popup, text="Wähle Fehlertyp: ", font=("Arial Black", 30))
-        error_type_picker = tk.OptionMenu(popup, picked_option, *OptionList)
+        error_type_picker = tk.OptionMenu(popup, picked_option, *option_list)
         error_type_picker.config(width=30, font=("Arial", 30))
 
         # definition of error comment section
@@ -429,7 +433,7 @@ class WorkstationApp:
 
             # window size
             canvas = tk.Canvas(root2, width=root2.winfo_screenwidth(), height=root2.winfo_screenheight())
-            canvas.config(background="Darkgrey", borderwidth=0)
+            canvas.config(borderwidth=0)
 
             # window grid
             canvas.grid(columnspan=2, rowspan=6)

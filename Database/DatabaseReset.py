@@ -8,8 +8,12 @@ def main():
     # cursor instance:
     c = connection.cursor()
 
+    # error-list-reset
+    elt_reset(connection, c)
+    #error-history-table-reset
+    eht_reset(connection, c)
     # process-time-table
-    ptt_reset(connection, c)
+    #ptt_reset(connection, c)
     # workflow-planner-table
     #wpt_reset(connection, c)
     # article-procedure-table
@@ -21,6 +25,29 @@ def main():
 
     # closing the connection
     connection.close()
+
+def elt_reset(connection, c):
+    c.execute(
+    """
+    CREATE TABLE error_list_table (
+    error_id INTEGER PRIMARY KEY,
+    error_type TEXT NOT NULL,
+    error_message TEXT
+    )
+    """
+    )
+
+def eht_reset(connection, c):
+    c.execute("""
+        CREATE TABLE error_history_table (
+        entry_id INTEGER PRIMARY KEY,
+        error_id INTEGER NOT NULL,
+        error_type TEXT NOT NULL,
+        error_message TEXT,
+        error_time TEXT,
+        error_end TEXT,
+        error_duration TEXT
+        )""")
 
 def ptt_reset(connection, c):
     # drop table:

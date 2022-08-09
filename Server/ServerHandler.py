@@ -101,3 +101,19 @@ class ServerHandler:
         connection.commit()
 
         connection.close()
+
+    def get_error_list(self):
+        # connection holds the connection to the database
+        connection = sqlite3.connect(DATABASE_PATH)
+        # cursor instance:
+        cursor = connection.cursor()
+
+        # getting article_id
+        cursor.execute("SELECT * FROM error_list_table")
+        error_list = cursor.fetchall()
+
+        connection.commit()
+
+        connection.close()
+
+        return error_list
