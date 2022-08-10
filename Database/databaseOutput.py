@@ -50,6 +50,22 @@ items = c.fetchall()
 for item in items:
     print(item)
 
+print("\n\nerror_list_table: ")
+
+c.execute("SELECT * FROM error_list_table")
+items = c.fetchall()
+
+for item in items:
+    print(item)
+
+print("\n\nerror_history_table: ")
+
+c.execute("SELECT * FROM error_history_table")
+items = c.fetchall()
+
+for item in items:
+    print(item)
+
 current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
 print("\n" + current_datetime)

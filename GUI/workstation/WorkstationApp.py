@@ -37,6 +37,7 @@ Other OS related:
 import time
 
 try:
+    import math
     import os
     from threading import Thread
 except ImportError:
@@ -188,14 +189,18 @@ class WorkstationApp:
         # window grid
         canvas_root.grid(columnspan=4, rowspan=4)
         error_list = Client.send(Client.GET_ERROR_LIST, "")
-        error_list.split(";")
-        # !!! FÜRS NÄCHSTE MAL: error_message WIRD BEI ART DER ERRORS NICHT BENÖTIGT !!!
+        error_list = error_list.split(";")
+        print(error_list)
+        # !!! FÜRS NÄCHSTE MAL: Daten müssen in Datenbank eingetragen werden !!!
 
+        option_list = []
+        range_limit = (len(error_list)) - 1
+        counter = 0
 
-        option_list = ""
+        while counter in range(0, range_limit):
+            option_list.append(error_list[counter] + ", " + error_list[counter + 1])
+            counter += 2
 
-        for item in error_list:
-            option_list += item
 
         print(option_list)
 

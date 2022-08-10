@@ -11,7 +11,7 @@ def main():
     # error-list-reset
     elt_reset(connection, c)
     #error-history-table-reset
-    eht_reset(connection, c)
+    #eht_reset(connection, c)
     # process-time-table
     #ptt_reset(connection, c)
     # workflow-planner-table
@@ -27,15 +27,30 @@ def main():
     connection.close()
 
 def elt_reset(connection, c):
+    # drop table:
+    c.execute("DROP TABLE error_list_table")
+
+    #create table:
     c.execute(
     """
     CREATE TABLE error_list_table (
     error_id INTEGER PRIMARY KEY,
-    error_type TEXT NOT NULL,
-    error_message TEXT
+    error_type TEXT NOT NULL
     )
     """
     )
+    c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
+              (1, "machine failure"))
+
+    c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
+              (2, "emotional damage"))
+
+    c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
+              (3, "crazy co-worker"))
+
+    # committing the created table:
+    connection.commit()
+
 
 def eht_reset(connection, c):
     c.execute("""
@@ -48,6 +63,9 @@ def eht_reset(connection, c):
         error_end TEXT,
         error_duration TEXT
         )""")
+
+    # committing the created table:
+    connection.commit()
 
 def ptt_reset(connection, c):
     # drop table:

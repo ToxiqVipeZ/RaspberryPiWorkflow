@@ -11,7 +11,7 @@ def main():
     c = connection.cursor()
 
     c.execute("INSERT INTO error_list_table (error_id, error_type, error_message) VALUES (?,?,?)",
-              (2, "emotional damage", "Arbeiter dreht durch"))
+              (2, "emotional damage"))
 
 
     #c.execute("DELETE FROM process_time_table WHERE process_id=(?)",(12,))
