@@ -18,8 +18,8 @@ TRACKING_STATS_OUT = "TRACKING-STATS-OUT"
 GET_ERROR_LIST = "GET-ERROR-LIST"
 SENDING_RFID = "C-S-RFID"
 RECEIVING_RFID = "S-C-RFID"
-ERROR_TYPE = "ERROR-TYPE"
-ERROR_MESSAGE = "ERROR-MESSAGE"
+TRACKING_ERROR_IN = "TRACKING-ERROR-IN"
+TRACKING_ERROR_OUT = "TRACKING-ERROR-OUT"
 ADD_TO_QUEUE = "RFID-QUEUE-ADD"
 SAVE_TO_DATABASE = "saveData"
 #SERVER = "169.254.0.102"
@@ -72,7 +72,7 @@ def send(msg, *args):
         next_station = client.recv(2048).decode(FORMAT)
         return next_station
 
-    elif msg == TRACKING_STATS_IN or msg == TRACKING_STATS_OUT:
+    elif msg == TRACKING_STATS_IN or msg == TRACKING_STATS_OUT or msg == TRACKING_ERROR_IN or msg == TRACKING_ERROR_OUT:
         # encode the argument on pos 0
         args0 = args[0].encode(FORMAT)
 

@@ -68,6 +68,7 @@ try:
 except ImportError:
     print("Client import failed, check for correct file location.")
 
+
 # C.O.S - Comment in:
 # try:
 #     from modules.WorkstationHandler import WorkstationHandler
@@ -81,7 +82,7 @@ class WorkstationApp:
     and shows related workflow steps.
     """
     # static global variables:
-    #MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
+    # MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
     MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
@@ -163,6 +164,45 @@ class WorkstationApp:
         elif in_or_out == "OUT":
             Thread(target=Client.send(Client.TRACKING_STATS_OUT, self.rfid_scanned, station_number)).start()
 
+    def error_tracker(self, error_type, error_message):
+        error_message = str(error_message) + ", 01"
+
+        # C.O.S - Comment in:
+        # adds the station Number to the error_message:
+        #error_message = str(error_message) + ", " + self.get_station_number()
+
+        Thread(target=Client.send(Client.TRACKING_ERROR_IN, str(error_type), str(error_message))).start()
+        self.error_solving(error_type, error_message)
+
+    def error_solving(self, error_type, error_message):
+        error_window = tk.Toplevel()
+        error_window.geometry("%dx%d+0+0" % (error_window.winfo_screenwidth()/2, error_window.winfo_screenheight()/2))
+
+        station = "01"
+        # C.O.S Comment in:
+        # station = self.get_station_number()
+
+        error_type_picker_label = tk.Label(error_window,
+                                           text="Error: \n\"" +
+                                                error_type + "\"\n von Station: \n\"" +
+                                                station +
+                                                "\" \n behoben ?",
+                                           font=("Arial Black", 20))
+        # definition of the button
+        solved_confirm_button = tk.Button(
+            error_window,
+            text="Ja, Fehler behoben.",
+            command=lambda:
+            (
+                Client.send(Client.TRACKING_ERROR_OUT, str(error_type), str(error_message)), error_window.destroy()
+            ),
+            width=20,
+            font=("Arial", 20)
+        )
+
+        error_type_picker_label.pack()
+        solved_confirm_button.pack()
+
     def writing_rfid(self, rfid_scanned):
         work_handler = WorkstationHandler()
         work_handler.start_op("writer_start", rfid_scanned)
@@ -183,7 +223,6 @@ class WorkstationApp:
 
         popup.geometry("%dx%d+0+0" % (popup.winfo_screenwidth(), popup.winfo_screenheight()))
 
-
         # window size
         canvas_root = tk.Canvas(popup, width=popup.winfo_screenwidth(), height=popup.winfo_screenheight())
         # window grid
@@ -200,7 +239,6 @@ class WorkstationApp:
         while counter in range(0, range_limit):
             option_list.append(error_list[counter] + ", " + error_list[counter + 1])
             counter += 2
-
 
         print(option_list)
 
@@ -224,12 +262,14 @@ class WorkstationApp:
         error_comment_entry = tk.Text(popup, width=50, height=10, font=("Arial", 20))
 
         # definition of the button
-        popup_confirm_button = tk.Button(popup,
-                                         text="Absenden",
-                                         command=lambda: (),
-                                         width=30,
-                                         font=("Arial", 20)
-                                         )
+        popup_confirm_button = tk.Button(
+            popup,
+            text="Absenden",
+            command=lambda: (self.error_tracker(picked_option.get(), error_comment_entry.get("1.0", 'end-1c')),
+                             popup.destroy()),
+            width=30,
+            font=("Arial", 20)
+        )
 
         # integration into the scene and alignment
         spaceholder1.grid(column=0, rowspan=4)
@@ -460,7 +500,6 @@ class WorkstationApp:
             # spaceholder for button-alignment
             spaceholder_picture_buttons = tk.Label(root2, height=1)
 
-
             # button1 definition
             button1_text = tk.StringVar()
             button1_text.set(self.CONFIRM_BUTTON_DONE_TEXT)
@@ -496,7 +535,7 @@ class WorkstationApp:
                                     width=10, height=5, background="red")
             button4_btn.grid(column=1, row=4)
 
-            #spaceholder_picture_buttons.grid(column=1, row=0)
+            # spaceholder_picture_buttons.grid(column=1, row=0)
 
             # window size adjustment
             width, height = root2.winfo_screenwidth(), root2.winfo_screenheight()
@@ -552,7 +591,7 @@ class WorkstationApp:
                                     width=10, height=5, background="green")
             button1_btn.grid(column=2, row=0)
             # C.O.S - Comment in:
-            #root.after(1000, Thread(target=self.scanning_rfid).start())
+            # root.after(1000, Thread(target=self.scanning_rfid).start())
             root.after(1000, self.exec_after_scan)
 
             # loop of the window - END!

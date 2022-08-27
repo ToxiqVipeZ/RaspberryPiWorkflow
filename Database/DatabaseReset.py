@@ -9,9 +9,9 @@ def main():
     c = connection.cursor()
 
     # error-list-reset
-    elt_reset(connection, c)
+    #elt_reset(connection, c)
     #error-history-table-reset
-    #eht_reset(connection, c)
+    eht_reset(connection, c)
     # process-time-table
     #ptt_reset(connection, c)
     # workflow-planner-table
@@ -40,26 +40,32 @@ def elt_reset(connection, c):
     """
     )
     c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
-              (1, "machine failure"))
+              (1, "Maschinenversagen"))
 
     c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
               (2, "emotional damage"))
 
     c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
-              (3, "crazy co-worker"))
+              (3, "Softwarefehler"))
+
+    c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
+              (9999, "Sonstige Fehler"))
 
     # committing the created table:
     connection.commit()
 
 
 def eht_reset(connection, c):
+    c.execute("DROP TABLE error_history_table")
+
     c.execute("""
         CREATE TABLE error_history_table (
         entry_id INTEGER PRIMARY KEY,
         error_id INTEGER NOT NULL,
         error_type TEXT NOT NULL,
         error_message TEXT,
-        error_time TEXT,
+        station_nr TEXT NOT NULL,
+        error_start TEXT NOT NULL,
         error_end TEXT,
         error_duration TEXT
         )""")

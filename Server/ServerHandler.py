@@ -27,8 +27,8 @@ class ServerHandler:
         article_id = article_id + "-" + variant
 
         print("ServerHandler articleID: " + article_id)
-        #cursor.execute("SELECT MIN(process_id) FROM process_time_table WHERE article_id=(?)", (article_id,))
-        #process_id = cursor.fetchone()[0]
+        # cursor.execute("SELECT MIN(process_id) FROM process_time_table WHERE article_id=(?)", (article_id,))
+        # process_id = cursor.fetchone()[0]
 
         # getting production_number information
         cursor.execute("SELECT production_number FROM shop_info_table WHERE article_id=(?) AND status_ident=(?)",
@@ -97,6 +97,80 @@ class ServerHandler:
 
         cursor.execute("UPDATE process_time_table SET process_end=(?) WHERE process_id=(?)",
                        (current_datetime, process_id,))
+
+        connection.commit()
+
+        connection.close()
+
+    def error_in(self, error, error_message):
+        error = error.split(", ")
+        error_id = error[0]
+        error_type = error[1]
+
+        error_message = error_message.split(", ")
+        station_nr = error_message[1]
+        error_message = error_message[0]
+
+        # connection holds the connection to the database
+        connection = sqlite3.connect(DATABASE_PATH)
+        # cursor instance:
+        cursor = connection.cursor()
+
+        current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+
+        # getting article_id
+        cursor.execute("INSERT INTO error_history_table (error_id, error_type, error_message, station_nr, "
+                       "error_start, error_end, error_duration) "
+                       "VALUES (?,?,?,?,?,?,?)",
+                       (error_id, error_type, error_message, station_nr, current_datetime, "waiting", "waiting"))
+
+        connection.commit()
+
+        connection.close()
+
+    def error_out(self, error, error_message):
+        error = error.split(", ")
+        error_id = error[0]
+        error_type = error[1]
+
+        error_message = error_message.split(", ")
+        station_nr = error_message[1]
+        error_message = error_message[0]
+
+        # connection holds the connection to the database
+        connection = sqlite3.connect(DATABASE_PATH)
+        # cursor instance:
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT error_start FROM error_history_table "
+                       "WHERE error_id=(?) AND station_nr=(?) AND error_end=(?) and error_duration=(?)",
+                       (error_id, station_nr, "waiting", "waiting"))
+        error_start = cursor.fetchone()[0]
+
+        time_check_in = datetime.datetime.strptime(error_start, "%d.%m.%Y %H:%M:%S")
+        current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+        time_now = datetime.datetime.strptime(current_datetime, "%d.%m.%Y %H:%M:%S")
+        difference = time_now - time_check_in
+
+        # getting article_id
+        cursor.execute("UPDATE error_history_table "
+                       "SET error_end=(?), error_duration=(?) "
+                       "WHERE error_id=(?) AND station_nr=(?)",
+                       (str(current_datetime), str(difference), error_id, station_nr))
+
+        connection.commit()
+
+        connection.close()
+
+    def error_resolved(self):
+        # connection holds the connection to the database
+        connection = sqlite3.connect(DATABASE_PATH)
+        # cursor instance:
+        cursor = connection.cursor()
+
+        # getting article_id
+        cursor.execute("SELECT * FROM error_list_table")
+        error_list = cursor.fetchall()
 
         connection.commit()
 
