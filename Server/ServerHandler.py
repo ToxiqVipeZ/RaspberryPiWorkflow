@@ -107,7 +107,7 @@ class ServerHandler:
         error_id = error[0]
         error_type = error[1]
 
-        error_message = error_message.split(", ")
+        error_message = error_message.split("SplitStatement15121 ")
         station_nr = error_message[1]
         error_message = error_message[0]
 
@@ -133,7 +133,7 @@ class ServerHandler:
         error_id = error[0]
         error_type = error[1]
 
-        error_message = error_message.split(", ")
+        error_message = error_message.split("SplitStatement15121 ")
         station_nr = error_message[1]
         error_message = error_message[0]
 

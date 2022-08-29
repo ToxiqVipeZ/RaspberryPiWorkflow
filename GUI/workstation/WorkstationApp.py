@@ -81,20 +81,9 @@ class WorkstationApp:
     This class processes the RFID-Input from the RFID-Reader
     and shows related workflow steps.
     """
-    # static global variables:
-    # MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
-    MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
-    RFID_IN = "RFID-IN.png"
-    RFID_OUT = "RFID-OUT.png"
-    WINDOW_WIDTH = 1920
-    WINDOW_HEIGHT = 1080
-    CONFIRM_BUTTON_DONE_TEXT = "Fertig"
-    CONFIRM_BUTTON_RESTART_TEXT = "Neustart"
-    CONFIRM_BUTTON_ABORT_TEXT = "Ausschuss"
-    ALARM_BUTTOM = "Alarm!"
-    PICTURE_TYPE = ".png"
-
     # global variables:
+    auto_width = 300
+    auto_height = 220
     rfid_scanned = ""
     station = 0
     operation = 0
@@ -106,6 +95,20 @@ class WorkstationApp:
     written_flag = False
     scan_flag = False
     ausschuss_procedure = False
+
+    # static global variables:
+    # C.O.S - Comment in:
+    # MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
+    MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
+    RFID_IN = "RFID-IN.png"
+    RFID_OUT = "RFID-OUT.png"
+    WINDOW_WIDTH = auto_width
+    WINDOW_HEIGHT = auto_height
+    CONFIRM_BUTTON_DONE_TEXT = "Fertig"
+    CONFIRM_BUTTON_RESTART_TEXT = "Neustart"
+    CONFIRM_BUTTON_ABORT_TEXT = "Ausschuss"
+    ALARM_BUTTOM = "Alarm!"
+    PICTURE_TYPE = ".png"
 
     def workflow_start(self, argument):
         """
@@ -165,11 +168,11 @@ class WorkstationApp:
             Thread(target=Client.send(Client.TRACKING_STATS_OUT, self.rfid_scanned, station_number)).start()
 
     def error_tracker(self, error_type, error_message):
-        error_message = str(error_message) + ", 01"
+        error_message = str(error_message) + "SplitStatement15121 01"
 
         # C.O.S - Comment in:
         # adds the station Number to the error_message:
-        #error_message = str(error_message) + ", " + self.get_station_number()
+        #error_message = str(error_message) + "SplitStatement15121 " + self.get_station_number()
 
         Thread(target=Client.send(Client.TRACKING_ERROR_IN, str(error_type), str(error_message))).start()
         self.error_solving(error_type, error_message)
@@ -282,11 +285,14 @@ class WorkstationApp:
 
     def workflow_picture_resize(self, workflow_pictures):
         """
-        Takes one workflow picture and downscales it, if its > 720p in height
+        Takes one workflow picture and downscales it, if its > 720p
         :param workflow_pictures: one workflow picture
         :return: the given workflow picture after downscaling
         """
-        if workflow_pictures.width > 720:
+        self.WINDOW_WIDTH = self.auto_width
+        self.WINDOW_HEIGHT = self.auto_height
+
+        if workflow_pictures.width > 720 or self.auto_width < 720:
             size_matcher_width = workflow_pictures.width / (self.WINDOW_WIDTH * 0.8)
             size_matcher_height = workflow_pictures.height / (self.WINDOW_HEIGHT * 0.8)
             workflow_pictures = workflow_pictures.resize(
@@ -310,7 +316,7 @@ class WorkstationApp:
             # insert image into label
             workflow_picture_label.image = workflow_picture
             # label position inside root grid
-            workflow_picture_label.grid(column=0, row=0, rowspan=3)
+            workflow_picture_label.grid(column=0, row=1, rowspan=4)
         except FileNotFoundError:
             print("\n Die Datei wurde nicht gefunden, sind alle Bilder \".png\" - Dateien ?")
         except _tkinter.TclError:
@@ -494,11 +500,17 @@ class WorkstationApp:
             # insert image into label
             workflow_picture_label.image = workflow_picture
             workflow_picture_label.config(borderwidth=0)
+
+            # C.O.S - Comment in, Delete next:
+            #station_label = tk.Label(root2, text=self.get_station_number(), font=("Arial Black", 30))
+            station_label = tk.Label(root2, text="Station 01", font=("Arial Black", 30))
+            station_label.grid(column=0, row=0)
+
             # label position inside root2 grid
-            workflow_picture_label.grid(column=0, row=0, rowspan=5)
+            workflow_picture_label.grid(column=0, row=1, rowspan=4)
 
             # spaceholder for button-alignment
-            spaceholder_picture_buttons = tk.Label(root2, height=1)
+            #spaceholder_picture_buttons = tk.Label(root2, height=1)
 
             # button1 definition
             button1_text = tk.StringVar()
@@ -535,7 +547,7 @@ class WorkstationApp:
                                     width=10, height=5, background="red")
             button4_btn.grid(column=1, row=4)
 
-            # spaceholder_picture_buttons.grid(column=1, row=0)
+            #spaceholder_picture_buttons.grid(column=1, row=0)
 
             # window size adjustment
             width, height = root2.winfo_screenwidth(), root2.winfo_screenheight()
@@ -560,7 +572,10 @@ class WorkstationApp:
             global root
             root = tk.Tk()
 
-            width, height = root.winfo_screenwidth(), root.winfo_screenheight()
+            self.auto_width = root.winfo_screenwidth()
+            self.auto_height = root.winfo_screenheight()
+
+            #width, height = root.winfo_screenwidth(), root.winfo_screenheight()
 
             # window size
             canvas_root = tk.Canvas(root, width=root.winfo_screenwidth(), height=root.winfo_screenheight())
@@ -580,7 +595,12 @@ class WorkstationApp:
             # label position inside root grid
             workflow_picture_root_label.grid(column=0, row=0)
 
-            root.geometry("%dx%d+0+0" % (width, height))
+            root.geometry("%dx%d+0+0" % (self.auto_width, self.auto_height))
+
+            # C.O.S - Comment in, Delete next:
+            # station_label = tk.Label(root, text=self.get_station_number(), font=("Arial Black", 30))
+            station_label = tk.Label(root, text="Station 01", font=("Arial Black", 30))
+            station_label.grid(column=1, row=0)
 
             # C.O.S - Delete:
             # button1 definition
@@ -589,7 +609,7 @@ class WorkstationApp:
             button1_btn = tk.Button(root, textvariable=button1_text,
                                     command=lambda: (self.test()),
                                     width=10, height=5, background="green")
-            button1_btn.grid(column=2, row=0)
+            button1_btn.grid(column=1, row=1)
             # C.O.S - Comment in:
             # root.after(1000, Thread(target=self.scanning_rfid).start())
             root.after(1000, self.exec_after_scan)
