@@ -8,10 +8,12 @@ def main():
     # cursor instance:
     c = connection.cursor()
 
-    # error-list-reset
+    # article-parts-relation-list
+    aprt_reset(connection, c)
+    # error-list-table
     #elt_reset(connection, c)
-    #error-history-table-reset
-    eht_reset(connection, c)
+    # error-history-table
+    #eht_reset(connection, c)
     # process-time-table
     #ptt_reset(connection, c)
     # workflow-planner-table
@@ -25,6 +27,22 @@ def main():
 
     # closing the connection
     connection.close()
+
+
+def aprt_reset(connection, c):
+    c.execute("DROP TABLE article_parts_relation_table")
+
+    c.execute(
+        """
+        CREATE TABLE article_parts_relation_table (
+        article_id TEXT PRIMARY KEY,
+        part_id_list TEXT,
+        part_id_list_amounts TEXT
+        )
+        """
+    )
+    # committing the created table:
+    connection.commit()
 
 def elt_reset(connection, c):
     # drop table:

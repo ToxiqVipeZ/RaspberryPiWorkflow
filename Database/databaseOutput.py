@@ -66,6 +66,14 @@ items = c.fetchall()
 for item in items:
     print(item)
 
+print("\n\narticle_parts_relation_table: ")
+
+c.execute("SELECT * FROM article_parts_relation_table")
+items = c.fetchall()
+
+for item in items:
+    print(item)
+
 current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
 print("\n" + current_datetime)
