@@ -14,6 +14,55 @@ class StorageManagerBackend:
         time.sleep(time_in_s)
         item.destroy()
 
+    def store_part(self, part_id, amount):
+        pass
+
+    def get_cassette_contains(self, cassette_id):
+        connection = sqlite3.connect(DATABASE_PATH)
+
+        # cursor instance:
+        c = connection.cursor()
+
+        c.execute("SELECT cassette_contains "
+                  "FROM cassette_management_table WHERE cassette_id=(?)", (cassette_id,))
+        cassette_contains = c.fetchone()[0]
+
+        print(cassette_contains)
+        connection.close()
+        return cassette_contains
+
+    def get_contains_amount(self, cassette_id):
+        connection = sqlite3.connect(DATABASE_PATH)
+
+        # cursor instance:
+        c = connection.cursor()
+
+        c.execute("SELECT contains_amount "
+                  "FROM cassette_management_table WHERE cassette_id=(?)", (cassette_id,))
+        contains_amount = c.fetchone()[0]
+
+        print(contains_amount)
+        connection.close()
+        return contains_amount
+
+    def save_cassette_contains(self, casette_id, cassette_contains, contains_amount):
+        connection = sqlite3.connect(DATABASE_PATH)
+
+        # cursor instance:
+        c = connection.cursor()
+
+        c.execute("UPDATE cassette_management_table "
+                  "SET cassette_contains=(?), "
+                  "contains_amount=(?) "
+                  "WHERE cassette_id=(?)",
+                  (str(cassette_contains),
+                   contains_amount,
+                   casette_id))
+
+        connection.commit()
+        connection.close()
+
+
     def lookup_article_parts_relations(self, article_id):
         connection = sqlite3.connect(DATABASE_PATH)
 
@@ -28,7 +77,7 @@ class StorageManagerBackend:
         article_id_included = c.fetchone()
 
         if article_id_included is not None:
-            self.set_feedback_message("Artikel-ID: \"" + str(article_id) + "\" gefunden.")
+            self.set_feedback_message("Artikel-ID: \"" + str(article_id) + "\" in Datenbank gefunden.")
         else:
             self.set_feedback_message("Artikel-ID: \"" + str(article_id) + "\" nicht in Datenbank gefunden.")
 

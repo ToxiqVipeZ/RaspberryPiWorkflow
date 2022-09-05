@@ -74,6 +74,20 @@ items = c.fetchall()
 for item in items:
     print(item)
 
+print("\n\ncassette_management_table: ")
+c.execute("SELECT * FROM cassette_management_table")
+items = c.fetchall()
+
+for item in items:
+    print(item)
+
+print("\n\ncassette_management_table: ")
+c.execute("SELECT * FROM cassette_management_table")
+items = c.fetchall()
+
+for item in items:
+    print(item)
+
 current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
 print("\n" + current_datetime)

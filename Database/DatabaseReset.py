@@ -8,26 +8,66 @@ def main():
     # cursor instance:
     c = connection.cursor()
 
+    # part-storages-table
+    pst_reset(connection, c)
+
+    # cassette-management-table
+    #cmt_reset(connection, c)
+
     # article-parts-relation-list
-    aprt_reset(connection, c)
+    #aprt_reset(connection, c)
+
     # error-list-table
     #elt_reset(connection, c)
+
     # error-history-table
     #eht_reset(connection, c)
+
     # process-time-table
     #ptt_reset(connection, c)
+
     # workflow-planner-table
     #wpt_reset(connection, c)
+
     # article-procedure-table
     #apt_reset(connection, c)
+
     # shop-info-table
     #sit_reset(connection, c)
+
     # article-queue
     #aq_reset(connection, c)
 
     # closing the connection
     connection.close()
 
+def pst_reset(connection, c):
+    c.execute(
+        """
+        CREATE TABLE part_storages_table (
+        part_id TEXT PRIMARY KEY,
+        part_amount INTEGER,
+        in_cassettes BOOL
+        )
+        """
+    )
+    # committing the created table:
+    connection.commit()
+
+def cmt_reset(connection, c):
+    c.execute("DROP TABLE cassette_management_table")
+
+    c.execute(
+        """
+        CREATE TABLE cassette_management_table (
+        cassette_id INTEGER PRIMARY KEY,
+        cassette_contains TEXT,
+        contains_amount INTEGER
+        )
+        """
+    )
+    # committing the created table:
+    connection.commit()
 
 def aprt_reset(connection, c):
     c.execute("DROP TABLE article_parts_relation_table")
