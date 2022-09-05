@@ -12,16 +12,77 @@ class StorageManager:
     def __init__(self):
         self.main()
 
+    def show_articles(self):
+        popup3 = tk.Toplevel()
+        # window-size:
+        popup3.geometry("%dx%d+0+0" % (225, 500))
+        popup3.configure(background="grey", borderwidth=10)
+
+        # background & grid size:
+        canvas = tk.Canvas(popup3, width=200, height=500, background="grey")
+        canvas.config(borderwidth=0, highlightthickness=0)
+        canvas.grid(columnspan=1, rowspan=1)
+
+        # table:
+        columns = ("article_id")
+        style = ttk.Style()
+        style.configure("mystyle.Treeview", highlightthickness=1, bd=0,
+                        font=("Arial Black", 10))  # Modify the font of the body
+        style.configure("mystyle.Treeview.Heading",
+                        font=("Arial Black", 11, 'bold'))  # Modify the font of the headings
+        style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
+
+        tree = ttk.Treeview(popup3, columns=columns, show="headings", style="mystyle.Treeview", height=20)
+
+        tree.column("article_id", anchor="center")
+        tree.heading("article_id", text="Artikel-IDs:")
+
+        relations = self.Backend.get_article_relations()
+
+        for x in range(0, len(relations)):
+            tree.insert("", tk.END, values=(relations[x]))
+
+        tree.grid(columnspan=1, rowspan=1, column=0, row=0)
+
+    def warehouse_table(self, popup2):
+        # table:
+        columns = ("part_id", "part_amount", "in_cassette")
+        style = ttk.Style()
+        style.configure("mystyle.Treeview", highlightthickness=1, bd=0,
+                        font=("Arial Black", 10))  # Modify the font of the body
+        style.configure("mystyle.Treeview.Heading",
+                        font=("Arial Black", 11, 'bold'))  # Modify the font of the headings
+        style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
+
+        tree = ttk.Treeview(popup2, columns=columns, show="headings", style="mystyle.Treeview", height=20)
+
+        tree.column("part_id", anchor="center")
+        tree.column("part_amount", anchor="center")
+        tree.column("in_cassette", anchor="center")
+
+        tree.heading("part_id", text="Teilenummer:")
+        tree.heading("part_amount", text="Menge:")
+        tree.heading("in_cassette", text="in Kassetten:")
+        parts = self.Backend.get_stored_parts()
+
+        for x in range(0, len(parts)):
+            tree.insert("", tk.END, values=(parts[x][0], parts[x][1], parts[x][2]))
+
+        tree.grid(columnspan=2, rowspan=5, column=3, row=0)
+
     def config_warehouse(self):
         popup2 = tk.Toplevel()
         # window-size:
-        popup2.geometry("%dx%d+0+0" % (800, 400))
-        popup2.configure(background="grey")
+        popup2.geometry("%dx%d+0+0" % (850, 450))
+        popup2.configure(background="grey", borderwidth=10)
 
         # background & grid size:
-        canvas = tk.Canvas(popup2, width=800, height=400, background="grey")
+        canvas = tk.Canvas(popup2, width=850, height=450, background="grey")
         canvas.config(borderwidth=0, highlightthickness=0)
-        canvas.grid(columnspan=10, rowspan=5)
+        canvas.grid(columnspan=5, rowspan=5)
+
+        # first table-render:
+        self.warehouse_table(popup2)
 
         # labels:
         add_part_label = tk.Label(popup2, text="Teilenummer: ",
@@ -36,16 +97,22 @@ class StorageManager:
         part_amount_box = tk.Entry(popup2, width=3, font=("Arial Black", 12))
 
         # buttons:
-        add_part_btn = tk.Button(popup2, text="hinzufügen",
+        add_part_btn = tk.Button(popup2,
+                                 text="Speichern",
                                  background="grey",
+                                 command=lambda: (
+                                     self.Backend.save_part_to_store(part_number_box.get(), part_amount_box.get()),
+                                     self.feedback_label(popup2, self.Backend.feedback_message, 3, 4),
+                                     self.warehouse_table(popup2),
+                                     popup2.update()
+                                 ),
                                  font=("Arial Black", 10))
-        delete_part_btn = tk.Button(popup2, text="löschen",
+
+        delete_part_btn = tk.Button(popup2, text="Löschen",
                                     background="red",
                                     font=("Arial Black", 10))
 
-        # table:
-        self.Backend.get_parts_table()
-
+        placeholder_mid = tk.Canvas(popup2, background="grey", width=10, highlightthickness=0)
         # alignment:
         add_part_label.grid(columnspan=2, rowspan=1, column=0, row=0)
         part_number_box.grid(columnspan=2, rowspan=1, column=0, row=1)
@@ -53,9 +120,10 @@ class StorageManager:
         part_amount_box.grid(columnspan=2, rowspan=1, column=0, row=3)
         add_part_btn.grid(columnspan=1, rowspan=1, column=0, row=4)
         delete_part_btn.grid(columnspan=1, rowspan=1, column=1, row=4)
+        placeholder_mid.grid(columnspan=1, rowspan=5, column=2, row=0)
 
-        #show_parts_label = tk.Label(popup2, text="Existierende Teileliste ausgeben: ")
-        #show_parts_btn = tk.Entry(popup2)
+        # show_parts_label = tk.Label(popup2, text="Existierende Teileliste ausgeben: ")
+        # show_parts_btn = tk.Entry(popup2)
 
         popup2.mainloop()
 
@@ -297,11 +365,10 @@ class StorageManager:
             split_part_amounts[len(split_part_amounts) - 1] = split_part_amounts[len(split_part_amounts) - 1][:-2]
 
             for x in range(0, len(split_part_amounts)):
-                print(splitted_parts[x], split_part_amounts[x])
                 tree.insert("", tk.END, values=(" ", splitted_parts[x], split_part_amounts[x]))
 
             tree.insert("", 0, values=article_id)
-            tree.grid(column=5, row=4, rowspan=3, columnspan=1)
+            tree.grid(column=5, row=4, rowspan=2, columnspan=1)
             root.update()
 
     def feedback_label(self, root, message, col, row):
@@ -352,9 +419,9 @@ class StorageManager:
                                                  background="grey",
                                                  font=("Arial Black", 15))
             warehouse_label = tk.Label(root,
-                                                 text="Lagerverwaltung: ",
-                                                 background="grey",
-                                                 font=("Arial Black", 15))
+                                       text="Lagerverwaltung: ",
+                                       background="grey",
+                                       font=("Arial Black", 15))
 
             # when the save button is pressed, take_input gets called
             button_save_btn = tk.Button(root, text="Speichern",
@@ -384,15 +451,20 @@ class StorageManager:
                                             width=8, height=1, background="green", font=("Arial", 14))
 
             configure_cassettes_btn = tk.Button(root, text="Konfig.",
-                                                 command=lambda: (
-                                                     self.config_cassettes()
-                                                 ),
-                                                 width=8, height=1, background="green", font=("Arial", 14))
+                                                command=lambda: (
+                                                    self.config_cassettes()
+                                                ),
+                                                width=8, height=1, background="green", font=("Arial", 14))
             configure_warehouse_btn = tk.Button(root, text="Konfig.",
                                                 command=lambda: (
                                                     self.config_warehouse()
                                                 ),
                                                 width=8, height=1, background="green", font=("Arial", 14))
+            show_relations_btn = tk.Button(root, text="Angelegte",
+                                           command=lambda: (
+                                               self.show_articles()
+                                           ),
+                                           width=8, height=1, background="green", font=("Arial", 14))
 
             # placeholder = tk.Canvas(width=0, height=0)
             # placeholder.grid(column=0, rowspan=10)
@@ -423,6 +495,7 @@ class StorageManager:
             configure_cassettes_btn.grid(column=3, row=3, rowspan=4, columnspan=1)
             warehouse_label.grid(column=3, row=4, rowspan=3, columnspan=1)
             configure_warehouse_btn.grid(column=3, row=4, rowspan=5, columnspan=2)
+
             # column_3_bottom_border_line.grid(column=3, row=7)
 
             # placeholder_col_2to4 = tk.Canvas(background="black", width=1, height=height)
@@ -435,6 +508,7 @@ class StorageManager:
             database_lookup_label.grid(column=5, row=1, rowspan=2, columnspan=1)
             database_lookup_box.grid(column=5, row=2, rowspan=1, columnspan=1)
             database_lookup_btn.grid(column=5, row=3, rowspan=1, columnspan=1)
+            show_relations_btn.grid(column=5, row=6, rowspan=1, columnspan=1)
 
             # placeholder_r = tk.Canvas(width=1, height=height)
             # placeholder_r.grid(column=6, row=0, rowspan=10, columnspan=2)

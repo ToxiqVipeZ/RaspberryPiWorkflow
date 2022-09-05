@@ -42,6 +42,8 @@ def main():
     connection.close()
 
 def pst_reset(connection, c):
+    c.execute("DROP TABLE part_storages_table")
+
     c.execute(
         """
         CREATE TABLE part_storages_table (

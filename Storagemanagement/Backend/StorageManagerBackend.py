@@ -14,8 +14,61 @@ class StorageManagerBackend:
         time.sleep(time_in_s)
         item.destroy()
 
-    def store_part(self, part_id, amount):
-        pass
+    def save_part_to_store(self, part_id, part_amount):
+
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+        c.execute("SELECT * FROM part_storages_table")
+        parts = c.fetchall()
+        c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=(?)", (part_id,))
+        cassette_id = c.fetchone()
+
+        if cassette_id is not None:
+            cassette_id = cassette_id[0]
+        if cassette_id is None:
+            cassette_id = 0
+
+        not_included = True
+
+        for x in range(0, len(parts)):
+            if part_id == parts[x][0]:
+                c.execute("UPDATE part_storages_table "
+                          "SET part_amount=(?), "
+                          "in_cassettes=(?) "
+                          "WHERE part_id=(?)",
+                          (part_amount,
+                           cassette_id,
+                           part_id))
+                connection.commit()
+                not_included = False
+                self.feedback_message = "Teil aktualisiert."
+
+        if not_included:
+            c.execute("INSERT INTO part_storages_table "
+                      "VALUES (?,?,?)",
+                      (part_id,
+                       part_amount,
+                       cassette_id))
+            connection.commit()
+            self.feedback_message = "Teil hinzugefügt."
+
+        connection.close()
+
+    def get_stored_parts(self):
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+        c.execute("SELECT * FROM part_storages_table")
+        stored_parts = c.fetchall()
+        connection.close()
+        return stored_parts
+
+    def get_article_relations(self):
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+        c.execute("SELECT article_id FROM article_parts_relation_table")
+        article_parts_relation_table = c.fetchall()
+        connection.close()
+        return article_parts_relation_table
 
     def get_cassette_contains(self, cassette_id):
         connection = sqlite3.connect(DATABASE_PATH)
@@ -61,7 +114,6 @@ class StorageManagerBackend:
 
         connection.commit()
         connection.close()
-
 
     def lookup_article_parts_relations(self, article_id):
         connection = sqlite3.connect(DATABASE_PATH)
@@ -162,4 +214,3 @@ class StorageManagerBackend:
         print(article_id)
         print(part_numbers_list_final)
         print(part_numbers_list_amounts)
-
