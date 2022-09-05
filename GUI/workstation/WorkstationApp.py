@@ -180,7 +180,6 @@ class WorkstationApp:
     def error_solving(self, error_type, error_message):
         error_window = tk.Toplevel()
         error_window.geometry("%dx%d+0+0" % (error_window.winfo_screenwidth()/2, error_window.winfo_screenheight()/2))
-
         station = "01"
         # C.O.S Comment in:
         # station = self.get_station_number()
@@ -190,7 +189,7 @@ class WorkstationApp:
                                                 error_type + "\"\n von Station: \n\"" +
                                                 station +
                                                 "\" \n behoben ?",
-                                           font=("Arial Black", 20))
+                                           font=("Arial Black", 15))
         # definition of the button
         solved_confirm_button = tk.Button(
             error_window,
@@ -223,7 +222,7 @@ class WorkstationApp:
 
     def alarm_button_pressed(self, root2):
         popup = tk.Toplevel(root2, )
-
+        popup.state("zoomed")
         popup.geometry("%dx%d+0+0" % (popup.winfo_screenwidth(), popup.winfo_screenheight()))
 
         # window size
@@ -481,6 +480,7 @@ class WorkstationApp:
 
             # init of the window - START!
             root2 = tk.Toplevel()
+            root2.state("zoomed")
 
             # window size
             canvas = tk.Canvas(root2, width=root2.winfo_screenwidth(), height=root2.winfo_screenheight())
@@ -571,7 +571,7 @@ class WorkstationApp:
         try:
             global root
             root = tk.Tk()
-
+            root.state("zoomed")
             self.auto_width = root.winfo_screenwidth()
             self.auto_height = root.winfo_screenheight()
 
