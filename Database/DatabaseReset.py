@@ -49,6 +49,7 @@ def pst_reset(connection, c):
         CREATE TABLE part_storages_table (
         part_id TEXT PRIMARY KEY,
         part_amount INTEGER,
+        min_amount INTEGER,
         in_cassettes BOOL
         )
         """

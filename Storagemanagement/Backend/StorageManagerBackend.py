@@ -14,6 +14,49 @@ class StorageManagerBackend:
         time.sleep(time_in_s)
         item.destroy()
 
+    def delete_part_from_store(self, part_id, part_amount):
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+        c.execute("SELECT part_id, part_amount FROM part_storages_table WHERE part_id=(?)", (part_id,))
+        part_data_from_table = c.fetchone()
+
+        if part_data_from_table is not None:
+            part_from_table = part_data_from_table[0]
+            part_amount_from_table = part_data_from_table[1]
+
+            c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=(?)", (part_id,))
+            cassette_id = c.fetchone()
+
+            if part_amount == "":
+                part_amount = None
+
+            if part_amount is None:
+                if cassette_id is not None:
+                    cassette_id = cassette_id[0]
+                    c.execute("UPDATE cassette_management_table SET part_id=(?) WHERE cassette_id=(?)",
+                              (None, cassette_id))
+                    connection.commit()
+                    c.execute("DELETE FROM part_storages_table WHERE part_id=(?)", (part_id,))
+                    connection.commit()
+
+                elif cassette_id is None:
+                    c.execute("DELETE FROM part_storages_table WHERE part_id=(?)", (part_id,))
+                    connection.commit()
+
+            elif part_amount is not None:
+                part_amount = int(part_amount)
+                if part_amount_from_table >= part_amount:
+                    new_part_amount = part_amount_from_table - part_amount
+                    c.execute("UPDATE part_storages_table SET part_amount=(?) WHERE part_id=(?)",
+                              (new_part_amount, part_id))
+                    connection.commit()
+                    self.set_feedback_message(str(part_amount) + " Stück von \n" + part_id + " gelöscht")
+                elif part_amount_from_table < part_amount:
+                    self.set_feedback_message("Es gibt nur " + str(part_amount_from_table) +
+                                              "\n Stücke dieses Teils im Lager.")
+
+        connection.close()
+
     def save_part_to_store(self, part_id, part_amount):
 
         connection = sqlite3.connect(DATABASE_PATH)

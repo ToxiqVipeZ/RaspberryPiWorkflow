@@ -110,6 +110,13 @@ class StorageManager:
 
         delete_part_btn = tk.Button(popup2, text="Löschen",
                                     background="red",
+                                    command=lambda: (
+                                        self.Backend.delete_part_from_store(part_number_box.get(),
+                                                                            part_amount_box.get()),
+                                        self.feedback_label(popup2, self.Backend.feedback_message, 3, 4),
+                                        self.warehouse_table(popup2),
+                                        popup2.update()
+                                    ),
                                     font=("Arial Black", 10))
 
         placeholder_mid = tk.Canvas(popup2, background="grey", width=10, highlightthickness=0)
@@ -392,7 +399,7 @@ class StorageManager:
             root.configure(background="grey")
             root.state("zoomed")
             # background:
-            canvas = tk.Canvas(root, width=width, height=height, background="grey", highlightthickness=2)
+            canvas = tk.Canvas(root, width=width, height=height, background="grey", highlightthickness=0)
             canvas.config(borderwidth=0)
             # window grid:
             canvas.grid(columnspan=7, rowspan=10)
