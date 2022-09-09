@@ -12,7 +12,7 @@ def main():
     pst_reset(connection, c)
 
     # cassette-management-table
-    #cmt_reset(connection, c)
+    cmt_reset(connection, c)
 
     # article-parts-relation-list
     #aprt_reset(connection, c)
@@ -50,7 +50,7 @@ def pst_reset(connection, c):
         part_id TEXT PRIMARY KEY,
         part_amount INTEGER,
         min_amount INTEGER,
-        in_cassettes BOOL
+        in_cassettes INTEGER,
         )
         """
     )
@@ -65,7 +65,7 @@ def cmt_reset(connection, c):
         CREATE TABLE cassette_management_table (
         cassette_id INTEGER PRIMARY KEY,
         cassette_contains TEXT,
-        contains_amount INTEGER
+        contains_max_amount INTEGER
         )
         """
     )

@@ -21,7 +21,6 @@ class StorageManagerBackend:
         part_data_from_table = c.fetchone()
 
         if part_data_from_table is not None:
-            part_from_table = part_data_from_table[0]
             part_amount_from_table = part_data_from_table[1]
 
             c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=(?)", (part_id,))
@@ -33,7 +32,7 @@ class StorageManagerBackend:
             if part_amount is None:
                 if cassette_id is not None:
                     cassette_id = cassette_id[0]
-                    c.execute("UPDATE cassette_management_table SET part_id=(?) WHERE cassette_id=(?)",
+                    c.execute("UPDATE cassette_management_table SET cassette_contains=(?) WHERE cassette_id=(?)",
                               (None, cassette_id))
                     connection.commit()
                     c.execute("DELETE FROM part_storages_table WHERE part_id=(?)", (part_id,))
@@ -57,7 +56,7 @@ class StorageManagerBackend:
 
         connection.close()
 
-    def save_part_to_store(self, part_id, part_amount):
+    def save_part_to_store(self, part_id, part_amount, part_min_amount):
 
         connection = sqlite3.connect(DATABASE_PATH)
         c = connection.cursor()
@@ -77,9 +76,11 @@ class StorageManagerBackend:
             if part_id == parts[x][0]:
                 c.execute("UPDATE part_storages_table "
                           "SET part_amount=(?), "
+                          "min_amount=(?), "
                           "in_cassettes=(?) "
                           "WHERE part_id=(?)",
                           (part_amount,
+                           part_min_amount,
                            cassette_id,
                            part_id))
                 connection.commit()
@@ -88,9 +89,10 @@ class StorageManagerBackend:
 
         if not_included:
             c.execute("INSERT INTO part_storages_table "
-                      "VALUES (?,?,?)",
+                      "VALUES (?,?,?,?)",
                       (part_id,
                        part_amount,
+                       part_min_amount,
                        cassette_id))
             connection.commit()
             self.feedback_message = "Teil hinzugefügt."
@@ -121,9 +123,11 @@ class StorageManagerBackend:
 
         c.execute("SELECT cassette_contains "
                   "FROM cassette_management_table WHERE cassette_id=(?)", (cassette_id,))
-        cassette_contains = c.fetchone()[0]
+        cassette_contains = c.fetchone()
 
-        print(cassette_contains)
+        if cassette_contains is not None:
+            cassette_contains = c.fetchone()[0]
+
         connection.close()
         return cassette_contains
 
@@ -133,15 +137,17 @@ class StorageManagerBackend:
         # cursor instance:
         c = connection.cursor()
 
-        c.execute("SELECT contains_amount "
+        c.execute("SELECT contains_max_amount "
                   "FROM cassette_management_table WHERE cassette_id=(?)", (cassette_id,))
-        contains_amount = c.fetchone()[0]
+        contains_max_amount = c.fetchone()
 
-        print(contains_amount)
+        if contains_max_amount is not None:
+            contains_max_amount = c.fetchone()[0]
+
         connection.close()
-        return contains_amount
+        return contains_max_amount
 
-    def save_cassette_contains(self, casette_id, cassette_contains, contains_amount):
+    def save_cassette_contains(self, casette_id, cassette_contains, contains_max_amount):
         connection = sqlite3.connect(DATABASE_PATH)
 
         # cursor instance:
@@ -149,10 +155,10 @@ class StorageManagerBackend:
 
         c.execute("UPDATE cassette_management_table "
                   "SET cassette_contains=(?), "
-                  "contains_amount=(?) "
+                  "contains_max_amount=(?) "
                   "WHERE cassette_id=(?)",
                   (str(cassette_contains),
-                   contains_amount,
+                   contains_max_amount,
                    casette_id))
 
         connection.commit()
