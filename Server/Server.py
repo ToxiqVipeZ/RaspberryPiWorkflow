@@ -10,6 +10,9 @@ SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 FORMAT = "utf-8"
 DISCONNECT_MESSAGE = "DISCONNECT"
+GET_ERROR_LIST = "GET-ERROR-LIST"
+TRACKING_ERROR_IN = "TRACKING-ERROR-IN"
+TRACKING_ERROR_OUT = "TRACKING-ERROR-OUT"
 TRACKING_STATS_IN = "TRACKING-STATS-IN"
 TRACKING_STATS_OUT = "TRACKING-STATS-OUT"
 RECEIVING_RFID = "C-S-RFID"
@@ -21,6 +24,7 @@ server.bind(ADDR)
 class Server:
     receive_rfid_mode = False
     receive_stats_mode = False
+    receive_error_mode = False
     message_queue = [0, 1]
     message_queue_counter = 0
     receive_status = ""
@@ -50,6 +54,11 @@ class Server:
         elif received_status == "OUT":
             ServerHandler().station_out(rfid, station)
 
+    def track_error(self, message_queue, received_status):
+        if received_status == "IN":
+            ServerHandler().error_in(message_queue[0], message_queue[1])
+        elif received_status == "OUT":
+            ServerHandler().error_out(message_queue[0], message_queue[1])
 
     def handle_client(self, conn, addr):
         """
@@ -92,6 +101,7 @@ class Server:
                     self.receive_status = "OUT"
                 # if in receive_stats_mode
                 if self.receive_stats_mode is True:
+                    print("message queue: " + str(self.message_queue))
                     # excluding the first message, so that only the arguments in args join into this section
                     if msg != TRACKING_STATS_IN:
                         if msg != TRACKING_STATS_OUT:
@@ -104,6 +114,50 @@ class Server:
                                 self.message_queue_counter = 0
                                 self.receive_status = ""
                                 self.receive_stats_mode = False
+
+                # starting receive_error_mode
+                if msg == TRACKING_ERROR_IN:
+                    self.receive_error_mode = True
+                    self.receive_status = "IN"
+                elif msg == TRACKING_ERROR_OUT:
+                    self.receive_error_mode = True
+                    self.receive_status = "OUT"
+                    # if in receive_error_mode
+                if self.receive_error_mode is True:
+                    # excluding the first message, so that only the arguments in args join into this section
+                    if msg != TRACKING_ERROR_IN:
+                        if msg != TRACKING_ERROR_OUT:
+                            print(self.message_queue_counter)
+                            self.message_queue[self.message_queue_counter] = msg
+                            self.message_queue_counter += 1
+                            # exiting the receive_error_mode
+                            if self.message_queue_counter == 2:
+                                self.track_error(self.message_queue, self.receive_status)
+                                self.message_queue = [0, 1]
+                                self.message_queue_counter = 0
+                                self.receive_status = ""
+                                self.receive_error_mode = False
+
+                if msg == GET_ERROR_LIST:
+                    print("test:")
+                    print(ServerHandler().get_error_list())
+                    print(":test")
+                    gathered_list = ServerHandler().get_error_list()
+
+                    sendable_list = ""
+                    for x in range(0, len(gathered_list)):
+                        y = 0
+                        if y >= 2:
+                            y = 0
+
+                        for item in gathered_list[x]:
+                            sendable_list += str(gathered_list[x][y]) + ";"
+                            print(sendable_list)
+                            y += 1
+
+                    sendable_list = sendable_list.encode(FORMAT)
+
+                    conn.send(sendable_list)
 
                 # killing the thread when the message from the client equals the DISCONNECT_MESSAGE
                 if msg == DISCONNECT_MESSAGE:

@@ -8,19 +8,131 @@ def main():
     # cursor instance:
     c = connection.cursor()
 
+    # part-storages-table
+    pst_reset(connection, c)
+
+    # cassette-management-table
+    cmt_reset(connection, c)
+
+    # article-parts-relation-list
+    #aprt_reset(connection, c)
+
+    # error-list-table
+    #elt_reset(connection, c)
+
+    # error-history-table
+    #eht_reset(connection, c)
+
     # process-time-table
-    ptt_reset(connection, c)
+    #ptt_reset(connection, c)
+
     # workflow-planner-table
     #wpt_reset(connection, c)
+
     # article-procedure-table
     #apt_reset(connection, c)
+
     # shop-info-table
     #sit_reset(connection, c)
+
     # article-queue
     #aq_reset(connection, c)
 
     # closing the connection
     connection.close()
+
+def pst_reset(connection, c):
+    c.execute("DROP TABLE part_storages_table")
+
+    c.execute(
+        """
+        CREATE TABLE part_storages_table (
+        part_id TEXT PRIMARY KEY,
+        part_amount INTEGER,
+        min_amount INTEGER,
+        in_cassettes INTEGER,
+        )
+        """
+    )
+    # committing the created table:
+    connection.commit()
+
+def cmt_reset(connection, c):
+    c.execute("DROP TABLE cassette_management_table")
+
+    c.execute(
+        """
+        CREATE TABLE cassette_management_table (
+        cassette_id INTEGER PRIMARY KEY,
+        cassette_contains TEXT,
+        contains_max_amount INTEGER
+        )
+        """
+    )
+    # committing the created table:
+    connection.commit()
+
+def aprt_reset(connection, c):
+    c.execute("DROP TABLE article_parts_relation_table")
+
+    c.execute(
+        """
+        CREATE TABLE article_parts_relation_table (
+        article_id TEXT PRIMARY KEY,
+        part_id_list TEXT,
+        part_id_list_amounts TEXT
+        )
+        """
+    )
+    # committing the created table:
+    connection.commit()
+
+def elt_reset(connection, c):
+    # drop table:
+    c.execute("DROP TABLE error_list_table")
+
+    #create table:
+    c.execute(
+    """
+    CREATE TABLE error_list_table (
+    error_id INTEGER PRIMARY KEY,
+    error_type TEXT NOT NULL
+    )
+    """
+    )
+    c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
+              (1, "Maschinenversagen"))
+
+    c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
+              (2, "emotional damage"))
+
+    c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
+              (3, "Softwarefehler"))
+
+    c.execute("INSERT INTO error_list_table (error_id, error_type) VALUES (?,?)",
+              (9999, "Sonstige Fehler"))
+
+    # committing the created table:
+    connection.commit()
+
+
+def eht_reset(connection, c):
+    c.execute("DROP TABLE error_history_table")
+
+    c.execute("""
+        CREATE TABLE error_history_table (
+        entry_id INTEGER PRIMARY KEY,
+        error_id INTEGER NOT NULL,
+        error_type TEXT NOT NULL,
+        error_message TEXT,
+        station_nr TEXT NOT NULL,
+        error_start TEXT NOT NULL,
+        error_end TEXT,
+        error_duration TEXT
+        )""")
+
+    # committing the created table:
+    connection.commit()
 
 def ptt_reset(connection, c):
     # drop table:

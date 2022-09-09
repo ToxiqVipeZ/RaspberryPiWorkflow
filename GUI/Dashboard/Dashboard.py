@@ -24,7 +24,7 @@ SQL_QUERY_PTT_5 = "SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, ne
                   "AND process_end!=\"None\" ORDER BY ROWID DESC"
 
 df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
-print(df_stations_await_plus)
+
 # Dataframes
 df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
 df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
@@ -49,7 +49,7 @@ app.layout = html.Div([
                         "border-style": "outset",
                         "border-width": "4px",
                         "background-color": "#282828"
-                        }
+                    }
                     ),
             width=12
         )
@@ -144,13 +144,19 @@ app.layout = html.Div([
                 style_as_list_view=True
             )
         ], width=8),
-        dbc.Col(width=3, children=[
-            html.H5(children=["Fehlermeldungen: "], className="text-primary", style={"margin-top": 10}),
-            dbc.Card(style={"border-color": "blue", "border-style": "outset", "border-width": "4px"},
-                     children=[dbc.CardHeader("Station 01", className="text-white"),
-                               dbc.CardBody("Fehler: XYZ", className="text-white"),
-                               dbc.CardFooter("Betroffene Stationen: 02, 03, 05", className="text-white")])
-        ])
+        dbc.Col(
+            style={"display": "inline-block", "padding-bottom": 30},
+            children=[
+                html.H5(children=["Fehlermeldungen: "],
+                        style={"display": "block", "margin-top": 10, "margin-bottom": -2},
+                        className="text-primary"),
+                html.Div(
+                    style={"display": "inline-block", "height": 400},
+                    id="error-card-container",
+                    children=[]
+                )
+            ], width=4
+        )
     ]),
     dbc.Row(dbc.Col()),
     dcc.Interval(interval=1 * 500, n_intervals=0, id="add-card"),
@@ -184,6 +190,98 @@ def stations_puffer_time(n_intervals):
 
 
 @app.callback(
+    Output("error-card-container", "children"),
+    [Input("add-card", "n_intervals")],
+    [State("error-card-container", "children")],
+    blocking=False
+)
+def display_error_cards(n_intervals, div_children):
+    """
+    This method gets called every 0,5 seconds.
+    This method creates cards depending on entry's inside the "process_time_table" - database table.
+    If a entry has no "check-out"-time, them it means a station is working, therefore a card will be created.
+    The method gives back a card as children to the card-container div.
+    """
+    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # C.O.S: SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+
+    production_connection = sqlite3.connect(SQLITE3_HOST)
+    prod_cursor = production_connection.cursor()
+
+    SQL_QUERY_PTT_3 = "SELECT station_nr, error_start, error_type, error_message " \
+                      "FROM error_history_table WHERE error_end IS \"waiting\""
+
+    card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+    card_df = card_df.sort_values(by="station_nr")
+    card_df = card_df.reset_index(drop=True)
+
+    print("card_df: " + str(len(card_df)) + "                " + str(datetime.now()))
+    if div_children is not None:
+        print("childs: " + str(len(div_children)) + "                " + str(datetime.now()))
+    else:
+        print("childs: 0")
+
+    if len(card_df) > 0:
+        n_intervals = n_intervals % len(card_df)
+    # if len(card_df) == 0:
+    #     n_intervals = 0
+        error_station_nr = card_df.get("station_nr")[n_intervals]
+        error_message = card_df.get("error_type")[n_intervals] + ": \n" + card_df.get("error_message")[n_intervals]
+
+    print(div_children)
+
+    if div_children is not None:
+        if len(card_df) == 0:
+            if len(div_children) > len(card_df):
+                div_children.pop()
+                return div_children
+
+        if len(div_children) < len(card_df):
+            new_card = html.Div(
+                style={"width": 700, "height": 150,
+                       "margin": 10, "margin-left": 0, "textAlign": "center",
+                       "display": "inline-block", "verticalAlign": "top",
+                       "horizontalAlign": "right"},
+                children=[
+                    dbc.Card(
+                        children=[
+                            dbc.CardHeader(
+                                children=["Station: " + error_station_nr],
+                                style={"border-bottom": "3px solid black", "font-weight": "bold",
+                                       "font-size": 18},
+                                className="text-danger"
+                            ),
+                            dbc.CardBody(
+                                children=[html.H6(children=[str(error_message)],
+                                                  className="text-black",
+                                                  style={"border-bottom": "3px solid red", "font-weight": "bold",
+                                                         "font-size": 20, "background-color": "red",
+                                                         "font-color": "black"})],
+                                style={"border-bottom": "3px solid red", "font-weight": "bold",
+                                 "font-size": 20, "background-color": "red",
+                                 "font-color": "black"}
+                            ),
+                        ],
+                        style={"border-color": "darkred",
+                               "border-style": "outset",
+                               "border-width": "4px"
+                               },
+                        className="text-black"
+                    )
+                ]
+            )
+            div_children.append(new_card)
+            production_connection.close()
+            return div_children
+        else:
+            production_connection.close()
+            return dash.no_update
+    else:
+        production_connection.close()
+        return dash.no_update
+
+
+@app.callback(
     Output("card-container", "children"),
     [Input("add-card", "n_intervals")],
     [State("card-container", "children")],
@@ -197,7 +295,7 @@ def display_cards(n_intervals, div_children):
     The method gives back a card as children to the card-container div.
     """
     SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+    # C.O.S Comment in: SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
     production_connection = sqlite3.connect(SQLITE3_HOST)
     prod_cursor = production_connection.cursor()
