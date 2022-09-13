@@ -126,7 +126,12 @@ class StorageManagerBackend:
         cassette_contains = c.fetchone()
 
         if cassette_contains is not None:
-            cassette_contains = c.fetchone()[0]
+            if cassette_contains[0] is not None:
+                cassette_contains = cassette_contains[0]
+            else:
+                cassette_contains = None
+        else:
+            cassette_contains = None
 
         connection.close()
         return cassette_contains
@@ -142,7 +147,12 @@ class StorageManagerBackend:
         contains_max_amount = c.fetchone()
 
         if contains_max_amount is not None:
-            contains_max_amount = c.fetchone()[0]
+            if contains_max_amount[0] is not None:
+                contains_max_amount = contains_max_amount[0]
+            else:
+                contains_max_amount = None
+        else:
+            contains_max_amount = None
 
         connection.close()
         return contains_max_amount

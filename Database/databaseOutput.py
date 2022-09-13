@@ -81,13 +81,6 @@ items = c.fetchall()
 for item in items:
     print(item)
 
-print("\n\ncassette_management_table: ")
-c.execute("SELECT * FROM cassette_management_table")
-items = c.fetchall()
-
-for item in items:
-    print(item)
-
 print("\n\npart_storages_table: ")
 c.execute("SELECT * FROM part_storages_table")
 items = c.fetchall()

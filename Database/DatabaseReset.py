@@ -9,7 +9,7 @@ def main():
     c = connection.cursor()
 
     # part-storages-table
-    pst_reset(connection, c)
+    #pst_reset(connection, c)
 
     # cassette-management-table
     cmt_reset(connection, c)
@@ -50,7 +50,7 @@ def pst_reset(connection, c):
         part_id TEXT PRIMARY KEY,
         part_amount INTEGER,
         min_amount INTEGER,
-        in_cassettes INTEGER,
+        in_cassettes INTEGER
         )
         """
     )
@@ -71,6 +71,13 @@ def cmt_reset(connection, c):
     )
     # committing the created table:
     connection.commit()
+
+    # filling in the default values for the cassettes:
+    for x in range(1, 21):
+        c.execute("INSERT INTO cassette_management_table VALUES (?,?,?)", (x,None,None))
+        connection.commit()
+
+
 
 def aprt_reset(connection, c):
     c.execute("DROP TABLE article_parts_relation_table")

@@ -1,7 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from threading import Thread
-import time
 
 from Storagemanagement.Backend.StorageManagerBackend import StorageManagerBackend
 
@@ -64,7 +62,7 @@ class StorageManager:
         tree.heading("part_id", text="Teilenummer:")
         tree.heading("part_amount", text="Menge:")
         tree.heading("part_min_amount", text="Minimum:")
-        tree.heading("in_cassette", text="in Kassetten:")
+        tree.heading("in_cassette", text="in Schoten:")
         parts = self.Backend.get_stored_parts()
 
         for x in range(0, len(parts)):
@@ -161,83 +159,83 @@ class StorageManager:
         # window grid:
         canvas.grid(columnspan=9, rowspan=4)
 
-        cassette1_label = tk.Label(popup, fg="white", text="Kassette 1:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette1_label = tk.Label(popup, fg="white", text="Schote 1:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette1 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(1)), width=20)
         cassette1_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(1)), width=3)
 
-        cassette2_label = tk.Label(popup, fg="white", text="Kassette 2:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette2_label = tk.Label(popup, fg="white", text="Schote 2:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette2 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(2)), width=20)
         cassette2_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(2)), width=3)
 
-        cassette3_label = tk.Label(popup, fg="white", text="Kassette 3:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette3_label = tk.Label(popup, fg="white", text="Schote 3:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette3 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(3)), width=20)
         cassette3_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(3)), width=3)
 
-        cassette4_label = tk.Label(popup, fg="white", text="Kassette 4:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette4_label = tk.Label(popup, fg="white", text="Schote 4:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette4 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(4)), width=20)
         cassette4_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(4)), width=3)
 
-        cassette5_label = tk.Label(popup, fg="white", text="Kassette 5:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette5_label = tk.Label(popup, fg="white", text="Schote 5:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette5 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(5)), width=20)
         cassette5_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(5)), width=3)
 
-        cassette6_label = tk.Label(popup, fg="white", text="Kassette 6:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette6_label = tk.Label(popup, fg="white", text="Schote 6:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette6 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(6)), width=20)
         cassette6_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(6)), width=3)
 
-        cassette7_label = tk.Label(popup, fg="white", text="Kassette 7:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette7_label = tk.Label(popup, fg="white", text="Schote 7:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette7 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(7)), width=20)
         cassette7_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(7)), width=3)
 
-        cassette8_label = tk.Label(popup, fg="white", text="Kassette 8:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette8_label = tk.Label(popup, fg="white", text="Schote 8:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette8 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(8)), width=20)
         cassette8_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(8)), width=3)
 
-        cassette9_label = tk.Label(popup, fg="white", text="Kassette 9:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette9_label = tk.Label(popup, fg="white", text="Schote 9:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette9 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(9)), width=20)
         cassette9_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(9)), width=3)
 
-        cassette10_label = tk.Label(popup, fg="white", text="Kassette 10:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette10_label = tk.Label(popup, fg="white", text="Schote 10:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette10 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(10)), width=20)
         cassette10_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(10)), width=3)
 
-        cassette11_label = tk.Label(popup, fg="white", text="Kassette 11:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette11_label = tk.Label(popup, fg="white", text="Schote 11:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette11 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(11)), width=20)
         cassette11_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(11)), width=3)
 
-        cassette12_label = tk.Label(popup, fg="white", text="Kassette 12:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette12_label = tk.Label(popup, fg="white", text="Schote 12:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette12 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(12)), width=20)
         cassette12_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(12)), width=3)
 
-        cassette13_label = tk.Label(popup, fg="white", text="Kassette 13:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette13_label = tk.Label(popup, fg="white", text="Schote 13:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette13 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(13)), width=20)
         cassette13_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(13)), width=3)
 
-        cassette14_label = tk.Label(popup, fg="white", text="Kassette 14:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette14_label = tk.Label(popup, fg="white", text="Schote 14:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette14 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(14)), width=20)
         cassette14_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(14)), width=3)
 
-        cassette15_label = tk.Label(popup, fg="white", text="Kassette 15:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette15_label = tk.Label(popup, fg="white", text="Schote 15:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette15 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(15)), width=20)
         cassette15_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(15)), width=3)
 
-        cassette16_label = tk.Label(popup, fg="white", text="Kassette 16:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette16_label = tk.Label(popup, fg="white", text="Schote 16:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette16 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(16)), width=20)
         cassette16_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(16)), width=3)
 
-        cassette17_label = tk.Label(popup, fg="white", text="Kassette 17:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette17_label = tk.Label(popup, fg="white", text="Schote 17:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette17 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(17)), width=20)
         cassette17_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(17)), width=3)
 
-        cassette18_label = tk.Label(popup, fg="white", text="Kassette 18:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette18_label = tk.Label(popup, fg="white", text="Schote 18:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette18 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(18)), width=20)
         cassette18_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(18)), width=3)
 
-        cassette19_label = tk.Label(popup, fg="white", text="Kassette 19:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette19_label = tk.Label(popup, fg="white", text="Schote 19:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette19 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(19)), width=20)
         cassette19_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(19)), width=3)
 
-        cassette20_label = tk.Label(popup, fg="white", text="Kassette 20:", background="#489df7", font=("Tekton Pro", 10), width=20)
+        cassette20_label = tk.Label(popup, fg="white", text="Schote 20:", background="#489df7", font=("Tekton Pro", 10), width=20)
         cassette20 = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_cassette_contains(20)), width=20)
         cassette20_amount = tk.Entry(popup, textvariable=tk.StringVar(popup, value=Backend.get_contains_amount(20)), width=3)
 
@@ -436,9 +434,10 @@ class StorageManager:
                                              background="#489df7",
                                              font=("Tekton Pro", 15))
             configure_cassettes_label = tk.Label(root, fg="white",
-                                                 text="Lager-Kasetten\nVerwaltung: ",
+                                                 text="Schoten\nVerwaltung: ",
                                                  background="#489df7",
-                                                 font=("Tekton Pro", 15))
+                                                 font=("Tekton Pro", 15),
+                                                 pady=20)
             warehouse_label = tk.Label(root, fg="white",
                                        text="Lagerverwaltung: ",
                                        background="#489df7",
