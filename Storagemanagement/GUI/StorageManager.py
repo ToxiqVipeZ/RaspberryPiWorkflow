@@ -66,7 +66,7 @@ class StorageManager:
         parts = self.Backend.get_stored_parts()
 
         for x in range(0, len(parts)):
-            tree.insert("", tk.END, values=(parts[x][0], parts[x][1], parts[x][2]))
+            tree.insert("", tk.END, values=(parts[x][0], parts[x][1], parts[x][2], parts[x][3]))
 
         tree.grid(columnspan=2, rowspan=5, column=3, row=0)
 

@@ -170,8 +170,14 @@ class StorageManagerBackend:
                   (str(cassette_contains),
                    contains_max_amount,
                    casette_id))
-
         connection.commit()
+
+        c.execute("UPDATE part_storages_table "
+                  "SET in_cassettes=(?) "
+                  "WHERE part_id=(?)",
+                  (casette_id, cassette_contains))
+        connection.commit()
+
         connection.close()
 
     def lookup_article_parts_relations(self, article_id):

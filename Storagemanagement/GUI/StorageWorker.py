@@ -1,3 +1,4 @@
+import time
 import tkinter as tk
 from tkinter import ttk
 from threading import Thread
@@ -9,6 +10,9 @@ class StorageWorker:
     Backend = StorageWorkerBackend()
     CScanner = CassetteScanner()
     data = Backend.get_article_to_pack()
+    cassette_scanned = 0
+    cassette_queue = []
+    packed_queue = []
     """
         x                = article number position
         data_split[x][0] = part IDs
@@ -17,82 +21,149 @@ class StorageWorker:
     """
     data_split = data[1]
 
+    def exec_after_scan(self):
+        if self.CScanner.get_triggered_cassette() != 0:
+            self.cassette_scanned = self.CScanner.get_triggered_cassette()
+            for x in range(0, len(self.data_split[1])):
+                if self.cassette_scanned == self.data_split[x][2]:
+                    print("eintrag gefunden für x: " + str(x))
+                    print(self.data_split[x][0])
+                    part_id = self.data_split[x][0]
+                    part_amount = self.data_split[x][1]
+                    state = self.Backend.min_amount_check(self.cassette_scanned, part_amount)
+                    if state == 0:
+                        self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
+                        self.fill_packed_queue(part_id)
+                    elif state == 1:
+                        self.feedback_popup("Mindestbestand für \"" + part_id + "\" erreicht")
+                        self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
+                        self.fill_packed_queue(part_id)
+                    elif state == 2:
+                        self.feedback_popup("Bestand für \"" + part_id +
+                                            "\" negativ!\nEs liegt ein Fehler in der Datenhaltung vor.\n"
+                                            "Bitte Korrigieren / Inventur durchführen")
+                        self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
+                        self.fill_packed_queue(part_id)
+
+
+            self.CScanner.set_triggered_cassette(0)
+            self.cassette_scanned = 0
+            root.update()
+            root.after(1000, self.exec_after_scan)
+
+        else:
+            root.update()
+            root.after(1000, self.exec_after_scan)
+
     def scanning_cassettes(self):
-        scanning_cassettes = self.CScanner.get_triggered_cassette()
+        get_cassette = self.CScanner.get_triggered_cassette()
+        print(get_cassette)
+        if get_cassette != 0:
+            print(get_cassette)
+        print(time.thread_time())
+        time.sleep(1)
+        self.scanning_cassettes()
 
-    def treeview_creator(self, root):
+    def fill_packed_queue(self, part_id):
+        self.packed_queue.append(part_id)
+        tree3.insert("", tk.END, values=part_id)
+        tree3.update()
+        if self.cassette_queue == self.packed_queue:
+            done_btn.configure(state="normal")
 
+    def treeview_creator(self):
+        """
+        Creates the different tables in the root-frame, as a treeview item.
+        """
+
+        # The first table, including the articles, waiting to be packed
+
+        columns = ("article_id")
+        style = ttk.Style()
+        style.configure("mystyle.Treeview", highlightthickness=0, bd=0,
+                        font=("Tekton Pro", 10))  # Modify the font of the body
+        style.configure("mystyle.Treeview.Heading",
+                        font=("Tekton Pro", 11, 'bold'))  # Modify the font of the headings
+        style.layout("mystyle.Treeview",
+                     [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
+
+        tree = ttk.Treeview(root, columns=columns, show="headings", style="mystyle.Treeview", height=20)
+
+        tree.column("article_id", anchor="center")
+        tree.heading("article_id", text="Artikel-IDs:")
+        tree.grid(columnspan=1, rowspan=1, column=0, row=1)
+
+        # The seconds table, including the parts that have to be packed
+
+        columns = ("article_id", "part_ids", "part_amounts", "in_cassette")
+        style = ttk.Style()
+        style.configure("mystyle.Treeview", highlightthickness=0, bd=0,
+                        font=("Tekton Pro", 10))  # Modify the font of the body
+        style.configure("mystyle.Treeview.Heading",
+                        font=("Tekton Pro", 11, 'bold'))  # Modify the font of the headings
+        style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
+
+        tree2 = ttk.Treeview(root, columns=columns, show="headings", style="mystyle.Treeview", height=20)
+
+        tree2.column("article_id", anchor="center")
+        tree2.column("part_ids", anchor="center")
+        tree2.column("part_amounts", anchor="center")
+        tree2.column("in_cassette", anchor="center")
+
+        tree2.heading("article_id", text="Artikel ID:")
+        tree2.heading("part_ids", text="Teile-ID:")
+        tree2.heading("part_amounts", text="Menge:")
+        tree2.heading("in_cassette", text="in Schote:")
+
+        tree2.grid(column=1, row=1, rowspan=1, columnspan=1)
+
+        # The third table, showing already packed items
+
+        columns = ("part_ids")
+        style = ttk.Style()
+        style.configure("mystyle.Treeview", highlightthickness=0, bd=0,
+                        font=("Tekton Pro", 10))  # Modify the font of the body
+        style.configure("mystyle.Treeview.Heading",
+                        font=("Tekton Pro", 11, 'bold'))  # Modify the font of the headings
+        style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
+
+        global tree3
+        tree3 = ttk.Treeview(root, columns=columns, show="headings", style="mystyle.Treeview", height=20)
+
+        tree3.column("part_ids", anchor="center")
+
+        tree3.heading("part_ids", text="Gepackt: ")
+
+        tree3.grid(column=2, row=1, rowspan=1, columnspan=1)
+
+        # check if data exists:
         if self.data is not None:
-
+            # check if table1(tree1) data exists:
             if self.data[0] is not None:
-                # articles-to-pack table:
-                columns = ("article_id")
-                style = ttk.Style()
-                style.configure("mystyle.Treeview", highlightthickness=0, bd=0,
-                                font=("Tekton Pro", 10))  # Modify the font of the body
-                style.configure("mystyle.Treeview.Heading",
-                                font=("Tekton Pro", 11, 'bold'))  # Modify the font of the headings
-                style.layout("mystyle.Treeview",
-                             [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
-
-                tree = ttk.Treeview(root, columns=columns, show="headings", style="mystyle.Treeview", height=20)
-
-                tree.column("article_id", anchor="center")
-                tree.heading("article_id", text="Artikel-IDs:")
-
                 articles_to_pack = self.data[0]
-
                 for x in range(0, len(articles_to_pack)):
                     tree.insert("", tk.END, values=(articles_to_pack[x][1]))
-
-                tree.grid(columnspan=1, rowspan=1, column=0, row=0)
-
+            # check if table2(tree2) data exists:
             if self.data[1] is not None:
-                columns = ("article_id", "part_ids", "part_amounts", "in_cassette")
-                style = ttk.Style()
-                style.configure("mystyle.Treeview", highlightthickness=0, bd=0,
-                                font=("Tekton Pro", 10))  # Modify the font of the body
-                style.configure("mystyle.Treeview.Heading",
-                                font=("Tekton Pro", 11, 'bold'))  # Modify the font of the headings
-                style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
-
-                tree2 = ttk.Treeview(root, columns=columns, show="headings", style="mystyle.Treeview", height=20)
-
-                tree2.column("article_id", anchor="center")
-                tree2.column("part_ids", anchor="center")
-                tree2.column("part_amounts", anchor="center")
-                tree2.column("in_cassette", anchor="center")
-
-                tree2.heading("article_id", text="Artikel ID:")
-                tree2.heading("part_ids", text="Teile-ID:")
-                tree2.heading("part_amounts", text="Menge:")
-                tree2.heading("in_cassette", text="in Schote:")
-
                 article_id = self.data_split[0]
-
-                # splitted_parts = (data[1].split("\', \'"))
-                # splitted_parts[0] = splitted_parts[0][2:]
-                # splitted_parts[len(splitted_parts) - 1] = splitted_parts[len(splitted_parts) - 1][:-2]
-                #
-                # split_part_amounts = (data[2].split("\', \'"))
-                # split_part_amounts[0] = split_part_amounts[0][2:]
-                # split_part_amounts[len(split_part_amounts) - 1] = split_part_amounts[len(split_part_amounts) - 1][:-2]
-
+                tree2.insert("", 0, values=article_id)
                 for x in range(1, len(self.data_split[1])+1):
-                    print("das ist x: " + str(x))
                     tree2.insert("", tk.END, values=(" ",
                                                      self.data_split[x][0],
                                                      self.data_split[x][1],
                                                      self.data_split[x][2]))
+            if self.data_split[1][0] is not None:
+                for x in range(1, len(self.data_split[1]) + 1):
+                    if self.data_split[x][2] != "-":
+                        self.cassette_queue.append(self.data_split[x][0])
 
-                tree2.insert("", 0, values=article_id)
-                tree2.grid(column=1, row=0, rowspan=1, columnspan=1)
-                root.update()
+            print(self.cassette_queue)
+            root.update()
 
         else:
-            self.feedback_label(root, "Es sind keine Daten in der Datenbank!", 1, 1)
+            self.feedback_label("Es sind keine Daten in der Datenbank!", 1, 1)
 
-    def feedback_label(self, root, message, col, row):
+    def feedback_label(self, message, col, row):
         message_label = tk.Label(root, fg="white",
                                  text=message,
                                  background="#489df7",
@@ -102,7 +173,31 @@ class StorageWorker:
         root.update()
         self.Backend.delayed_destroyer(message_label, 2)
 
+    def feedback_popup(self, message):
+        popup = tk.Toplevel(background="#489df7")
+        popup.title("Alert")
+        #popup.geometry("%dx%d+0+0" % (400, 200))
+
+        placeholder = tk.Label(popup, text="", height=2, background="#489df7")
+        placeholder.pack()
+
+        label = tk.Label(popup, text=message, background="#489df7", font=("Tekton Pro", 12))
+        label.pack()
+
+        placeholder2 = tk.Label(popup, text="", height=1, background="#489df7")
+        placeholder2.pack()
+
+        # Testbutton definition
+        button1_text = tk.StringVar(popup)
+        button1_text.set("Verstanden")
+        button1_btn = tk.Button(popup, textvariable=button1_text,
+                                command=lambda: (popup.destroy(), popup.quit()),
+                                width=10, height=5, background="green")
+        button1_btn.pack()
+        popup.mainloop()
+
     def main(self):
+        global root
         root = tk.Tk()
 
         # window size:
@@ -110,14 +205,41 @@ class StorageWorker:
         root.geometry("%dx%d+0+0" % (width, height))
         root.configure(background="#489df7")
         root.state("zoomed")
+
         # background:
         canvas = tk.Canvas(root, width=width, height=height, background="#489df7", highlightthickness=0)
         canvas.config(borderwidth=0)
         # window grid:
-        canvas.grid(columnspan=7, rowspan=10)
-        self.treeview_creator(root)
+        canvas.grid(columnspan=7, rowspan=7)
+        self.treeview_creator()
 
-        root.after(1000, Thread(target=self.scanning_cassettes).start())
+        # done button definition
+        global done_btn
+        done_button_text = tk.StringVar()
+        done_button_text.set("Done")
+        done_btn = tk.Button(root, textvariable=done_button_text,
+                                command=lambda: (done_btn.configure(state="disabled")),
+                                width=10, height=5, background="green", state="disabled")
+        done_btn.grid(column=2, row=1, rowspan=1)
+
+        # Testbutton definition
+        button1_text = tk.StringVar()
+        button1_text.set("Schote 1\nEntnahme")
+        button1_btn = tk.Button(root, textvariable=button1_text,
+                                command=lambda: (self.CScanner.set_triggered_cassette(1)),
+                                width=10, height=5, background="green")
+        button1_btn.grid(column=2, row=1, rowspan=3)
+
+        # Testbutton definition
+        # button2_text = tk.StringVar()
+        # button2_text.set("Schote 1\nZugabe")
+        # button2_btn = tk.Button(root, textvariable=button2_text,
+        #                         command=lambda: (),
+        #                         width=10, height=5, background="red")
+        # button2_btn.grid(column=2, row=1, rowspan=5)
+
+        root.after(1000, Thread(target=self.exec_after_scan).start())
+        #root.after(1000, self.exec_after_scan)
 
         root.mainloop()
 

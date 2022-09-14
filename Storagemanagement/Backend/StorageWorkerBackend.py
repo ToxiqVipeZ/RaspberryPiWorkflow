@@ -10,6 +10,46 @@ class StorageWorkerBackend:
     def set_feedback_message(self, message):
         self.feedback_message = message
 
+    def min_amount_check(self, cassette_id, part_amount):
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+        c.execute("SELECT min_amount, part_amount "
+                  "FROM part_storages_table "
+                  "WHERE in_cassettes=(?)", (cassette_id,))
+        amount = c.fetchone()
+        print(amount)
+        if amount is not None:
+            if amount[0] is not None and amount[1] is not None:
+                min_amount = amount[0]
+                part_amount_in_store = amount[1]
+
+                if part_amount_in_store - int(part_amount) < 0:
+                    connection.close()
+                    return 2
+                elif min_amount >= part_amount_in_store - int(part_amount):
+                    connection.close()
+                    return 1
+                elif min_amount < part_amount_in_store - int(part_amount):
+                    connection.close()
+                    return 0
+
+    def cassette_out_triggered(self, cassette_id, part_id, part_amount):
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+        c.execute("SELECT part_amount "
+                  "FROM part_storages_table "
+                  "WHERE in_cassettes=(?)", (cassette_id,))
+        part_amount_in_store = c.fetchone()
+        if part_amount_in_store[0] is not None:
+            part_amount_in_store = part_amount_in_store[0]
+        c.execute("UPDATE part_storages_table "
+                  "SET part_amount=(?) "
+                  "WHERE part_id=(?)",
+                  (part_amount_in_store - int(part_amount), part_id))
+        print("teeeeeeeeest")
+        connection.commit()
+        connection.close()
+
     def delayed_destroyer(self, item, time_in_s):
         time.sleep(time_in_s)
         item.destroy()
@@ -19,36 +59,29 @@ class StorageWorkerBackend:
         c = connection.cursor()
         c.execute("SELECT * FROM process_time_table WHERE station=\"01\" ORDER BY process_id ASC")
         articles_to_pack = c.fetchall()
-        print(articles_to_pack)
 
         if articles_to_pack is not []:
             next_article_to_pack = articles_to_pack[0]
-            print(next_article_to_pack)
             c.execute("SELECT * FROM article_parts_relation_table WHERE article_id=(?)",
                       (str(next_article_to_pack[1]),))
             article_parts_rel = c.fetchone()
             parts = article_parts_rel[1][2:-2].split("\', \'")
             amounts = article_parts_rel[2][2:-2].split("\', \'")
-            print(parts)
-            print(amounts)
             part_list = []
             part_list.append([article_parts_rel[0], "", ""])
             #print(part_list)
             if article_parts_rel is not None:
                 for x in range(0, len(parts)):
-                    print(parts[x])
                     c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=(?)",
                               (parts[x],))
                     cassette_id = c.fetchone()
                     if cassette_id is not None:
                         if cassette_id[0] is not None:
-                            print("cassette_m_tab" + str(cassette_id[0]))
                             part_list.append([parts[x], amounts[x], cassette_id[0]])
                         else:
                             part_list.append([parts[x], amounts[x], "0"])
                     else:
                         part_list.append([parts[x], amounts[x], "-"])
-                print(part_list)
                 return articles_to_pack, part_list
 
             elif article_parts_rel is None:
