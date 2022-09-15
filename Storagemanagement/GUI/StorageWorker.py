@@ -1,4 +1,3 @@
-import time
 import tkinter as tk
 from tkinter import ttk
 from threading import Thread
@@ -46,7 +45,6 @@ class StorageWorker:
                         self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
                         self.fill_packed_queue(part_id)
 
-
             self.CScanner.set_triggered_cassette(0)
             self.cassette_scanned = 0
             root.update()
@@ -72,10 +70,11 @@ class StorageWorker:
         """
         Creates the different tables in the root-frame, as a treeview item.
         """
+        self.data = self.Backend.get_article_to_pack()
 
         # The first table, including the articles, waiting to be packed
 
-        columns = ("article_id")
+        columns = "article_id"
         style = ttk.Style()
         style.configure("mystyle.Treeview", highlightthickness=0, bd=0,
                         font=("Tekton Pro", 10))  # Modify the font of the body
@@ -116,7 +115,7 @@ class StorageWorker:
 
         # The third table, showing already packed items
 
-        columns = ("part_ids")
+        columns = "part_ids"
         style = ttk.Style()
         style.configure("mystyle.Treeview", highlightthickness=0, bd=0,
                         font=("Tekton Pro", 10))  # Modify the font of the body
@@ -144,7 +143,7 @@ class StorageWorker:
             if self.data[1] is not None:
                 article_id = self.data_split[0]
                 tree2.insert("", 0, values=article_id)
-                for x in range(1, len(self.data_split[1])+1):
+                for x in range(1, len(self.data_split[1]) + 1):
                     tree2.insert("", tk.END, values=(" ",
                                                      self.data_split[x][0],
                                                      self.data_split[x][1],
@@ -155,6 +154,44 @@ class StorageWorker:
                         self.cassette_queue.append(self.data_split[x][0])
 
             print(self.cassette_queue)
+
+            # The fourth table, showing parts in minimum or under minimum amounts
+
+            # The seconds table, including the parts that have to be packed
+
+            tree4_label = tk.Label(text="Bestandswarnungen: ", font=("Tekton Pro", 14, 'bold'), background="#489df7")
+            tree4_label.grid(column=1, row=2, rowspan=1, columnspan=1)
+
+            columns = ("part_id", "amount", "min", "in_cassette")
+            style = ttk.Style()
+            style.configure("mystyle.Treeview", highlightthickness=0, bd=0,
+                            font=("Tekton Pro", 10))  # Modify the font of the body
+            style.configure("mystyle.Treeview.Heading",
+                            font=("Tekton Pro", 11, 'bold'))  # Modify the font of the headings
+            style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
+
+            tree4 = ttk.Treeview(root, columns=columns, show="headings", style="mystyle.Treeview", height=10)
+
+            tree4.column("part_id", anchor="center")
+            tree4.column("amount", anchor="center")
+            tree4.column("min", anchor="center")
+            tree4.column("in_cassette", anchor="center")
+
+            tree4.heading("part_id", text="Teilenummer:")
+            tree4.heading("amount", text="Menge:")
+            tree4.heading("min", text="Minimum:")
+            tree4.heading("in_cassette", text="in Schote:")
+
+            tree4.grid(column=1, row=3, rowspan=1, columnspan=1)
+
+            stock_data = self.Backend.stock_data()
+
+            for x in range(1, len(stock_data)):
+                tree4.insert("", tk.END, values=(stock_data[x][0],
+                                                 stock_data[x][1],
+                                                 stock_data[x][2],
+                                                 stock_data[x][3]))
+
             root.update()
 
         else:
@@ -173,7 +210,6 @@ class StorageWorker:
     def feedback_popup(self, message):
         popup = tk.Toplevel(background="#489df7")
         popup.title("Alert")
-        #popup.geometry("%dx%d+0+0" % (400, 200))
 
         placeholder = tk.Label(popup, text="", height=2, background="#489df7")
         placeholder.pack()
@@ -219,11 +255,13 @@ class StorageWorker:
         done_button_text = tk.StringVar()
         done_button_text.set("Done")
         done_btn = tk.Button(root, textvariable=done_button_text,
-                                command=lambda: (done_btn.configure(state="disabled"),
-                                                 self.Backend.packing_completed(self.not_in_cassettes),
-                                                 self.feedback_check()),
-                                width=10, height=5, background="green", state="disabled")
-        done_btn.grid(column=2, row=1, rowspan=1)
+                             command=lambda: (done_btn.configure(state="disabled"),
+                                              self.Backend.packing_completed(self.data[0][0][1],
+                                                                             self.not_in_cassettes),
+                                              self.feedback_check(),
+                                              self.treeview_creator()),
+                             width=10, height=5, background="green", state="disabled")
+        done_btn.grid(column=3, row=1, rowspan=1)
 
         # Testbutton definition
         button1_text = tk.StringVar()
@@ -231,7 +269,7 @@ class StorageWorker:
         button1_btn = tk.Button(root, textvariable=button1_text,
                                 command=lambda: (self.CScanner.set_triggered_cassette(1)),
                                 width=10, height=5, background="green")
-        button1_btn.grid(column=2, row=1, rowspan=3)
+        button1_btn.grid(column=3, row=1, rowspan=3)
 
         # Testbutton definition
         # button2_text = tk.StringVar()
@@ -242,7 +280,7 @@ class StorageWorker:
         # button2_btn.grid(column=2, row=1, rowspan=5)
 
         root.after(1000, Thread(target=self.exec_after_scan).start())
-        #root.after(1000, self.exec_after_scan)
+        # root.after(1000, self.exec_after_scan)
 
         root.mainloop()
 

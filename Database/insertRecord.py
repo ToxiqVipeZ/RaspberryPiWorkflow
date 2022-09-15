@@ -12,7 +12,7 @@ def main():
 
     # c.execute("INSERT INTO error_list_table (error_id, error_type, error_message) VALUES (?,?,?)",
     #           (2, "emotional damage"))
-    c.execute("UPDATE process_time_table SET process_id=(?), station=(?), next_station=(?) WHERE process_id=(?)", (1, "01", "02", 10))
+    c.execute("UPDATE process_time_table SET process_id=(?), station=(?), next_station=(?) WHERE process_id=(?)", (10, "01", "02", 1))
 
 
 

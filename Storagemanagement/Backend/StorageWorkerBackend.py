@@ -1,5 +1,7 @@
 import sqlite3
 import time
+from threading import Thread
+from GUI.workstation.modules import Client
 
 DATABASE_PATH = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
@@ -9,6 +11,19 @@ class StorageWorkerBackend:
 
     def set_feedback_message(self, message):
         self.feedback_message = message
+
+    def stock_data(self):
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+        c.execute("SELECT * "
+                  "FROM part_storages_table "
+                  "WHERE part_amount <= min_amount")
+        fetch = c.fetchall()
+
+        if fetch is not None:
+            return fetch
+        else:
+            return ""
 
     def min_amount_check(self, cassette_id, part_amount):
         connection = sqlite3.connect(DATABASE_PATH)
@@ -46,16 +61,16 @@ class StorageWorkerBackend:
                   "SET part_amount=(?) "
                   "WHERE part_id=(?)",
                   (part_amount_in_store - int(part_amount), part_id))
-        print("teeeeeeeeest")
         connection.commit()
         connection.close()
 
-    def packing_completed(self, not_in_cassettes):
+    def packing_completed(self, article_id, not_in_cassettes):
 
         connection = sqlite3.connect(DATABASE_PATH)
         c = connection.cursor()
         print(not_in_cassettes)
         print(not_in_cassettes[0])
+        print(article_id)
         part_amount_in_store_list = []
         part_id_list = []
         part_amount_list = []
@@ -86,19 +101,54 @@ class StorageWorkerBackend:
                     if part_amount_in_store_list[x] is not None:
                         part_amount_in_store = part_amount_in_store_list[x]
                         part_amount = part_amount_list[x]
-                        print(part_amount_in_store)
                         part_id = part_id_list[x]
                         c.execute("UPDATE part_storages_table "
                                   "SET part_amount=(?) "
                                   "WHERE part_id=(?)",
                                   (part_amount_in_store - int(part_amount), part_id))
                         connection.commit()
+                        self.setting_rfid(article_id)
         else:
             self.set_feedback_message("Eins / oder mehrere Teile dieses\n"
                                         "Artikels, sind nicht im Lager enthalten!\n"
                                         "Zumindest fehlt: " + str(part_not_in_store))
 
         connection.close()
+
+    def setting_rfid(self, article_id):
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+
+        station = "01"
+        variation = article_id[8:]
+        article_id = article_id[:7]
+
+        c.execute("SELECT procedure FROM article_procedure_table WHERE article_id=(?)", (article_id,))
+        procedure = c.fetchone()
+        if procedure is not None:
+            if procedure[0] is not None:
+                procedure = procedure[0]
+        else:
+            self.set_feedback_message("Produktions-vorgang für diesen Artikel ist nicht angelegt: " + article_id)
+
+        rfid = station + procedure + variation
+        self.statistic_tracker("IN", rfid)
+        new_rfid = Client.send(Client.SENDING_RFID, rfid) + procedure + variation
+        self.statistic_tracker("OUT", new_rfid)
+        print("New RFID: " + rfid + " -> " + new_rfid)
+        Client.send(Client.DISCONNECT_MESSAGE)
+
+        connection.commit()
+        connection.close()
+
+
+    def statistic_tracker(self, in_or_out, rfid_code):
+        station_number = "01"
+        print("statistic_tracker station_number: " + station_number)
+        if in_or_out == "IN":
+            Thread(target=Client.send(Client.TRACKING_STATS_IN, rfid_code, station_number)).start()
+        elif in_or_out == "OUT":
+            Thread(target=Client.send(Client.TRACKING_STATS_OUT, rfid_code, station_number)).start()
 
     def delayed_destroyer(self, item, time_in_s):
         time.sleep(time_in_s)

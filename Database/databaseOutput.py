@@ -44,7 +44,7 @@ for item in items:
 
 print("\n\nprocess_time_table: ")
 
-c.execute("SELECT * FROM process_time_table")
+c.execute("SELECT * FROM process_time_table ORDER BY process_id")
 items = c.fetchall()
 
 for item in items:
