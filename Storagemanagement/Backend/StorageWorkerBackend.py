@@ -50,6 +50,56 @@ class StorageWorkerBackend:
         connection.commit()
         connection.close()
 
+    def packing_completed(self, not_in_cassettes):
+
+        connection = sqlite3.connect(DATABASE_PATH)
+        c = connection.cursor()
+        print(not_in_cassettes)
+        print(not_in_cassettes[0])
+        part_amount_in_store_list = []
+        part_id_list = []
+        part_amount_list = []
+        part_not_in_store = ""
+        not_in_store_flag = False
+
+        # not_in_cassettes = [part_id, part_amount, '-']
+        # item[0] = part_id
+        # item[1] = part_amount
+        for item in not_in_cassettes:
+            c.execute("SELECT part_amount "
+                      "FROM part_storages_table "
+                      "WHERE part_id=(?)", (item[0],))
+            part_amount_in_store = c.fetchone()
+            if part_amount_in_store is None:
+                not_in_store_flag = True
+                part_not_in_store = item[0]
+            else:
+                if part_amount_in_store is not None:
+                    if part_amount_in_store[0] is not None:
+                        part_amount_in_store_list.append(part_amount_in_store[0])
+                        part_amount_list.append(item[1])
+                        part_id_list.append(item[0])
+
+        if not not_in_store_flag:
+            for x in range(0, len(part_amount_in_store_list)):
+                if part_amount_in_store_list is not None:
+                    if part_amount_in_store_list[x] is not None:
+                        part_amount_in_store = part_amount_in_store_list[x]
+                        part_amount = part_amount_list[x]
+                        print(part_amount_in_store)
+                        part_id = part_id_list[x]
+                        c.execute("UPDATE part_storages_table "
+                                  "SET part_amount=(?) "
+                                  "WHERE part_id=(?)",
+                                  (part_amount_in_store - int(part_amount), part_id))
+                        connection.commit()
+        else:
+            self.set_feedback_message("Eins / oder mehrere Teile dieses\n"
+                                        "Artikels, sind nicht im Lager enthalten!\n"
+                                        "Zumindest fehlt: " + str(part_not_in_store))
+
+        connection.close()
+
     def delayed_destroyer(self, item, time_in_s):
         time.sleep(time_in_s)
         item.destroy()
@@ -69,7 +119,7 @@ class StorageWorkerBackend:
             amounts = article_parts_rel[2][2:-2].split("\', \'")
             part_list = []
             part_list.append([article_parts_rel[0], "", ""])
-            #print(part_list)
+            # print(part_list)
             if article_parts_rel is not None:
                 for x in range(0, len(parts)):
                     c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=(?)",
@@ -94,13 +144,13 @@ class StorageWorkerBackend:
 
         connection.close()
 
-
     def main(self):
         connection = sqlite3.connect(DATABASE_PATH)
         c = connection.cursor()
 
         connection.commit()
         connection.close()
+
 
 if __name__ == '__main__':
     StorageWorkerBackend().get_article_to_pack()

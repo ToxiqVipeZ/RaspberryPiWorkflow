@@ -13,6 +13,7 @@ class StorageWorker:
     cassette_scanned = 0
     cassette_queue = []
     packed_queue = []
+    not_in_cassettes = []
     """
         x                = article number position
         data_split[x][0] = part IDs
@@ -24,7 +25,7 @@ class StorageWorker:
     def exec_after_scan(self):
         if self.CScanner.get_triggered_cassette() != 0:
             self.cassette_scanned = self.CScanner.get_triggered_cassette()
-            for x in range(0, len(self.data_split[1])):
+            for x in range(0, len(self.data_split)):
                 if self.cassette_scanned == self.data_split[x][2]:
                     print("eintrag gefunden für x: " + str(x))
                     print(self.data_split[x][0])
@@ -55,21 +56,17 @@ class StorageWorker:
             root.update()
             root.after(1000, self.exec_after_scan)
 
-    def scanning_cassettes(self):
-        get_cassette = self.CScanner.get_triggered_cassette()
-        print(get_cassette)
-        if get_cassette != 0:
-            print(get_cassette)
-        print(time.thread_time())
-        time.sleep(1)
-        self.scanning_cassettes()
-
     def fill_packed_queue(self, part_id):
         self.packed_queue.append(part_id)
         tree3.insert("", tk.END, values=part_id)
         tree3.update()
+        print("0 2 : " + str(self.data_split[3]) + " len:" + str(len(self.data_split[0][2])))
+        print("1 2 : " + str(self.data_split) + " len:" + str(len(self.data_split)))
         if self.cassette_queue == self.packed_queue:
             done_btn.configure(state="normal")
+            for x in range(0, len(self.data_split)):
+                if self.data_split[x][2] == "-":
+                    self.not_in_cassettes.append(self.data_split[x])
 
     def treeview_creator(self):
         """
@@ -196,6 +193,10 @@ class StorageWorker:
         button1_btn.pack()
         popup.mainloop()
 
+    def feedback_check(self):
+        if self.Backend.feedback_message != "None":
+            self.feedback_popup(self.Backend.feedback_message)
+
     def main(self):
         global root
         root = tk.Tk()
@@ -218,7 +219,9 @@ class StorageWorker:
         done_button_text = tk.StringVar()
         done_button_text.set("Done")
         done_btn = tk.Button(root, textvariable=done_button_text,
-                                command=lambda: (done_btn.configure(state="disabled")),
+                                command=lambda: (done_btn.configure(state="disabled"),
+                                                 self.Backend.packing_completed(self.not_in_cassettes),
+                                                 self.feedback_check()),
                                 width=10, height=5, background="green", state="disabled")
         done_btn.grid(column=2, row=1, rowspan=1)
 

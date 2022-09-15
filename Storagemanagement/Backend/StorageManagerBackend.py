@@ -171,12 +171,26 @@ class StorageManagerBackend:
                    contains_max_amount,
                    casette_id))
         connection.commit()
+        print(cassette_contains)
 
-        c.execute("UPDATE part_storages_table "
-                  "SET in_cassettes=(?) "
-                  "WHERE part_id=(?)",
-                  (casette_id, cassette_contains))
-        connection.commit()
+        c.execute("SELECT part_id FROM part_storages_table "
+                  "WHERE in_cassettes=(?)", (casette_id,))
+        part_id = c.fetchone()
+        if part_id is not None:
+            part_id = part_id[0]
+        if cassette_contains == "":
+            print("test")
+            c.execute("UPDATE part_storages_table "
+                      "SET in_cassettes=(?) "
+                      "WHERE part_id=(?)",
+                      (0, part_id))
+            connection.commit()
+        else:
+            c.execute("UPDATE part_storages_table "
+                      "SET in_cassettes=(?) "
+                      "WHERE part_id=(?)",
+                      (casette_id, cassette_contains))
+            connection.commit()
 
         connection.close()
 
