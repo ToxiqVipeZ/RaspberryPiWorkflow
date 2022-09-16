@@ -1,7 +1,7 @@
 import sqlite3
 import time
 from threading import Thread
-from GUI.workstation.modules import Client
+from Workflow.workstation.modules import Client
 
 DATABASE_PATH = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
