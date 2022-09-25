@@ -184,7 +184,7 @@ class Installer:
 
         if confirmation != "Y":
             print("\n################################\n"
-                  "Press \"Y\" to reboot. It's necessary.\n"
+                  "Enter \"Y\" to reboot. It's necessary.\n"
                   "################################\n")
             confirmation = input()
 

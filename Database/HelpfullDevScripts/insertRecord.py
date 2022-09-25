@@ -5,7 +5,7 @@ from datetime import datetime
 def main():
     # connection holds the connection to the database
     #connection = sqlite3.connect("C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
-    connection = sqlite3.connect("productionDatabase.db")
+    connection = sqlite3.connect("../productionDatabase.db")
 
     # cursor instance:
     c = connection.cursor()

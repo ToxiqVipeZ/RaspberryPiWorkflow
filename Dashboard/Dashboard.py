@@ -321,7 +321,7 @@ def display_cards(n_intervals, div_children):
                         dbc.Card(
                             id={
                                 "type": "dynamic-cards",
-                                "index": station_nr
+                                "index": station_nr + str(n_intervals)
                             },
                             children=[
                                 dbc.CardHeader(
@@ -331,7 +331,7 @@ def display_cards(n_intervals, div_children):
                                 dbc.CardBody(
                                     id={
                                         "type": "dynamic-cards-text",
-                                        "index": station_nr
+                                        "index": station_nr + str(n_intervals)
                                     },
                                     children=[],
                                     className="text-white"

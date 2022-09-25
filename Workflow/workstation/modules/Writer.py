@@ -23,7 +23,8 @@ class Writer:
     
     def __init__(self, value):
         self.newRFID = str(value)
-        self.rfid = SimpleMFRC522()
+        self.rfid = SimpleMFRC522() #in SimpleMFRC522 den MFRC522() aufruf ändern zu MFRC522(device=1) ?
+                                    # device 0 = GPIO 24 ||device 1 = GPIO 26
         self.main()
 
     def main(self):

@@ -34,7 +34,6 @@ Other OS related:
         os.system("sudo apt-get upgrade")
         os.system("sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5")
 """
-import time
 
 try:
     import math
@@ -64,7 +63,7 @@ except ImportError:
     print("PIL import failed.")
 
 try:
-    from modules import Client
+    from Server import Client
 except ImportError:
     print("Client import failed, check for correct file location.")
 
