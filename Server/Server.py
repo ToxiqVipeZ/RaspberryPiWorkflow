@@ -1,8 +1,8 @@
 import socket
 import threading
 
-import StationSwapper
-from ServerHandler import ServerHandler
+from Server.modules import StationSwapper
+from Server.modules.ServerHandler import ServerHandler
 
 HEADER = 64
 PORT = 5050

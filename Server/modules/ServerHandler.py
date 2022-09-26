@@ -1,7 +1,7 @@
 import sqlite3
 import datetime
 
-DATABASE_PATH = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+DATABASE_PATH = "/Database/productionDatabase.db"
 
 
 class ServerHandler:
