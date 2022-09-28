@@ -260,9 +260,9 @@ class Installer:
 
             automount_fstab = open("/etc/fstab", "a")
             automount_fstab.write("//169.254.0.2/WorkflowInstructions /home/pi/WorkflowInstructions cifs "
-                                  "username=pi,password=raspberry 0 0\n")
+                                  "username=pi,password=raspberry,uid=1000,gid=1000 0 0\n")
             automount_fstab.write("//169.254.0.2/ServerFiles /home/pi/ServerFiles cifs "
-                                  "username=pi,password=raspberry 0 0\n")
+                                  "username=pi,password=raspberry,uid=1000,gid=1000 0 0\n")
             automount_fstab.close()
 
         except:

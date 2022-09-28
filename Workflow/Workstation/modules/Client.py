@@ -7,6 +7,11 @@ try:
     import time
 except ImportError:
     print("[Client.py] time import failed.")
+
+try:
+    import netifaces
+except ImportError:
+    print("[Client.py] netifaces import failed.")
     
     
 HEADER = 64
@@ -136,5 +141,8 @@ def send(msg, *args):
 
 
 def get_ip_address():
-    ip_address = socket.gethostbyname("WorkstationX.local")
-    return ip_address
+    #ip_address = socket.gethostbyname("WorkstationX.local")
+    addrs = netifaces.ifaddresses('eth0')
+    ip_address = str(addrs[netifaces.AF_INET])
+    ip_address = ip_address.split("'")
+    return ip_address[3]

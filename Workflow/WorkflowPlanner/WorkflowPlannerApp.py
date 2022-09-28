@@ -105,13 +105,6 @@ class WorkflowPlannerApp:
         :param text_input: what to write into the database (workflow_procedure & stations_values
         """
         try:
-            # connection holds the connection to the database
-            # (path/productionDatabase.db)
-            connection = sqlite3.connect(self.DATABASE_PATH)
-
-            # cursor instance:
-            c = connection.cursor()
-
             # the format that the input has to be in
             regex = "^[0-9]{3}(;{1}[0-9]{2})+"
 
@@ -129,10 +122,18 @@ class WorkflowPlannerApp:
                 if times.endswith(";"):
                     times = times[:-1]
 
+                # connection holds the connection to the database
+                # (path/productionDatabase.db)
+                connection = sqlite3.connect(self.DATABASE_PATH)
+
+                 # cursor instance:
+                c = connection.cursor()
                 # workflow_procedure_value = procedure number (examples: 001 | 002 | 003)
                 # stations_value = station number (examples: [01;02;05] | [07;02;01;05,03] | ...])
                 c.execute("UPDATE workflow_planner_table SET times=(?) WHERE workflow_procedure=(?)",
                           (times, workflow_procedure_value))
+                connection.commit()
+                connection.close()
 
                 print(workflow_procedure_value)
                 print(times)
@@ -140,12 +141,6 @@ class WorkflowPlannerApp:
                 self.message_label(root, "Prozessablauf gespeichert.")
             else:
                 self.message_label(root, "Fehlerhafte Eingabe.")
-
-            # committing the created table:
-            connection.commit()
-
-            # closing the connection
-            connection.close()
 
         except sqlite3.IntegrityError:
             self.message_label(root, "Zeiten bereits angelegt.")
@@ -157,13 +152,6 @@ class WorkflowPlannerApp:
         :param text_input: what to write into the database (workflow_procedure & stations_values
         """
         try:
-            # connection holds the connection to the database
-            # (path/productionDatabase.db)
-            connection = sqlite3.connect(self.DATABASE_PATH)
-
-            # cursor instance:
-            c = connection.cursor()
-
             # the format that the input has to be in
             regex = "^[0-9]{3}(;{1}[0-9]{2})+"
 
@@ -181,10 +169,23 @@ class WorkflowPlannerApp:
                 if stations_values.endswith(";"):
                     stations_values = stations_values[:-1]
 
+                # connection holds the connection to the database
+                # (path/productionDatabase.db)
+                connection = sqlite3.connect(self.DATABASE_PATH)
+
+                # cursor instance:
+                c = connection.cursor()
+
                 # workflow_procedure_value = procedure number (examples: 001 | 002 | 003)
                 # stations_value = station number (examples: [01;02;05] | [07;02;01;05,03] | ...])
                 c.execute("INSERT INTO workflow_planner_table(workflow_procedure, stations) VALUES (?, ?)",
                           (workflow_procedure_value, stations_values))
+
+                # committing the created table:
+                connection.commit()
+
+                # closing the connection
+                connection.close()
 
                 print(workflow_procedure_value)
                 print(stations_values)
@@ -192,12 +193,6 @@ class WorkflowPlannerApp:
                 self.message_label(root, "Prozessablauf gespeichert.")
             else:
                 self.message_label(root, "Fehlerhafte Eingabe.")
-
-            # committing the created table:
-            connection.commit()
-
-            # closing the connection
-            connection.close()
 
         except sqlite3.IntegrityError:
             self.message_label(root, "Verfahren bereits angelegt.")
@@ -220,6 +215,11 @@ class WorkflowPlannerApp:
         print(text_input)
         c.execute("DELETE FROM workflow_planner_table WHERE workflow_planner_table.workflow_procedure = (?)",
                   (text_input,))
+        # committing the created table:
+        connection.commit()
+
+        # closing the connection
+        connection.close()
 
         success_text = "Daten erfolgreich aus Datenbank gelöscht!"
         text_label = tk.Label(root, text=success_text)
@@ -227,12 +227,6 @@ class WorkflowPlannerApp:
         text_label.pack()
         text_label.update()
         text_label.after(2000, text_label.destroy())
-
-        # committing the created table:
-        connection.commit()
-
-        # closing the connection
-        connection.close()
 
     def main(self):
         """

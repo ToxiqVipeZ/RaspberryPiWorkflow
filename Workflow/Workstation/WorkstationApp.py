@@ -136,17 +136,15 @@ class WorkstationApp:
         self.main()
 
     def get_station_number(self):
-        ip_address = str(Client.get_ip_address())
+        ip_address = Client.get_ip_address()
         this_station = ip_address.split(".")
         if this_station[2] != 0:
             if len(this_station[3]) == 1:
                 this_station = "0" + str(this_station[3])
-                print(ip_address)
                 print(this_station)
                 return this_station
             if len(this_station[3]) == 2:
                 this_station = str(this_station[3])
-                print(ip_address)
                 print(this_station)
                 return this_station
         else:

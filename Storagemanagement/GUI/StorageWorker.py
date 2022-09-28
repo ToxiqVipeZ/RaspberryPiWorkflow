@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from threading import Thread
+import time
 from Backend.CassetteScanner import CassetteScanner
 from Backend.StorageWorkerBackend import StorageWorkerBackend
 
@@ -9,6 +10,13 @@ class StorageWorker:
     Backend = StorageWorkerBackend()
     CScanner = CassetteScanner()
     data = Backend.get_article_to_pack()
+
+    if data == (0, 0):
+        data = 0
+        data_split = 0
+    else:
+        data_split = data[1]
+
     cassette_scanned = 0
     cassette_queue = []
     packed_queue = []
@@ -19,7 +27,7 @@ class StorageWorker:
         data_split[x][1] = part amounts
         data_split[x][2] = in cassette -> None if not in cassette
     """
-    data_split = data[1]
+
 
     def exec_after_scan(self):
         if self.CScanner.get_triggered_cassette() != 0:
@@ -47,12 +55,13 @@ class StorageWorker:
 
             self.CScanner.set_triggered_cassette(0)
             self.cassette_scanned = 0
-            root.update()
-            root.after(1000, self.exec_after_scan)
+
+            time.sleep(1)
+            self.exec_after_scan()
 
         else:
-            root.update()
-            root.after(1000, self.exec_after_scan)
+            time.sleep(1)
+            self.exec_after_scan()
 
     def fill_packed_queue(self, part_id):
         self.packed_queue.append(part_id)
@@ -133,21 +142,23 @@ class StorageWorker:
         tree3.grid(column=2, row=1, rowspan=1, columnspan=1)
 
         # check if data exists:
-        if self.data is not None:
+        if self.data is not None and self.data != 0 and self.data != (0, 0):
             # check if table1(tree1) data exists:
-            if self.data[0] is not None:
+            if self.data[0] is not None and self.data[0] != 0:
                 articles_to_pack = self.data[0]
-                for x in range(0, len(articles_to_pack)):
-                    tree.insert("", tk.END, values=(articles_to_pack[x][1]))
+                if articles_to_pack != 0:
+                    for x in range(0, len(articles_to_pack)):
+                        tree.insert("", tk.END, values=(articles_to_pack[x][1]))
             # check if table2(tree2) data exists:
-            if self.data[1] is not None:
+            if self.data[1] is not None and self.data[1] != 0:
                 article_id = self.data_split[0]
-                tree2.insert("", 0, values=article_id)
-                for x in range(1, len(self.data_split[1]) + 1):
-                    tree2.insert("", tk.END, values=(" ",
-                                                     self.data_split[x][0],
-                                                     self.data_split[x][1],
-                                                     self.data_split[x][2]))
+                if article_id != 0:
+                    tree2.insert("", 0, values=article_id)
+                    for x in range(1, len(self.data_split[1]) + 1):
+                        tree2.insert("", tk.END, values=(" ",
+                                                         self.data_split[x][0],
+                                                         self.data_split[x][1],
+                                                         self.data_split[x][2]))
             if self.data_split[1][0] is not None:
                 for x in range(1, len(self.data_split[1]) + 1):
                     if self.data_split[x][2] != "-":
@@ -233,6 +244,11 @@ class StorageWorker:
         if self.Backend.feedback_message != "None":
             self.feedback_popup(self.Backend.feedback_message)
 
+    def empty_tables(self):
+        if self.data == 0:
+            print("tables still empty!")
+            self.treeview_creator()
+
     def main(self):
         global root
         root = tk.Tk()
@@ -279,6 +295,7 @@ class StorageWorker:
         # button2_btn.grid(column=2, row=1, rowspan=5)
 
         root.after(1000, Thread(target=self.exec_after_scan).start())
+        root.after(2000, self.empty_tables)
         # root.after(1000, self.exec_after_scan)
 
         root.mainloop()

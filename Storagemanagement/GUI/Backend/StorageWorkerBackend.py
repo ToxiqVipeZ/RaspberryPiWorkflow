@@ -1,7 +1,7 @@
 import sqlite3
 import time
 from threading import Thread
-import Client
+from . import Client
 
 DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
 
@@ -19,6 +19,8 @@ class StorageWorkerBackend:
                   "FROM part_storages_table "
                   "WHERE part_amount <= min_amount")
         fetch = c.fetchall()
+        connection.commit()
+        connection.close()
 
         if fetch is not None:
             return fetch
@@ -32,6 +34,8 @@ class StorageWorkerBackend:
                   "FROM part_storages_table "
                   "WHERE in_cassettes=(?)", (cassette_id,))
         amount = c.fetchone()
+        connection.commit()
+        connection.close()
         print(amount)
         if amount is not None:
             if amount[0] is not None and amount[1] is not None:
@@ -39,13 +43,10 @@ class StorageWorkerBackend:
                 part_amount_in_store = amount[1]
 
                 if part_amount_in_store - int(part_amount) < 0:
-                    connection.close()
                     return 2
                 elif min_amount >= part_amount_in_store - int(part_amount):
-                    connection.close()
                     return 1
                 elif min_amount < part_amount_in_store - int(part_amount):
-                    connection.close()
                     return 0
 
     def cassette_out_triggered(self, cassette_id, part_id, part_amount):
@@ -85,6 +86,8 @@ class StorageWorkerBackend:
                       "FROM part_storages_table "
                       "WHERE part_id=(?)", (item[0],))
             part_amount_in_store = c.fetchone()
+            connection.commit()
+            connection.close()
             if part_amount_in_store is None:
                 not_in_store_flag = True
                 part_not_in_store = item[0]
@@ -107,13 +110,12 @@ class StorageWorkerBackend:
                                   "WHERE part_id=(?)",
                                   (part_amount_in_store - int(part_amount), part_id))
                         connection.commit()
+                        connection.close()
                         self.setting_rfid(article_id)
         else:
             self.set_feedback_message("Eins / oder mehrere Teile dieses\n"
                                         "Artikels, sind nicht im Lager enthalten!\n"
                                         "Zumindest fehlt: " + str(part_not_in_store))
-
-        connection.close()
 
     def setting_rfid(self, article_id):
         connection = sqlite3.connect(DATABASE_PATH)
@@ -161,7 +163,7 @@ class StorageWorkerBackend:
         articles_to_pack = c.fetchall()
 
         if articles_to_pack is not []:
-            if articles_to_pack[0] is not None:
+            if len(articles_to_pack) > 0:
                 next_article_to_pack = articles_to_pack[0]
                 c.execute("SELECT * FROM article_parts_relation_table WHERE article_id=(?)",
                           (str(next_article_to_pack[1]),))
@@ -188,7 +190,7 @@ class StorageWorkerBackend:
                 elif article_parts_rel is None:
                     print("Artikel-Teile-Relation nicht angelegt!")
                     return articles_to_pack, 0
-            elif articles_to_pack[0] is None:
+            elif len(articles_to_pack) <= 0:
                 print("Keine Artikel die auf Bearbeitung warten.")
                 return 0, 0
         elif articles_to_pack is []:
