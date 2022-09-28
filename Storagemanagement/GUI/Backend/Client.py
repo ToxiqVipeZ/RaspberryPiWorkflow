@@ -22,8 +22,8 @@ TRACKING_ERROR_IN = "TRACKING-ERROR-IN"
 TRACKING_ERROR_OUT = "TRACKING-ERROR-OUT"
 ADD_TO_QUEUE = "RFID-QUEUE-ADD"
 SAVE_TO_DATABASE = "saveData"
-#SERVER = "169.254.0.102"
-SERVER = socket.gethostbyname(socket.gethostname())
+SERVER = "169.254.0.1"
+#SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 
 # set the clients-socket, establish connection to server

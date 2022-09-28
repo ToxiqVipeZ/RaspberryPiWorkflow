@@ -6,8 +6,8 @@ import pandas as pd
 import sqlite3
 from datetime import datetime
 
-SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-# SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+#SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
 production_connection = sqlite3.connect(SQLITE3_HOST)
 prod_cursor = production_connection.cursor()
@@ -202,8 +202,9 @@ def display_error_cards(n_intervals, div_children):
     If a entry has no "check-out"-time, them it means a station is working, therefore a card will be created.
     The method gives back a card as children to the card-container div.
     """
-    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-    # C.O.S: SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+    #SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # C.O.S:
+    #SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
     production_connection = sqlite3.connect(SQLITE3_HOST)
     prod_cursor = production_connection.cursor()
@@ -294,14 +295,17 @@ def display_cards(n_intervals, div_children):
     If a entry has no "check-out"-time, them it means a station is working, therefore a card will be created.
     The method gives back a card as children to the card-container div.
     """
-    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-    # C.O.S Comment in: SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+    #SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # C.O.S Comment in:
+    #SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
     production_connection = sqlite3.connect(SQLITE3_HOST)
     prod_cursor = production_connection.cursor()
 
     SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
-                      "FROM process_time_table WHERE process_end IS NULL"
+                      "FROM process_time_table " \
+                      "WHERE process_end IS NULL " \
+                      "AND next_station IS NOT \"Kunde\""
 
     card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
     card_df = card_df.sort_values(by="station")
@@ -371,13 +375,16 @@ def display_time(n_intervals, children):
     The time and the time-limit get passed as children to the card-object.
     This method gets called every 0.5 seconds to display the time correctly.
     """
-    SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    #SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
     production_connection = sqlite3.connect(SQLITE3_HOST)
     prod_cur = production_connection.cursor()
 
-    SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id FROM process_time_table WHERE process_end IS NULL"
+    SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
+                      "FROM process_time_table " \
+                      "WHERE process_end IS NULL " \
+                      "AND next_station IS NOT \"Kunde\""
 
     children_index = str(callback_context.outputs_grouping)
     children_index = children_index.split("\'index\': \'")[1][:2]

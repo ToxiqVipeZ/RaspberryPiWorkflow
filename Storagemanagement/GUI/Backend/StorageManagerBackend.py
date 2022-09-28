@@ -1,7 +1,7 @@
 import sqlite3
 import time
 
-DATABASE_PATH = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
 
 
 class StorageManagerBackend:

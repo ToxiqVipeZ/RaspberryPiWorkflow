@@ -4,6 +4,7 @@ import re
 
 
 class WorkflowPlannerApp:
+    DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
     """
     This class creates an App to plan and manage the workflow of a procedure
     """
@@ -87,8 +88,7 @@ class WorkflowPlannerApp:
         print(self.delete_input_checker(value_b))
         if (self.delete_input_checker(value_a) & self.delete_input_checker(value_b)) == True:
             # database operation:
-            connection = sqlite3.connect(
-                "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+            connection = sqlite3.connect(self.DATABASE_PATH)
             c = connection.cursor()
             c.execute("INSERT INTO article_procedure_table VALUES (?, ?)",
                       (value_a, value_b))
@@ -107,8 +107,7 @@ class WorkflowPlannerApp:
         try:
             # connection holds the connection to the database
             # (path/productionDatabase.db)
-            connection = sqlite3.connect(
-                "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+            connection = sqlite3.connect(self.DATABASE_PATH)
 
             # cursor instance:
             c = connection.cursor()
@@ -160,8 +159,7 @@ class WorkflowPlannerApp:
         try:
             # connection holds the connection to the database
             # (path/productionDatabase.db)
-            connection = sqlite3.connect(
-                "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+            connection = sqlite3.connect(self.DATABASE_PATH)
 
             # cursor instance:
             c = connection.cursor()
@@ -214,8 +212,7 @@ class WorkflowPlannerApp:
         """
         # connection holds the connection to the database
         # (path\productionDatabase.db)
-        connection = sqlite3.connect(
-            "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db")
+        connection = sqlite3.connect(WorkflowPlannerApp.DATABASE_PATH)
 
         # cursor instance:
         c = connection.cursor()

@@ -28,7 +28,7 @@ class Reader:
     
     def __init__(self):
         self.result = "empty"
-        self.rfid = SimpleMFRC522()
+        self.rfid = SimpleMFRC522("read")
 
     def get_result(self):
         return self.result

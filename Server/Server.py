@@ -1,12 +1,13 @@
 import socket
 import threading
 
-from Server.modules import StationSwapper
-from Server.modules.ServerHandler import ServerHandler
+from modules import StationSwapper
+from modules.ServerHandler import ServerHandler
 
 HEADER = 64
 PORT = 5050
-SERVER = socket.gethostbyname(socket.gethostname())
+SERVER = "169.254.0.1"
+#SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 FORMAT = "utf-8"
 DISCONNECT_MESSAGE = "DISCONNECT"
@@ -67,7 +68,7 @@ class Server:
         :param addr: address information
         """
 
-        print(f"[NEW CONNETION] {addr} connected \n")
+        print("[NEW CONNETION] " + str(addr) + " connected \n")
         # waiting for client-data, gets executed after a message is received:
         connected = True
         while connected:
@@ -164,7 +165,7 @@ class Server:
                     conn.close()
                     connected = False
 
-                print(f"From client: {addr}, received message: {msg}")
+                print("From client: " + str(addr) + ", received message: " + str(msg))
 
         conn.close()
 
@@ -173,7 +174,7 @@ class Server:
         starting the server
         """
         server.listen()
-        print(f"Waiting for a client to connect to {SERVER} \n")
+        print("Waiting for a client to connect to " + str(SERVER) + " \n")
         # waiting for a client to establish a connection:
         while True:
             # server.accept() gets client address information into conn, addr
@@ -183,7 +184,7 @@ class Server:
             thread = threading.Thread(target=self.handle_client, args=(conn, addr))
             thread.start()
 
-            print(f" Aktive Verbindungen: {threading.active_count() - 1} \n")
+            print("Aktive Verbindungen: " + str(threading.active_count() - 1) + " \n")
 
     print("Server startet ...")
 

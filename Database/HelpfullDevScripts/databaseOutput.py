@@ -3,7 +3,7 @@ import datetime
 
 # connection holds the connection to the database
 #connection = sqlite3.connect("//FILESERVER/productionDatabase/productionDatabase.db")
-connection = sqlite3.connect("/Database/productionDatabase.db")
+connection = sqlite3.connect("../productionDatabase.db")
 
 # cursor instance:
 c = connection.cursor()

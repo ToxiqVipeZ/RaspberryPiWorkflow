@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from threading import Thread
-from Storagemanagement.Backend.CassetteScanner import CassetteScanner
-from Storagemanagement.Backend.StorageWorkerBackend import StorageWorkerBackend
+from Backend.CassetteScanner import CassetteScanner
+from Backend.StorageWorkerBackend import StorageWorkerBackend
 
 
 class StorageWorker:
@@ -241,7 +241,6 @@ class StorageWorker:
         width, height = root.winfo_screenwidth(), root.winfo_screenheight()
         root.geometry("%dx%d+0+0" % (width, height))
         root.configure(background="#489df7")
-        root.state("zoomed")
 
         # background:
         canvas = tk.Canvas(root, width=width, height=height, background="#489df7", highlightthickness=0)

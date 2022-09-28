@@ -1,9 +1,9 @@
 import sqlite3
 import time
 from threading import Thread
-from Server import Client
+import Client
 
-DATABASE_PATH = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
 
 
 class StorageWorkerBackend:
@@ -161,33 +161,36 @@ class StorageWorkerBackend:
         articles_to_pack = c.fetchall()
 
         if articles_to_pack is not []:
-            next_article_to_pack = articles_to_pack[0]
-            c.execute("SELECT * FROM article_parts_relation_table WHERE article_id=(?)",
-                      (str(next_article_to_pack[1]),))
-            article_parts_rel = c.fetchone()
-            parts = article_parts_rel[1][2:-2].split("\', \'")
-            amounts = article_parts_rel[2][2:-2].split("\', \'")
-            part_list = []
-            part_list.append([article_parts_rel[0], "", ""])
-            # print(part_list)
-            if article_parts_rel is not None:
-                for x in range(0, len(parts)):
-                    c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=(?)",
-                              (parts[x],))
-                    cassette_id = c.fetchone()
-                    if cassette_id is not None:
-                        if cassette_id[0] is not None:
-                            part_list.append([parts[x], amounts[x], cassette_id[0]])
+            if articles_to_pack[0] is not None:
+                next_article_to_pack = articles_to_pack[0]
+                c.execute("SELECT * FROM article_parts_relation_table WHERE article_id=(?)",
+                          (str(next_article_to_pack[1]),))
+                article_parts_rel = c.fetchone()
+                parts = article_parts_rel[1][2:-2].split("\', \'")
+                amounts = article_parts_rel[2][2:-2].split("\', \'")
+                part_list = []
+                part_list.append([article_parts_rel[0], "", ""])
+                # print(part_list)
+                if article_parts_rel is not None:
+                    for x in range(0, len(parts)):
+                        c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=(?)",
+                                  (parts[x],))
+                        cassette_id = c.fetchone()
+                        if cassette_id is not None:
+                            if cassette_id[0] is not None:
+                                part_list.append([parts[x], amounts[x], cassette_id[0]])
+                            else:
+                                part_list.append([parts[x], amounts[x], "0"])
                         else:
-                            part_list.append([parts[x], amounts[x], "0"])
-                    else:
-                        part_list.append([parts[x], amounts[x], "-"])
-                return articles_to_pack, part_list
+                            part_list.append([parts[x], amounts[x], "-"])
+                    return articles_to_pack, part_list
 
-            elif article_parts_rel is None:
-                print("Artikel-Teile-Relation nicht angelegt!")
-                return articles_to_pack, 0
-
+                elif article_parts_rel is None:
+                    print("Artikel-Teile-Relation nicht angelegt!")
+                    return articles_to_pack, 0
+            elif articles_to_pack[0] is None:
+                print("Keine Artikel die auf Bearbeitung warten.")
+                return 0, 0
         elif articles_to_pack is []:
             print("Keine Artikel die auf Bearbeitung warten.")
             return 0, 0

@@ -4,7 +4,7 @@ import time
 ADD_TO_QUEUE = "RFID-QUEUE-ADD"
 STAT_ORDER_IN = "ORDER-IN"
 STAT_QUEUED = "QUEUED"
-PRODUCTION_DATABASE = "/home/pi/ProductionDatabase/ProductionDatabase.db"
+PRODUCTION_DATABASE = "/home/pi/ServerFiles/Database/ProductionDatabase.db"
 #PRODUCTION_DATABASE = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 
 

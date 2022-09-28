@@ -9,34 +9,34 @@ def main():
     c = connection.cursor()
 
     # part-storages-table
-    #pst_reset(connection, c)
+    pst_reset(connection, c)
 
     # cassette-management-table
     cmt_reset(connection, c)
 
     # article-parts-relation-list
-    #aprt_reset(connection, c)
+    aprt_reset(connection, c)
 
     # error-list-table
-    #elt_reset(connection, c)
+    elt_reset(connection, c)
 
     # error-history-table
-    #eht_reset(connection, c)
+    eht_reset(connection, c)
 
     # process-time-table
-    #ptt_reset(connection, c)
+    ptt_reset(connection, c)
 
     # workflow-planner-table
-    #wpt_reset(connection, c)
+    wpt_reset(connection, c)
 
     # article-procedure-table
-    #apt_reset(connection, c)
+    apt_reset(connection, c)
 
     # shop-info-table
-    #sit_reset(connection, c)
+    sit_reset(connection, c)
 
     # article-queue
-    #aq_reset(connection, c)
+    aq_reset(connection, c)
 
     # closing the connection
     connection.close()

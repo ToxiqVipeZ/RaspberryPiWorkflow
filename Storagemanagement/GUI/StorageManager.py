@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-from Storagemanagement.Backend.StorageManagerBackend import StorageManagerBackend
+from Backend.StorageManagerBackend import StorageManagerBackend
 
 
 class StorageManager:
@@ -409,7 +409,6 @@ class StorageManager:
             width, height = root.winfo_screenwidth(), root.winfo_screenheight()
             root.geometry("%dx%d+0+0" % (width, height))
             root.configure(background="#489df7")
-            root.state("zoomed")
             # background:
             canvas = tk.Canvas(root, width=width, height=height, background="#489df7", highlightthickness=0)
             canvas.config(borderwidth=0)

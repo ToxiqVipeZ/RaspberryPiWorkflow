@@ -63,16 +63,16 @@ except ImportError:
     print("PIL import failed.")
 
 try:
-    from Server import Client
+    from modules import Client
 except ImportError:
     print("Client import failed, check for correct file location.")
 
 
 # C.O.S - Comment in:
-# try:
-#     from modules.WorkstationHandler import WorkstationHandler
-# except ImportError:
-#     print("WorkstationHandler import failed, check for correct file location.")
+try:
+    from modules.WorkstationHandler import WorkstationHandler
+except ImportError:
+    print("WorkstationHandler import failed, check for correct file location.")
 
 
 class WorkstationApp:
@@ -97,8 +97,8 @@ class WorkstationApp:
 
     # static global variables:
     # C.O.S - Comment in:
-    # MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
-    MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
+    MAIN_PATH_PRE = "/home/pi/WorkflowInstructions/"
+    #MAIN_PATH_PRE = "C:/Users/g-oli/Desktop/Projekt ZF/Instruktionen/"
     RFID_IN = "RFID-IN.png"
     RFID_OUT = "RFID-OUT.png"
     WINDOW_WIDTH = auto_width
@@ -141,9 +141,13 @@ class WorkstationApp:
         if this_station[2] != 0:
             if len(this_station[3]) == 1:
                 this_station = "0" + str(this_station[3])
+                print(ip_address)
+                print(this_station)
                 return this_station
             if len(this_station[3]) == 2:
                 this_station = str(this_station[3])
+                print(ip_address)
+                print(this_station)
                 return this_station
         else:
             print("Stations-IP hat keine \"1\" an der dritten Stelle.")
@@ -167,11 +171,11 @@ class WorkstationApp:
             Thread(target=Client.send(Client.TRACKING_STATS_OUT, self.rfid_scanned, station_number)).start()
 
     def error_tracker(self, error_type, error_message):
-        error_message = str(error_message) + "SplitStatement15121 01"
+        #error_message = str(error_message) + "SplitStatement15121 01"
 
         # C.O.S - Comment in:
         # adds the station Number to the error_message:
-        #error_message = str(error_message) + "SplitStatement15121 " + self.get_station_number()
+        error_message = str(error_message) + "SplitStatement15121 " + self.get_station_number()
 
         Thread(target=Client.send(Client.TRACKING_ERROR_IN, str(error_type), str(error_message))).start()
         self.error_solving(error_type, error_message)
@@ -179,9 +183,9 @@ class WorkstationApp:
     def error_solving(self, error_type, error_message):
         error_window = tk.Toplevel()
         error_window.geometry("%dx%d+0+0" % (error_window.winfo_screenwidth()/2, error_window.winfo_screenheight()/2))
-        station = "01"
+        # station = "01"
         # C.O.S Comment in:
-        # station = self.get_station_number()
+        station = self.get_station_number()
 
         error_type_picker_label = tk.Label(error_window,
                                            text="Error: \n\"" +
@@ -221,7 +225,6 @@ class WorkstationApp:
 
     def alarm_button_pressed(self, root2):
         popup = tk.Toplevel(root2, )
-        popup.state("zoomed")
         popup.geometry("%dx%d+0+0" % (popup.winfo_screenwidth(), popup.winfo_screenheight()))
 
         # window size
@@ -479,7 +482,6 @@ class WorkstationApp:
 
             # init of the window - START!
             root2 = tk.Toplevel()
-            root2.state("zoomed")
 
             # window size
             canvas = tk.Canvas(root2, width=root2.winfo_screenwidth(), height=root2.winfo_screenheight())
@@ -501,8 +503,8 @@ class WorkstationApp:
             workflow_picture_label.config(borderwidth=0)
 
             # C.O.S - Comment in, Delete next:
-            #station_label = tk.Label(root2, text=self.get_station_number(), font=("Arial Black", 30))
-            station_label = tk.Label(root2, text="Station 01", font=("Arial Black", 30))
+            station_label = tk.Label(root2, text=self.get_station_number(), font=("Arial Black", 30))
+            # station_label = tk.Label(root2, text="Station 01", font=("Arial Black", 30))
             station_label.grid(column=0, row=0)
 
             # label position inside root2 grid
@@ -560,8 +562,8 @@ class WorkstationApp:
             root.after(5000, self.exec_after_scan)
 
     # C.O.S - Delete after test:
-    def test(self):
-        self.rfid_scanned = "01001-01"
+    #def test(self):
+    #    self.rfid_scanned = "01001-01"
 
     def main(self):
         """
@@ -570,7 +572,6 @@ class WorkstationApp:
         try:
             global root
             root = tk.Tk()
-            root.state("zoomed")
             self.auto_width = root.winfo_screenwidth()
             self.auto_height = root.winfo_screenheight()
 
@@ -597,20 +598,20 @@ class WorkstationApp:
             root.geometry("%dx%d+0+0" % (self.auto_width, self.auto_height))
 
             # C.O.S - Comment in, Delete next:
-            # station_label = tk.Label(root, text=self.get_station_number(), font=("Arial Black", 30))
-            station_label = tk.Label(root, text="Station 01", font=("Arial Black", 30))
+            station_label = tk.Label(root, text="Station " + str(self.get_station_number()), font=("Arial Black", 30))
+            #station_label = tk.Label(root, text="Station 01", font=("Arial Black", 30))
             station_label.grid(column=1, row=0)
 
             # C.O.S - Delete:
             # button1 definition
-            button1_text = tk.StringVar()
-            button1_text.set("TestB")
-            button1_btn = tk.Button(root, textvariable=button1_text,
-                                    command=lambda: (self.test()),
-                                    width=10, height=5, background="green")
-            button1_btn.grid(column=1, row=1)
+            #button1_text = tk.StringVar()
+            #button1_text.set("TestB")
+            #button1_btn = tk.Button(root, textvariable=button1_text,
+            #                        command=lambda: (self.test()),
+            #                        width=10, height=5, background="green")
+            #button1_btn.grid(column=1, row=1)
             # C.O.S - Comment in:
-            # root.after(1000, Thread(target=self.scanning_rfid).start())
+            root.after(1000, Thread(target=self.scanning_rfid).start())
             root.after(1000, self.exec_after_scan)
 
             # loop of the window - END!

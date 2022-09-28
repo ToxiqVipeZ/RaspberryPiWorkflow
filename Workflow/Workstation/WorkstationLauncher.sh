@@ -1,6 +1,5 @@
 #!/bin/bash
-echo "Starting WorkstationApp in 10s..."
 sleep 10
-cd /home/pi/WorkstationApp
+cd /home/pi/ServerFiles/Workflow/Workstation 
 python3 WorkstationApp.py
 cd /
