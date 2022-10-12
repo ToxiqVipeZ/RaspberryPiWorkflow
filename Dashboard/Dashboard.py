@@ -4,12 +4,18 @@ import math
 import dash_bootstrap_components as dbc
 import pandas as pd
 import sqlite3
+import mysql.connector
 from datetime import datetime
 
-#SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+# SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+# SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+MYSQL_HOST = "169.254.0.3"
+MYSQL_USER = "pi"
+MYSQL_PASSWD = "raspberry"
+MYSQL_DB = "wordpress"
 
-production_connection = sqlite3.connect(SQLITE3_HOST)
+production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                                passwd=MYSQL_PASSWD, db=MYSQL_DB)
 prod_cursor = production_connection.cursor()
 
 # Dataquery's for data frames
@@ -172,7 +178,8 @@ production_connection.close()
     Input(component_id="puffer_time_check", component_property="n_intervals")
 )
 def stations_puffer_time(n_intervals):
-    production_connection = sqlite3.connect(SQLITE3_HOST)
+    production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                                    passwd=MYSQL_PASSWD, db=MYSQL_DB)
 
     df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
 
@@ -202,11 +209,12 @@ def display_error_cards(n_intervals, div_children):
     If a entry has no "check-out"-time, them it means a station is working, therefore a card will be created.
     The method gives back a card as children to the card-container div.
     """
-    #SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # C.O.S:
-    #SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
-    production_connection = sqlite3.connect(SQLITE3_HOST)
+    production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                                    passwd=MYSQL_PASSWD, db=MYSQL_DB)
     prod_cursor = production_connection.cursor()
 
     SQL_QUERY_PTT_3 = "SELECT station_nr, error_start, error_type, error_message " \
@@ -224,8 +232,8 @@ def display_error_cards(n_intervals, div_children):
 
     if len(card_df) > 0:
         n_intervals = n_intervals % len(card_df)
-    # if len(card_df) == 0:
-    #     n_intervals = 0
+        # if len(card_df) == 0:
+        #     n_intervals = 0
         error_station_nr = card_df.get("station_nr")[n_intervals]
         error_message = card_df.get("error_type")[n_intervals] + ": \n" + card_df.get("error_message")[n_intervals]
 
@@ -259,8 +267,8 @@ def display_error_cards(n_intervals, div_children):
                                                          "font-size": 20, "background-color": "red",
                                                          "font-color": "black"})],
                                 style={"border-bottom": "3px solid red", "font-weight": "bold",
-                                 "font-size": 20, "background-color": "red",
-                                 "font-color": "black"}
+                                       "font-size": 20, "background-color": "red",
+                                       "font-color": "black"}
                             ),
                         ],
                         style={"border-color": "darkred",
@@ -295,11 +303,12 @@ def display_cards(n_intervals, div_children):
     If a entry has no "check-out"-time, them it means a station is working, therefore a card will be created.
     The method gives back a card as children to the card-container div.
     """
-    #SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # C.O.S Comment in:
-    #SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
+    # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
-    production_connection = sqlite3.connect(SQLITE3_HOST)
+    production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                                    passwd=MYSQL_PASSWD, db=MYSQL_DB)
     prod_cursor = production_connection.cursor()
 
     SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
@@ -375,10 +384,11 @@ def display_time(n_intervals, children):
     The time and the time-limit get passed as children to the card-object.
     This method gets called every 0.5 seconds to display the time correctly.
     """
-    #SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+    # SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
-    production_connection = sqlite3.connect(SQLITE3_HOST)
+    production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                                    passwd=MYSQL_PASSWD, db=MYSQL_DB)
     prod_cur = production_connection.cursor()
 
     SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
@@ -395,57 +405,58 @@ def display_time(n_intervals, children):
     now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
     time_now = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
 
-    for x in range(0, len(card_df)):
-        if card_df["station"][x] == children_index:
-            check_in = card_df["process_start"][x]
-            article_id = card_df["article_id"][x]
+    if card_df is not None:
+        for x in range(0, len(card_df)):
+            if card_df["station"][x] == children_index:
+                check_in = card_df["process_start"][x]
+                article_id = card_df["article_id"][x]
 
-            prod_cur.execute("SELECT procedure FROM article_procedure_table "
-                             "WHERE article_id=(?)", (article_id[:-3],))
-            procedure = prod_cur.fetchone()[0]
+                prod_cur.execute("SELECT procedure FROM article_procedure_table "
+                                 "WHERE article_id=%s", (article_id[:-3],))
+                procedure = prod_cur.fetchone()[0]
 
-            prod_cur.execute("SELECT stations, times FROM workflow_planner_table "
-                             "WHERE workflow_procedure=(?)", (procedure,))
-            time_limit = prod_cur.fetchone()
-            time_limit_stations = time_limit[0].split(";")
-            time_limit_times = time_limit[1].split(";")
-            for y in range(0, len(time_limit[0])):
-                if children_index == time_limit_stations[y]:
-                    time_limit_station = int(time_limit_times[y])
-                    # time_limit_station = datetime.strptime(time_limit_station, "%S")
-                    time_check_in = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
-                    difference = time_now - time_check_in
-                    body_child = str(difference)
-                    difference_in_sec = int(difference.total_seconds())
-                    minus_time_limit = time_limit_station - difference_in_sec
-                    color = "grey"
-                    textColor = "text-white"
-                    if minus_time_limit < 0:
-                        color = "yellow"
-                        textColor = "text-black"
-                        if minus_time_limit <= -20:
-                            color = "darkred"
-                            textColor = "text-white"
-                            if minus_time_limit <= -200001:
-                                minus_time_limit = math.ceil(minus_time_limit / 10000)
-                    elif minus_time_limit > 0:
-                        color = "green"
+                prod_cur.execute("SELECT stations, times FROM workflow_planner_table "
+                                 "WHERE workflow_procedure=%s", (procedure,))
+                time_limit = prod_cur.fetchone()
+                time_limit_stations = time_limit[0].split(";")
+                time_limit_times = time_limit[1].split(";")
+                for y in range(0, len(time_limit[0])):
+                    if children_index == time_limit_stations[y]:
+                        time_limit_station = int(time_limit_times[y])
+                        # time_limit_station = datetime.strptime(time_limit_station, "%S")
+                        time_check_in = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
+                        difference = time_now - time_check_in
+                        body_child = str(difference)
+                        difference_in_sec = int(difference.total_seconds())
+                        minus_time_limit = time_limit_station - difference_in_sec
+                        color = "grey"
                         textColor = "text-white"
-                    minus_time_limit = "Zeitlimit: " + str(minus_time_limit) + "\n"
-                    footer_child = dbc.CardFooter(
-                        children=[minus_time_limit, str(article_id)],
-                        style={
-                            "margin-top": "10px",
-                            "border-style": "outset",
-                            "border-color": "blue",
-                            "border-width": "4px",
-                            "border-radius": "10px",
-                            "display": "inline-block",
-                            "background-color": color
-                        },
-                        className=textColor
-                    )
-                    return [body_child, footer_child]
+                        if minus_time_limit < 0:
+                            color = "yellow"
+                            textColor = "text-black"
+                            if minus_time_limit <= -20:
+                                color = "darkred"
+                                textColor = "text-white"
+                                if minus_time_limit <= -200001:
+                                    minus_time_limit = math.ceil(minus_time_limit / 10000)
+                        elif minus_time_limit > 0:
+                            color = "green"
+                            textColor = "text-white"
+                        minus_time_limit = "Zeitlimit: " + str(minus_time_limit) + "\n"
+                        footer_child = dbc.CardFooter(
+                            children=[minus_time_limit, str(article_id)],
+                            style={
+                                "margin-top": "10px",
+                                "border-style": "outset",
+                                "border-color": "blue",
+                                "border-width": "4px",
+                                "border-radius": "10px",
+                                "display": "inline-block",
+                                "background-color": color
+                            },
+                            className=textColor
+                        )
+                        return [body_child, footer_child]
 
 
 if __name__ == "__main__":

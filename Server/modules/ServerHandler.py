@@ -2,11 +2,13 @@ import sqlite3
 import mysql.connector
 import datetime
 
-DATABASE_PATH = "/Database/productionDatabase.db"
+# DATABASE_PATH = "/Database/productionDatabase.db"
+DATABASE_PATH = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
 MYSQL_DB = "wordpress"
+
 
 class ServerHandler:
 

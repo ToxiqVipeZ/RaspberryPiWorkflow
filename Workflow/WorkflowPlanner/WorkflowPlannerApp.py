@@ -152,7 +152,7 @@ class WorkflowPlannerApp:
             else:
                 self.message_label(root, "Fehlerhafte Eingabe.")
 
-        except sqlite3.IntegrityError:
+        except mysql.connector.IntegrityError:
             self.message_label(root, "Zeiten bereits angelegt.")
 
     def database_save(self, root, text_input):
@@ -205,7 +205,7 @@ class WorkflowPlannerApp:
             else:
                 self.message_label(root, "Fehlerhafte Eingabe.")
 
-        except sqlite3.IntegrityError:
+        except mysql.connector.IntegrityError:
             self.message_label(root, "Verfahren bereits angelegt.")
 
     @staticmethod

@@ -1,11 +1,17 @@
 import sqlite3
+import mysql.connector
 import time
 
 ADD_TO_QUEUE = "RFID-QUEUE-ADD"
 STAT_ORDER_IN = "ORDER-IN"
 STAT_QUEUED = "QUEUED"
 PRODUCTION_DATABASE = "/home/pi/ServerFiles/Database/ProductionDatabase.db"
-#PRODUCTION_DATABASE = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+# PRODUCTION_DATABASE = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
+
+MYSQL_HOST = "169.254.0.3"
+MYSQL_USER = "pi"
+MYSQL_PASSWD = "raspberry"
+MYSQL_DB = "wordpress"
 
 
 def queue_order(connection, cursor, production_number):
@@ -34,11 +40,11 @@ class DatabaseQueue:
         while True:
             try:
                 # connection holds the connection to the database
-                connection = sqlite3.connect(
-                    PRODUCTION_DATABASE)
+                connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                                     passwd=MYSQL_PASSWD, db=MYSQL_DB)
                 cursor = connection.cursor()
 
-                cursor.execute("SELECT MIN(production_number) FROM shop_info_table WHERE status_ident IS (?)",
+                cursor.execute("SELECT MIN(production_number) FROM shop_info_table WHERE status_ident IS %s",
                                (STAT_ORDER_IN,))
                 list_not_empty = cursor.fetchone()[0]
 

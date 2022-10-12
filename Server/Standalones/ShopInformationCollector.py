@@ -21,8 +21,8 @@ class ShopInformationCollector:
         print("Baue Shop-Datenbankverbindung auf....")
         connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASSWD, db=MYSQL_DB)
         print("Baue Produktions-Datenbankverbindung auf....")
-        production_connection = sqlite3.connect(
-            SQLITE3_HOST)
+        production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                                        passwd=MYSQL_PASSWD, db=MYSQL_DB)
         print("Datenbankverbindung steht!")
         cursor = connection.cursor()
         prod_cursor = production_connection.cursor()
@@ -118,7 +118,7 @@ class ShopInformationCollector:
 
                                             prod_cursor.execute(
                                                 "INSERT INTO shop_info_table(order_item_id, order_id, article_id, status_ident, time_stamp)"
-                                                " VALUES (?, ?, ?, ?, ?)",
+                                                " VALUES (%s, %s, %s, %s, %s)",
                                                 (read_order_item_id, read_order_id, article_id[0], STATUS, current_datetime))
                                             production_connection.commit()
 
@@ -149,7 +149,7 @@ class ShopInformationCollector:
 
                                     prod_cursor.execute(
                                         "INSERT INTO shop_info_table(order_item_id, order_id, article_id, status_ident, time_stamp)"
-                                        " VALUES (?, ?, ?, ?, ?)",
+                                        " VALUES (%s, %s, %s, %s, %s)",
                                         (read_order_item_id, read_order_id, article_id[0], STATUS, current_datetime))
                                     production_connection.commit()
 
