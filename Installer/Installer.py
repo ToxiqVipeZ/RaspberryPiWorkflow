@@ -150,6 +150,15 @@ class Installer:
             from PIL import Image, ImageTk
 
         try:
+            import mysql.connector
+
+        except ImportError:
+            print("\n################################\n"
+                  "Installing mysql packages...\n"
+                  "################################\n")
+
+
+        try:
             print("\n################################\n"
                   "Setup of autonomic StorageApp start at launch...\n"
                   "################################\n")

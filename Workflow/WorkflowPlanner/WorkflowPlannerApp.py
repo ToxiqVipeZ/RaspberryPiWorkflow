@@ -1,10 +1,16 @@
 import tkinter as tk
 import sqlite3
+import mysql.connector
 import re
-
+import os
 
 class WorkflowPlannerApp:
     DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
+    MYSQL_HOST = "169.254.0.3"
+    MYSQL_USER = "pi"
+    MYSQL_PASSWD = "raspberry"
+    MYSQL_DB = "wordpress"
+
     """
     This class creates an App to plan and manage the workflow of a procedure
     """
@@ -18,12 +24,14 @@ class WorkflowPlannerApp:
         """
         # if the passed operation is called "save"
         if operation == "save":
+            print(os.system("whoami"))
             text_input = text_window.get("1.0", "end-1c")
             # the textinput that needs to be saved gets passed to database_save
             self.database_save(root, text_input)
 
         # if the passed operation is called "save"
         if operation == "times":
+            print(os.system("whoami"))
             text_input = text_window.get("1.0", "end-1c")
             # the textinput that needs to be saved gets passed to database_save
             self.database_save_times(root, text_input)
@@ -88,9 +96,10 @@ class WorkflowPlannerApp:
         print(self.delete_input_checker(value_b))
         if (self.delete_input_checker(value_a) & self.delete_input_checker(value_b)) == True:
             # database operation:
-            connection = sqlite3.connect(self.DATABASE_PATH)
+            connection = mysql.connector.connect(host=self.MYSQL_HOST, user=self.MYSQL_USER,
+                                                 passwd=self.MYSQL_PASSWD, db=self.MYSQL_DB)
             c = connection.cursor()
-            c.execute("INSERT INTO article_procedure_table VALUES (?, ?)",
+            c.execute("INSERT INTO article_procedure_table VALUES (%s, %s)",
                       (value_a, value_b))
             connection.commit()
             connection.close()
@@ -124,13 +133,14 @@ class WorkflowPlannerApp:
 
                 # connection holds the connection to the database
                 # (path/productionDatabase.db)
-                connection = sqlite3.connect(self.DATABASE_PATH)
+                connection = mysql.connector.connect(host=self.MYSQL_HOST, user=self.MYSQL_USER,
+                                                     passwd=self.MYSQL_PASSWD, db=self.MYSQL_DB)
 
                  # cursor instance:
                 c = connection.cursor()
                 # workflow_procedure_value = procedure number (examples: 001 | 002 | 003)
                 # stations_value = station number (examples: [01;02;05] | [07;02;01;05,03] | ...])
-                c.execute("UPDATE workflow_planner_table SET times=(?) WHERE workflow_procedure=(?)",
+                c.execute("UPDATE workflow_planner_table SET times=(%s) WHERE workflow_procedure=(%s)",
                           (times, workflow_procedure_value))
                 connection.commit()
                 connection.close()
@@ -171,14 +181,15 @@ class WorkflowPlannerApp:
 
                 # connection holds the connection to the database
                 # (path/productionDatabase.db)
-                connection = sqlite3.connect(self.DATABASE_PATH)
+                connection = mysql.connector.connect(host=self.MYSQL_HOST, user=self.MYSQL_USER,
+                                                     passwd=self.MYSQL_PASSWD, db=self.MYSQL_DB)
 
                 # cursor instance:
                 c = connection.cursor()
 
                 # workflow_procedure_value = procedure number (examples: 001 | 002 | 003)
                 # stations_value = station number (examples: [01;02;05] | [07;02;01;05,03] | ...])
-                c.execute("INSERT INTO workflow_planner_table(workflow_procedure, stations) VALUES (?, ?)",
+                c.execute("INSERT INTO workflow_planner_table(workflow_procedure, stations) VALUES (%s, %s)",
                           (workflow_procedure_value, stations_values))
 
                 # committing the created table:
@@ -207,13 +218,14 @@ class WorkflowPlannerApp:
         """
         # connection holds the connection to the database
         # (path\productionDatabase.db)
-        connection = sqlite3.connect(WorkflowPlannerApp.DATABASE_PATH)
+        connection = mysql.connector.connect(host=WorkflowPlannerApp.MYSQL_HOST, user=WorkflowPlannerApp.MYSQL_USER,
+                                             passwd=WorkflowPlannerApp.MYSQL_PASSWD, db=WorkflowPlannerApp.MYSQL_DB)
 
         # cursor instance:
         c = connection.cursor()
 
         print(text_input)
-        c.execute("DELETE FROM workflow_planner_table WHERE workflow_planner_table.workflow_procedure = (?)",
+        c.execute("DELETE FROM workflow_planner_table WHERE workflow_planner_table.workflow_procedure = (%s)",
                   (text_input,))
         # committing the created table:
         connection.commit()

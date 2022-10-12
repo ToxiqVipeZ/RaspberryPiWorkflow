@@ -8,8 +8,8 @@ def main():
     try:
         # connection holds the connection to the database
         #connection_prod_db = sqlite3.connect("productionDatabase.db")
-        connection_shop_db = mysql.connector.connect(host="169.254.0.3", user="FRANK", passwd="$Ute2511%", db="wordpress2")
-
+        connection_shop_db = mysql.connector.connect(host="169.254.0.3", user="pi", passwd="raspberry", db="wordpress")
+        DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
         # cursor instances:
         #c_prod_db = connection_prod_db.cursor()
         c_shop_db = connection_shop_db.cursor()

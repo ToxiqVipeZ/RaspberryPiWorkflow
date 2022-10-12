@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import os
 
 from Backend.StorageManagerBackend import StorageManagerBackend
 
@@ -8,6 +9,7 @@ class StorageManager:
     Backend = StorageManagerBackend()
 
     def __init__(self):
+        print(os.system("whoami"))
         self.main()
 
     def show_articles(self):

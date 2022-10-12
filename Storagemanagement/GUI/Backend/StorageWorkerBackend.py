@@ -1,9 +1,14 @@
 import sqlite3
+import mysql.connector
 import time
 from threading import Thread
 from . import Client
 
 DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
+MYSQL_HOST = "169.254.0.3"
+MYSQL_USER = "pi"
+MYSQL_PASSWD = "raspberry"
+MYSQL_DB = "wordpress"
 
 
 class StorageWorkerBackend:
@@ -13,7 +18,8 @@ class StorageWorkerBackend:
         self.feedback_message = message
 
     def stock_data(self):
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
         c.execute("SELECT * "
                   "FROM part_storages_table "
@@ -28,11 +34,12 @@ class StorageWorkerBackend:
             return ""
 
     def min_amount_check(self, cassette_id, part_amount):
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
         c.execute("SELECT min_amount, part_amount "
                   "FROM part_storages_table "
-                  "WHERE in_cassettes=(?)", (cassette_id,))
+                  "WHERE in_cassettes=%s", (cassette_id,))
         amount = c.fetchone()
         connection.commit()
         connection.close()
@@ -50,24 +57,26 @@ class StorageWorkerBackend:
                     return 0
 
     def cassette_out_triggered(self, cassette_id, part_id, part_amount):
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
         c.execute("SELECT part_amount "
                   "FROM part_storages_table "
-                  "WHERE in_cassettes=(?)", (cassette_id,))
+                  "WHERE in_cassettes=%s", (cassette_id,))
         part_amount_in_store = c.fetchone()
         if part_amount_in_store[0] is not None:
             part_amount_in_store = part_amount_in_store[0]
         c.execute("UPDATE part_storages_table "
-                  "SET part_amount=(?) "
-                  "WHERE part_id=(?)",
+                  "SET part_amount=%s "
+                  "WHERE part_id=%s",
                   (part_amount_in_store - int(part_amount), part_id))
         connection.commit()
         connection.close()
 
     def packing_completed(self, article_id, not_in_cassettes):
 
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
         print(not_in_cassettes)
         print(not_in_cassettes[0])
@@ -84,7 +93,7 @@ class StorageWorkerBackend:
         for item in not_in_cassettes:
             c.execute("SELECT part_amount "
                       "FROM part_storages_table "
-                      "WHERE part_id=(?)", (item[0],))
+                      "WHERE part_id=%s", (item[0],))
             part_amount_in_store = c.fetchone()
             connection.commit()
             connection.close()
@@ -106,26 +115,27 @@ class StorageWorkerBackend:
                         part_amount = part_amount_list[x]
                         part_id = part_id_list[x]
                         c.execute("UPDATE part_storages_table "
-                                  "SET part_amount=(?) "
-                                  "WHERE part_id=(?)",
+                                  "SET part_amount=%s "
+                                  "WHERE part_id=%s",
                                   (part_amount_in_store - int(part_amount), part_id))
                         connection.commit()
                         connection.close()
                         self.setting_rfid(article_id)
         else:
             self.set_feedback_message("Eins / oder mehrere Teile dieses\n"
-                                        "Artikels, sind nicht im Lager enthalten!\n"
-                                        "Zumindest fehlt: " + str(part_not_in_store))
+                                      "Artikels, sind nicht im Lager enthalten!\n"
+                                      "Zumindest fehlt: " + str(part_not_in_store))
 
     def setting_rfid(self, article_id):
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
 
         station = "01"
         variation = article_id[8:]
         article_id = article_id[:7]
 
-        c.execute("SELECT procedure FROM article_procedure_table WHERE article_id=(?)", (article_id,))
+        c.execute("SELECT procedure FROM article_procedure_table WHERE article_id=%s", (article_id,))
         procedure = c.fetchone()
         if procedure is not None:
             if procedure[0] is not None:
@@ -143,7 +153,6 @@ class StorageWorkerBackend:
         connection.commit()
         connection.close()
 
-
     def statistic_tracker(self, in_or_out, rfid_code):
         station_number = "01"
         print("statistic_tracker station_number: " + station_number)
@@ -157,7 +166,8 @@ class StorageWorkerBackend:
         item.destroy()
 
     def get_article_to_pack(self):
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
         c.execute("SELECT * FROM process_time_table WHERE station=\"01\" ORDER BY process_id ASC")
         articles_to_pack = c.fetchall()
@@ -165,7 +175,7 @@ class StorageWorkerBackend:
         if articles_to_pack is not []:
             if len(articles_to_pack) > 0:
                 next_article_to_pack = articles_to_pack[0]
-                c.execute("SELECT * FROM article_parts_relation_table WHERE article_id=(?)",
+                c.execute("SELECT * FROM article_parts_relation_table WHERE article_id=%s",
                           (str(next_article_to_pack[1]),))
                 article_parts_rel = c.fetchone()
                 parts = article_parts_rel[1][2:-2].split("\', \'")
@@ -175,7 +185,7 @@ class StorageWorkerBackend:
                 # print(part_list)
                 if article_parts_rel is not None:
                     for x in range(0, len(parts)):
-                        c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=(?)",
+                        c.execute("SELECT cassette_id FROM cassette_management_table WHERE cassette_contains=%s",
                                   (parts[x],))
                         cassette_id = c.fetchone()
                         if cassette_id is not None:
@@ -200,7 +210,8 @@ class StorageWorkerBackend:
         connection.close()
 
     def main(self):
-        connection = sqlite3.connect(DATABASE_PATH)
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
 
         connection.commit()
