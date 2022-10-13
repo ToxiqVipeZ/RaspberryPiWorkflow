@@ -8,7 +8,8 @@ STATUS = "ORDER-IN"
 MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
-MYSQL_DB = "wordpress"
+MYSQL_DB_WP = "wordpress"
+MYSQL_DB_P = "production"
 #SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
 SQLITE3_HOST = "/home/pi/ServerFiles/Database/productionDatabase.db"
 
@@ -19,10 +20,10 @@ class ShopInformationCollector:
     def main(self):
         # Database-connection
         print("Baue Shop-Datenbankverbindung auf....")
-        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASSWD, db=MYSQL_DB)
+        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASSWD, db=MYSQL_DB_WP)
         print("Baue Produktions-Datenbankverbindung auf....")
         production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                                        passwd=MYSQL_PASSWD, db=MYSQL_DB)
+                                                        passwd=MYSQL_PASSWD, db=MYSQL_DB_P)
         print("Datenbankverbindung steht!")
         cursor = connection.cursor()
         prod_cursor = production_connection.cursor()

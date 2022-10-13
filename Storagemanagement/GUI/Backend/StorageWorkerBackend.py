@@ -8,7 +8,7 @@ DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
 MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
-MYSQL_DB = "wordpress"
+MYSQL_DB = "production"
 
 
 class StorageWorkerBackend:

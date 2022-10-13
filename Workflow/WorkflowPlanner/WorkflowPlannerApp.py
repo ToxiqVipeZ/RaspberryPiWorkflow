@@ -9,7 +9,7 @@ class WorkflowPlannerApp:
     MYSQL_HOST = "169.254.0.3"
     MYSQL_USER = "pi"
     MYSQL_PASSWD = "raspberry"
-    MYSQL_DB = "wordpress"
+    MYSQL_DB = "production"
 
     """
     This class creates an App to plan and manage the workflow of a procedure

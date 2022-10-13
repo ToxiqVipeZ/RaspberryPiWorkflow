@@ -1,42 +1,55 @@
 import sqlite3
+import mysql.connector
+
+MYSQL_HOST = "169.254.0.3"
+MYSQL_USER = "pi"
+MYSQL_PASSWD = "raspberry"
+MYSQL_DB = "production"
 
 
 def main():
     # connection holds the connection to the database
-    connection = sqlite3.connect("../productionDatabase.db")
+    connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
 
     # cursor instance:
-    c = connection.cursor()
+    #c = connection.cursor()
 
     # part-storages-table
-    pst_reset(connection, c)
+    #pst_reset(connection, c)
 
     # cassette-management-table
-    cmt_reset(connection, c)
+    #cmt_reset(connection, c)
 
     # article-parts-relation-list
-    aprt_reset(connection, c)
+    #aprt_reset(connection, c)
 
     # error-list-table
-    elt_reset(connection, c)
+    #elt_reset(connection, c)
 
     # error-history-table
-    eht_reset(connection, c)
+    #eht_reset(connection, c)
 
     # process-time-table
-    ptt_reset(connection, c)
+    #ptt_reset(connection, c)
 
     # workflow-planner-table
-    wpt_reset(connection, c)
+    #wpt_reset(connection, c)
 
     # article-procedure-table
-    apt_reset(connection, c)
+    #apt_reset(connection, c)
 
     # shop-info-table
-    sit_reset(connection, c)
+    #sit_reset(connection, c)
 
     # article-queue
-    aq_reset(connection, c)
+    #aq_reset(connection, c)
+
+    c = connection.cursor()
+
+    for x in range(1, 21):
+        c.execute("INSERT INTO cassette_management_table VALUES (%s,%s,%s)", (x,None,None))
+        connection.commit()
 
     # closing the connection
     connection.close()
@@ -64,8 +77,8 @@ def cmt_reset(connection, c):
         """
         CREATE TABLE cassette_management_table (
         cassette_id INTEGER PRIMARY KEY,
-        cassette_contains TEXT,
-        contains_max_amount INTEGER
+        cassette_contains TEXT NULL,
+        contains_max_amount INTEGER NULL
         )
         """
     )

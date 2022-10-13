@@ -12,7 +12,7 @@ from datetime import datetime
 MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
-MYSQL_DB = "wordpress"
+MYSQL_DB = "production"
 
 production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
                                                 passwd=MYSQL_PASSWD, db=MYSQL_DB)

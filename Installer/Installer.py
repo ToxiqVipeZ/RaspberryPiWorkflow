@@ -156,6 +156,8 @@ class Installer:
             print("\n################################\n"
                   "Installing mysql packages...\n"
                   "################################\n")
+            os.system("pip3 install mysql.connector")
+            import mysql.connector
 
 
         try:

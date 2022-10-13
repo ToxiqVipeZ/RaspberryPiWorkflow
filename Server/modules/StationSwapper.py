@@ -5,7 +5,7 @@ DATABASE_PATH = "/Database/productionDatabase.db"
 MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
-MYSQL_DB = "wordpress"
+MYSQL_DB = "production"
 
 
 def next_in_queue(connection, cursor, procedure, station, next_station, variation_value):
