@@ -134,7 +134,7 @@ class ShopInformationCollector:
                                     variation = str(data3[0])
                                     print("wp-wo-oimeta: Variation: " + variation)
 
-                                    # use the system-give variation id to find related article-id's
+                                    # use the systems given variation id to find related article-id's
                                     cursor.execute(
                                         "SELECT sku AS article_id FROM wp_wc_product_meta_lookup WHERE product_id=%s",
                                         (variation,))
