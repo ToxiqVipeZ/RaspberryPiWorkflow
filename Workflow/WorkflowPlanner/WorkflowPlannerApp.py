@@ -95,14 +95,18 @@ class WorkflowPlannerApp:
         print(self.delete_input_checker(value_a))
         print(self.delete_input_checker(value_b))
         if (self.delete_input_checker(value_a) & self.delete_input_checker(value_b)) == True:
-            # database operation:
-            connection = mysql.connector.connect(host=self.MYSQL_HOST, user=self.MYSQL_USER,
-                                                 passwd=self.MYSQL_PASSWD, db=self.MYSQL_DB)
-            c = connection.cursor()
-            c.execute("INSERT INTO article_procedure_table VALUES (%s, %s)",
-                      (value_a, value_b))
-            connection.commit()
-            connection.close()
+            try:
+                # database operation:
+                connection = mysql.connector.connect(host=self.MYSQL_HOST, user=self.MYSQL_USER,
+                                                     passwd=self.MYSQL_PASSWD, db=self.MYSQL_DB)
+                c = connection.cursor()
+                c.execute("INSERT INTO article_procedure_table VALUES (%s, %s)",
+                          (value_a, value_b))
+                connection.commit()
+                connection.close()
+                self.message_label(window, "Artikel-Vorgang-Relation gespeichert.")
+            except mysql.connector.IntegrityError:
+                self.message_label(window, "Fehler! Relation " + value_a + "-" + value_b + " bereits angelegt ?")
         else:
             pass
             self.message_label(window, "Fehlerhafte Angaben. Bitte erneut versuchen.")

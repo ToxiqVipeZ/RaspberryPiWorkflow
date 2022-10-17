@@ -1,4 +1,3 @@
-import sqlite3
 import mysql.connector
 
 DATABASE_PATH = "/Database/productionDatabase.db"

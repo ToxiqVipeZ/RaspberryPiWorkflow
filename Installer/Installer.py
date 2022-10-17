@@ -76,6 +76,8 @@ class Installer:
             os.system("sudo apt-get update")
             os.system("sudo apt-get upgrade -y")
 
+            os.system("apt-get install x11-xserver-utils")
+
             print("\n################################\n"
                   "Installing library's....\n"
                   "################################\n")
@@ -101,6 +103,8 @@ class Installer:
                   "################################\n")
 
         try:
+            import time
+            import datetime
             from threading import Thread
             import socket
         except ImportError:
@@ -149,9 +153,12 @@ class Installer:
 
             autostart_server_apps = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
             autostart_server_apps.write(
-                "@lxterminal -e bash /home/pi/ServerFiles/Server/ServerLauncher.sh"
-                "@lxterminal -e bash /home/pi/ServerFiles/Server/Standalones/DatabaseQueueLauncher.sh"
-                "@lxterminal -e bash /home/pi/ServerFiles/Server/Standalones/SICLauncher.sh"
+                "@xset s noblank\n"
+                "@xset s off\n"
+                "@xset -dpms\n"
+                "@lxterminal -e bash /home/pi/ServerFiles/Server/ServerLauncher.sh\n"
+                "@lxterminal -e bash /home/pi/ServerFiles/Server/Standalones/DatabaseQueueLauncher.sh\n"
+                "@lxterminal -e bash /home/pi/ServerFiles/Server/Standalones/SICLauncher.sh\n"
             )
             autostart_server_apps.close()
 
@@ -183,7 +190,7 @@ class Installer:
 
         except:
             print("\n################################\n"
-                  "Setup of autonomic StorageManager start at launch failed.\n"
+                  "Setup of Serverstart at launch failed.\n"
                   "################################\n")
 
         print("\n################################\n"
@@ -318,13 +325,13 @@ class Installer:
 
             os.system("cd /home/pi/ServerFiles/StorageManagement/GUI/")
             os.system(
-                "echo \"#!/bin/bash\nsleep 5\ncd /home/pi/ServerFiles/StorageManagement/GUI\npython3 StorageWorker.py"
+                "echo \"#!/bin/bash\necho \"StorageWorker wird in 5s gestartet...\"\nsleep 5\ncd /home/pi/ServerFiles/StorageManagement/GUI\npython3 StorageWorker.py"
                 "\ncd /\" > /home/pi/ServerFiles/StorageManagement/GUI/StorageWorkerLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/StorageManagement/GUI/StorageWorkerLauncher.sh")
 
             os.system("cd /home/pi/ServerFiles/StorageManagement/GUI/")
             os.system(
-                "echo \"#!/bin/bash\nsleep 5\ncd /home/pi/ServerFiles/StorageManagement/GUI\npython3 StorageManager.py"
+                "echo \"#!/bin/bash\necho \"StorageManager wird in 5s gestartet...\"\nsleep 5\ncd /home/pi/ServerFiles/StorageManagement/GUI\npython3 StorageManager.py"
                 "\ncd /\" > /home/pi/ServerFiles/StorageManagement/GUI/StorageManagerLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/StorageManagement/GUI/StorageManagerLauncher.sh")
 

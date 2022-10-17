@@ -264,6 +264,7 @@ class StorageManager:
                                         Backend.save_cassette_contains(18, cassette18.get(), cassette18_amount.get()),
                                         Backend.save_cassette_contains(19, cassette19.get(), cassette19_amount.get()),
                                         Backend.save_cassette_contains(20, cassette20.get(), cassette20_amount.get()),
+                                        self.feedback_label(popup, "Werte aktualisiert.", 7, 3),
                                         popup.update()
                                     ),
                                     width=8, height=1, background="#2118f5", fg="white", font=("Tekton Pro", 14))
