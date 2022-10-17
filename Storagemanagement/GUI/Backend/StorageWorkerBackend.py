@@ -135,17 +135,17 @@ class StorageWorkerBackend:
         variation = article_id[8:]
         article_id = article_id[:7]
 
-        c.execute("SELECT procedure FROM article_procedure_table WHERE article_id=%s", (article_id,))
-        procedure = c.fetchone()
-        if procedure is not None:
-            if procedure[0] is not None:
-                procedure = procedure[0]
+        c.execute("SELECT procedure_id FROM article_procedure_table WHERE article_id=%s", (article_id,))
+        procedure_id = c.fetchone()
+        if procedure_id is not None:
+            if procedure_id[0] is not None:
+                procedure_id = procedure_id[0]
         else:
             self.set_feedback_message("Produktions-vorgang für diesen Artikel ist nicht angelegt: " + article_id)
 
-        rfid = station + procedure + variation
+        rfid = station + procedure_id + variation
         self.statistic_tracker("IN", rfid)
-        new_rfid = Client.send(Client.SENDING_RFID, rfid) + procedure + variation
+        new_rfid = Client.send(Client.SENDING_RFID, rfid) + procedure_id + variation
         self.statistic_tracker("OUT", new_rfid)
         print("New RFID: " + rfid + " -> " + new_rfid)
         Client.send(Client.DISCONNECT_MESSAGE)

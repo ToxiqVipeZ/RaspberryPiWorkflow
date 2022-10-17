@@ -7,13 +7,13 @@ MYSQL_PASSWD = "raspberry"
 MYSQL_DB = "production"
 
 
-def next_in_queue(connection, cursor, procedure, station, next_station, variation_value):
+def next_in_queue(connection, cursor, procedure_id, station, next_station, variation_value):
     c = cursor
-    c.execute("SELECT article_id FROM article_procedure_table WHERE procedure=(%s)", (procedure,))
+    c.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure,))
     article_id_queue = c.fetchone()
     article_id_queue = article_id_queue[0] + "-" + variation_value
     print("test: article_id_queue: " + article_id_queue)
-    # queue position where procedure and station matches
+    # queue position where procedure_id and station matches
     c.execute("SELECT MIN(queue_pos) FROM article_queue WHERE article_id=(%s) AND next_station=(%s)",
               (article_id_queue, station,))
     in_queue = cursor.fetchone()[0]
@@ -24,13 +24,13 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
         if in_queue is None:
             in_queue = False
 
-            # c.execute("SELECT article_id FROM article_procedure_table WHERE procedure=(%s)", (procedure,))
+            # c.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure,))
             # article_id_queue = c.fetchone()
             # if article_id_queue != None:
             #    article_id_queue = article_id_queue[0]
             # regex = r"(" + re.escape(article_id_queue) + r")+[-]{1}[0-9]{2}"
             print("RFID nicht in der Warteschlange! " + article_id_queue + "\nVorgang: " +
-                  procedure + "\nStation: " + station)
+                  procedure_id + "\nStation: " + station)
 
             c.execute(
                 "SELECT MIN(production_number) FROM shop_info_table WHERE status_ident=(%s) AND article_id=(%s)",
@@ -49,8 +49,8 @@ def next_in_queue(connection, cursor, procedure, station, next_station, variatio
                       + str(order_item_id) + "; prod_nr: " + str(prod_nr))
 
                 c.execute(
-                    "INSERT INTO article_queue(article_id, procedure, next_station) VALUES (%s, %s, %s)",
-                    (article_id, procedure, next_station))
+                    "INSERT INTO article_queue(article_id, procedure_id, next_station) VALUES (%s, %s, %s)",
+                    (article_id, procedure_id, next_station))
                 connection.commit()
 
                 c.execute(
@@ -115,7 +115,7 @@ def main(*args):
         stations_value = args[1]
         variation_value = args[2]
 
-        # the databank operation that selects the workflow procedure value, matching the passed one
+        # the databank operation that selects the workflow procedure_id value, matching the passed one
         c.execute("SELECT * FROM workflow_planner_table WHERE workflow_procedure = (%s)",
                   (workflow_procedure_value,))
 

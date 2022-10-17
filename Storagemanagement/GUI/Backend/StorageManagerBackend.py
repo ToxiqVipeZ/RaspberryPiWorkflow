@@ -176,6 +176,9 @@ class StorageManagerBackend:
         # cursor instance:
         c = connection.cursor()
 
+        if contains_max_amount == "":
+            contains_max_amount = None
+
         c.execute("UPDATE cassette_management_table "
                   "SET cassette_contains=%s, "
                   "contains_max_amount=%s "

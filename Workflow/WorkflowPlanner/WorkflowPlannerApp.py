@@ -12,7 +12,7 @@ class WorkflowPlannerApp:
     MYSQL_DB = "production"
 
     """
-    This class creates an App to plan and manage the workflow of a procedure
+    This class creates an App to plan and manage the workflow of a procedure_id
     """
 
     def take_input(self, root, text_window, operation):
@@ -74,19 +74,19 @@ class WorkflowPlannerApp:
         popup_article_label = tk.Label(popup, text="Artikel-ID:")
         popup_procedure_label = tk.Label(popup, text="Vorgangsnummer:")
         article_entry = tk.Entry(popup)
-        procedure_entry = tk.Entry(popup)
+        procedure_id_entry = tk.Entry(popup)
         popup_confirm_button = tk.Button(popup,
                                          text="Speichern",
                                          command=lambda: (
                                              self.article_procedure_database_operation(
                                                  article_entry.get(),
-                                                 procedure_entry.get(),
+                                                 procedure_id_entry.get(),
                                                  popup)
                                          ))
         popup_article_label.pack()
         article_entry.pack()
         popup_procedure_label.pack()
-        procedure_entry.pack()
+        procedure_id_entry.pack()
         popup_confirm_button.pack()
 
     def article_procedure_database_operation(self, value_a, value_b, window):
@@ -142,7 +142,7 @@ class WorkflowPlannerApp:
 
                  # cursor instance:
                 c = connection.cursor()
-                # workflow_procedure_value = procedure number (examples: 001 | 002 | 003)
+                # workflow_procedure_value = procedure_id number (examples: 001 | 002 | 003)
                 # stations_value = station number (examples: [01;02;05] | [07;02;01;05,03] | ...])
                 c.execute("UPDATE workflow_planner_table SET times=(%s) WHERE workflow_procedure=(%s)",
                           (times, workflow_procedure_value))
@@ -191,7 +191,7 @@ class WorkflowPlannerApp:
                 # cursor instance:
                 c = connection.cursor()
 
-                # workflow_procedure_value = procedure number (examples: 001 | 002 | 003)
+                # workflow_procedure_value = procedure_id number (examples: 001 | 002 | 003)
                 # stations_value = station number (examples: [01;02;05] | [07;02;01;05,03] | ...])
                 c.execute("INSERT INTO workflow_planner_table(workflow_procedure, stations) VALUES (%s, %s)",
                           (workflow_procedure_value, stations_values))
@@ -254,7 +254,7 @@ class WorkflowPlannerApp:
         # saving screen width and height
         width, height = root.winfo_screenwidth(), root.winfo_screenheight()
 
-        # textbox to save a procedure workflow
+        # textbox to save a procedure_id workflow
         text_save_window = tk.Text(root, height=5, width=40)
         # label above the text_save_window
         text_label = tk.Label(root, text="Form: \"Verfahren;Fertigung;Montage;Versand;...\""
@@ -273,7 +273,7 @@ class WorkflowPlannerApp:
         # buttonTest_btn.grid(column=0, row=0)
         button_save_btn.pack(pady=(5, 10))
 
-        # textbox to save a procedure workflow
+        # textbox to save a procedure_id workflow
         text_save_times_window = tk.Text(root, height=5, width=40)
         # label above the text_save_window
         text_times_label = tk.Label(root, text="Form: \"Verfahren;Zeitlimit Station-Fertigung;Zeitlimit Station-Montage; ...\" \n"

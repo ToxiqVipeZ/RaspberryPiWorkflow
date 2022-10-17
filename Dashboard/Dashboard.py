@@ -411,9 +411,9 @@ def display_time(n_intervals, children):
                 check_in = card_df["process_start"][x]
                 article_id = card_df["article_id"][x]
 
-                prod_cur.execute("SELECT procedure FROM article_procedure_table "
+                prod_cur.execute("SELECT procedure_id FROM article_procedure_table "
                                  "WHERE article_id=%s", (article_id[:-3],))
-                procedure = prod_cur.fetchone()[0]
+                procedure_id = prod_cur.fetchone()[0]
 
                 prod_cur.execute("SELECT stations, times FROM workflow_planner_table "
                                  "WHERE workflow_procedure=%s", (procedure,))

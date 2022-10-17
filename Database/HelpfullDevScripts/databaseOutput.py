@@ -1,12 +1,17 @@
-import sqlite3
 import datetime
+import mysql.connector
 
-# connection holds the connection to the database
-#connection = sqlite3.connect("//FILESERVER/productionDatabase/productionDatabase.db")
-connection = sqlite3.connect("../productionDatabase.db")
+MYSQL_HOST = "169.254.0.3"
+MYSQL_USER = "pi"
+MYSQL_PASSWD = "raspberry"
+MYSQL_DB = "production"
 
 # cursor instance:
+connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                     passwd=MYSQL_PASSWD, db=MYSQL_DB)
+
 c = connection.cursor()
+
 print("")
 print("Workflow Planer Tabelle: ")
 
@@ -18,7 +23,7 @@ for item in items:
 
 print("\n\nArtikel <--> Vorgang - Relationstabelle: ")
 
-c.execute("SELECT * FROM article_procedure_table ORDER BY procedure")
+c.execute("SELECT * FROM article_procedure_table ORDER BY procedure_id")
 items = c.fetchall()
 
 for item in items:

@@ -218,7 +218,7 @@ def apt_reset(connection, c):
     c.execute("""
     CREATE TABLE article_procedure_table (
     article_id TEXT UNIQUE,
-    procedure TEXT UNIQUE
+    procedure_id TEXT UNIQUE
     )""")
 
     # committing the created table:
@@ -232,7 +232,7 @@ def aq_reset(connection, c):
     CREATE TABLE article_queue (
     queue_pos INTEGER PRIMARY KEY,
     article_id TEXT,
-    procedure TEXT,
+    procedure_id TEXT,
     next_station TEXT
     )""")
 

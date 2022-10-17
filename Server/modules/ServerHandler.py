@@ -14,7 +14,7 @@ class ServerHandler:
     def station_in(self, rfid, station):
         print("ServerHandler called! station = " + station)
         variant = rfid[5:]
-        procedure = rfid[2:5]
+        procedure_id = rfid[2:5]
 
         if station == "01":
             station = "QUEUED"
@@ -26,7 +26,7 @@ class ServerHandler:
         cursor = connection.cursor()
 
         # getting article_id
-        cursor.execute("SELECT article_id FROM article_procedure_table WHERE procedure=(%s)", (procedure,))
+        cursor.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure,))
         article_id = cursor.fetchone()[0]
 
         # adding the variant to the article_id
@@ -79,7 +79,7 @@ class ServerHandler:
     def station_out(self, rfid, station):
         print("ServerHandler called! station = " + station)
         variant = rfid[5:]
-        procedure = rfid[2:5]
+        procedure_id = rfid[2:5]
 
         # connection holds the connection to the database
         connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
@@ -88,7 +88,7 @@ class ServerHandler:
         cursor = connection.cursor()
 
         # getting article_id
-        cursor.execute("SELECT article_id FROM article_procedure_table WHERE procedure=(%s)", (procedure,))
+        cursor.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure,))
         article_id = cursor.fetchone()[0]
 
         # adding the variant to the article_id
