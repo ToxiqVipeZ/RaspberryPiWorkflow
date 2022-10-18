@@ -169,7 +169,7 @@ class StorageWorkerBackend:
         connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
                                              passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
-        c.execute("SELECT * FROM process_time_table WHERE station=\"01\" ORDER BY process_id ASC")
+        c.execute("SELECT * FROM process_time_table WHERE station='01' ORDER BY process_id ASC")
         articles_to_pack = c.fetchall()
 
         if articles_to_pack is not []:

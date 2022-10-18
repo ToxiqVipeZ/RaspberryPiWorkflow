@@ -9,8 +9,6 @@ MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
 MYSQL_DB_WP = "wordpress"
 MYSQL_DB_P = "production"
-#SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-SQLITE3_HOST = "/home/pi/ServerFiles/Database/productionDatabase.db"
 
 
 class ShopInformationCollector:

@@ -3,37 +3,44 @@ from dash.dependencies import Output, Input, State, MATCH
 import math
 import dash_bootstrap_components as dbc
 import pandas as pd
-import sqlite3
 import mysql.connector
+
+import sqlalchemy
 from datetime import datetime
 
-# SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-# SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
 MYSQL_DB = "production"
 
-production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                                passwd=MYSQL_PASSWD, db=MYSQL_DB)
-prod_cursor = production_connection.cursor()
+#production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+#                                                passwd=MYSQL_PASSWD, db=MYSQL_DB)
+production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
 
+# create_engine("mysql+pymysql://pi:raspberry@169.254.0.3/production?charset=utf8mb4")
+
+# prod_cursor = production_connection.cursor()
+str1 = "Kunde"
+str2 = "None"
 # Dataquery's for data frames
-SQL_QUERY_PTT_1 = "SELECT * FROM process_time_table WHERE next_station!=\"Kunde\"" \
-                  " ORDER BY ROWID DESC"
+SQL_QUERY_PTT_1 = "SELECT * FROM process_time_table WHERE next_station!='Kunde'" \
+                  " ORDER BY process_id DESC"
 SQL_QUERY_PTT_2 = "SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, next_station AS Pull" \
                   " FROM process_time_table " \
-                  "WHERE next_station!=\"Kunde\" ORDER BY ROWID DESC"
+                  "WHERE next_station!='Kunde' ORDER BY process_id DESC"
 SQL_QUERY_PTT_5 = "SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, next_station AS Pull, process_end AS Checkout " \
                   "FROM process_time_table " \
-                  "WHERE next_station!=\"Kunde\"" \
-                  "AND process_end!=\"None\" ORDER BY ROWID DESC"
+                  "WHERE next_station!='Kunde'" \
+                  "AND process_end!='None' ORDER BY process_id DESC"
 
-df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
+df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, con=production_connection)
 
 # Dataframes
-df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
-df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
+df_logs = pd.read_sql(SQL_QUERY_PTT_1, con=production_connection)
+df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, con=production_connection)
 
 df_logs_columns = ["ProzessID", "ArtikelID", "BestellID", "Station",
                    "Nächste Station", "Endstation", "Startzeit", "Endzeit"]
@@ -170,7 +177,7 @@ app.layout = html.Div([
     dcc.Interval(interval=1 * 500, n_intervals=0, id="puffer_time_check")
 ], style={"margin": 20})
 
-production_connection.close()
+
 
 
 @app.callback(
@@ -178,10 +185,12 @@ production_connection.close()
     Input(component_id="puffer_time_check", component_property="n_intervals")
 )
 def stations_puffer_time(n_intervals):
-    production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                                    passwd=MYSQL_PASSWD, db=MYSQL_DB)
+    production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
 
-    df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
+    df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, con=production_connection)
 
     for x in range(0, len(df_stations_await_plus)):
         now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
@@ -191,7 +200,7 @@ def stations_puffer_time(n_intervals):
 
         df_stations_await_plus["Checkout"][x] = str(difference)
 
-    production_connection.close()
+
     # print(df_stations_await_plus.to_dict("records"))
     return df_stations_await_plus.to_dict("records")
 
@@ -213,14 +222,16 @@ def display_error_cards(n_intervals, div_children):
     # C.O.S:
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
-    production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                                    passwd=MYSQL_PASSWD, db=MYSQL_DB)
-    prod_cursor = production_connection.cursor()
+    production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
+    # prod_cursor = production_connection.cursor()
 
     SQL_QUERY_PTT_3 = "SELECT station_nr, error_start, error_type, error_message " \
-                      "FROM error_history_table WHERE error_end IS \"waiting\""
+                      "FROM error_history_table WHERE error_end = 'waiting'"
 
-    card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+    card_df = pd.read_sql(SQL_QUERY_PTT_3, con=production_connection)
     card_df = card_df.sort_values(by="station_nr")
     card_df = card_df.reset_index(drop=True)
 
@@ -280,13 +291,13 @@ def display_error_cards(n_intervals, div_children):
                 ]
             )
             div_children.append(new_card)
-            production_connection.close()
+
             return div_children
         else:
-            production_connection.close()
+
             return dash.no_update
     else:
-        production_connection.close()
+
         return dash.no_update
 
 
@@ -307,68 +318,70 @@ def display_cards(n_intervals, div_children):
     # C.O.S Comment in:
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
-    production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                                    passwd=MYSQL_PASSWD, db=MYSQL_DB)
-    prod_cursor = production_connection.cursor()
+    production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
+    # prod_cursor = production_connection.cursor()
 
     SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
                       "FROM process_time_table " \
                       "WHERE process_end IS NULL " \
-                      "AND next_station IS NOT \"Kunde\""
+                      "AND next_station != 'Kunde'"
 
-    card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+    card_df = pd.read_sql(SQL_QUERY_PTT_3, con=production_connection)
     card_df = card_df.sort_values(by="station")
     card_df = card_df.reset_index(drop=True)
 
-    n_intervals = n_intervals % len(card_df)
-    station_nr = card_df.get("station")[n_intervals]
-    if div_children is not None:
-        if len(div_children) < len(card_df):
-            if n_intervals in range(0, len(card_df)):
-                new_card = html.Div(
-                    style={"width": 210, "height": 180,
-                           "margin": 10, "margin-left": 0, "textAlign": "center",
-                           "display": "inline-block", "verticalAlign": "top",
-                           "horizontalAlign": "right"},
-                    children=[
-                        dbc.Card(
-                            id={
-                                "type": "dynamic-cards",
-                                "index": station_nr + str(n_intervals)
-                            },
-                            children=[
-                                dbc.CardHeader(
-                                    children=["Station: " + station_nr],
-                                    style={"border-bottom": "3px solid blue", "font-weight": "bold", "font-size": 18}
-                                ),
-                                dbc.CardBody(
-                                    id={
-                                        "type": "dynamic-cards-text",
-                                        "index": station_nr + str(n_intervals)
-                                    },
-                                    children=[],
-                                    className="text-white"
-                                ),
-                            ],
-                            style={"border-color": "blue",
-                                   "border-style": "outset",
-                                   "border-width": "4px"
-                                   },
-                            className="text-white"
-                        )
-                    ]
-                )
-                div_children.append(new_card)
-                production_connection.close()
-                return div_children
+    if not card_df.empty:
+        n_intervals = n_intervals % len(card_df)
+        station_nr = card_df.get("station")[n_intervals]
+        if div_children is not None:
+            if len(div_children) < len(card_df):
+                if n_intervals in range(0, len(card_df)):
+                    new_card = html.Div(
+                        style={"width": 210, "height": 180,
+                               "margin": 10, "margin-left": 0, "textAlign": "center",
+                               "display": "inline-block", "verticalAlign": "top",
+                               "horizontalAlign": "right"},
+                        children=[
+                            dbc.Card(
+                                id={
+                                    "type": "dynamic-cards",
+                                    "index": station_nr + str(n_intervals)
+                                },
+                                children=[
+                                    dbc.CardHeader(
+                                        children=["Station: " + station_nr],
+                                        style={"border-bottom": "3px solid blue", "font-weight": "bold", "font-size": 18}
+                                    ),
+                                    dbc.CardBody(
+                                        id={
+                                            "type": "dynamic-cards-text",
+                                            "index": station_nr + str(n_intervals)
+                                        },
+                                        children=[],
+                                        className="text-white"
+                                    ),
+                                ],
+                                style={"border-color": "blue",
+                                       "border-style": "outset",
+                                       "border-width": "4px"
+                                       },
+                                className="text-white"
+                            )
+                        ]
+                    )
+                    div_children.append(new_card)
+
+                    return div_children
+                else:
+                    return dash.no_update
             else:
-                production_connection.close()
                 return dash.no_update
         else:
-            production_connection.close()
             return dash.no_update
     else:
-        production_connection.close()
         return dash.no_update
 
 
@@ -387,18 +400,19 @@ def display_time(n_intervals, children):
     # SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
 
-    production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                                    passwd=MYSQL_PASSWD, db=MYSQL_DB)
-    prod_cur = production_connection.cursor()
+    production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
 
     SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
                       "FROM process_time_table " \
                       "WHERE process_end IS NULL " \
-                      "AND next_station IS NOT \"Kunde\""
+                      "AND next_station IS NOT 'Kunde'"
 
     children_index = str(callback_context.outputs_grouping)
     children_index = children_index.split("\'index\': \'")[1][:2]
-    card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+    card_df = pd.read_sql(SQL_QUERY_PTT_3, con=production_connection)
     card_df = card_df.sort_values(by="station")
     card_df = card_df.reset_index(drop=True)
 
@@ -411,13 +425,13 @@ def display_time(n_intervals, children):
                 check_in = card_df["process_start"][x]
                 article_id = card_df["article_id"][x]
 
-                prod_cur.execute("SELECT procedure_id FROM article_procedure_table "
+                production_connection.execute("SELECT procedure_id FROM article_procedure_table "
                                  "WHERE article_id=%s", (article_id[:-3],))
-                procedure_id = prod_cur.fetchone()[0]
+                procedure_id = production_connection.fetchone()[0]
 
-                prod_cur.execute("SELECT stations, times FROM workflow_planner_table "
-                                 "WHERE workflow_procedure=%s", (procedure,))
-                time_limit = prod_cur.fetchone()
+                production_connection.execute("SELECT stations, times FROM workflow_planner_table "
+                                 "WHERE workflow_procedure=%s", (procedure_id,))
+                time_limit = production_connection.fetchone()
                 time_limit_stations = time_limit[0].split(";")
                 time_limit_times = time_limit[1].split(";")
                 for y in range(0, len(time_limit[0])):

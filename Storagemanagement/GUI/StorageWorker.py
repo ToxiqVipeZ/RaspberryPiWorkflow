@@ -56,11 +56,11 @@ class StorageWorker:
             self.CScanner.set_triggered_cassette(0)
             self.cassette_scanned = 0
 
-            time.sleep(1)
+            time.sleep(10)
             self.exec_after_scan()
 
         else:
-            time.sleep(1)
+            time.sleep(10)
             self.exec_after_scan()
 
     def fill_packed_queue(self, part_id):
@@ -140,6 +140,8 @@ class StorageWorker:
         tree3.heading("part_ids", text="Gepackt: ")
 
         tree3.grid(column=2, row=1, rowspan=1, columnspan=1)
+
+        print(self.data)
 
         # check if data exists:
         if self.data is not None and self.data != 0 and self.data != (0, 0):

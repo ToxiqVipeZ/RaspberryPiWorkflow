@@ -76,7 +76,7 @@ class Installer:
             os.system("sudo apt-get update")
             os.system("sudo apt-get upgrade -y")
 
-            os.system("apt-get install x11-xserver-utils")
+            os.system("sudo apt-get install x11-xserver-utils")
 
             print("\n################################\n"
                   "Installing library's....\n"
@@ -151,6 +151,9 @@ class Installer:
                 "\ncd /\" > /home/pi/ServerFiles/Server/Standalones/SICLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/Server/Standalones/SICLauncher.sh")
 
+            print("\n################################\n"
+                  "Deactivating screen saver..\n"
+                  "################################\n")
             autostart_server_apps = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
             autostart_server_apps.write(
                 "@xset s noblank\n"
@@ -161,6 +164,9 @@ class Installer:
                 "@lxterminal -e bash /home/pi/ServerFiles/Server/Standalones/SICLauncher.sh\n"
             )
             autostart_server_apps.close()
+            print("\n################################\n"
+                  "screen saver deactivated.\n"
+                  "################################\n")
 
             os.system("cd /home/pi/Desktop/")
             os.system("echo \"[Desktop Entry]\n"
@@ -234,6 +240,8 @@ class Installer:
             os.system("sudo apt-get update")
             os.system("sudo apt-get upgrade -y")
 
+            os.system("sudo apt-get install x11-xserver-utils")
+
             print("\n################################\n"
                   "Installing library's....\n"
                   "################################\n")
@@ -279,6 +287,9 @@ class Installer:
             os.system(
                 "sudo cp /home/pi/ServerFiles/Workflow/Workstation/modules/SimpleMFRC522.py "
                 "/usr/local/lib/python3.9/dist-packages/mfrc522/")
+            print("\n################################\n"
+                  "RFID packages installed.\n"
+                  "################################\n")
             time.sleep(2)
             import RPi.GPIO as GPIO
             from mfrc522 import SimpleMFRC522
@@ -302,6 +313,10 @@ class Installer:
                   "################################\n")
             os.system("sudo apt-get -y install python3-pil python3-pil.imagetk")
             os.system("python3 -m pip install git+https://github.com/RedFantom/ttkthemes")
+
+            print("\n################################\n"
+                  "tkinter packages installed.\n"
+                  "################################\n")
             import _tkinter
             import tkinter
             import ttkthemes
@@ -309,13 +324,27 @@ class Installer:
 
         try:
             import mysql.connector
-
         except ImportError:
             print("\n################################\n"
                   "Installing mysql packages...\n"
                   "################################\n")
             os.system("pip3 install mysql.connector")
+            print("\n################################\n"
+                  "mysql packages installed.\n"
+                  "################################\n")
             import mysql.connector
+
+        try:
+            import netifaces
+        except ImportError:
+            print("\n################################\n"
+                  "Installing netifaces packages...\n"
+                  "################################\n")
+            os.system("pip3 install netifaces")
+            print("\n################################\n"
+                  "netifaces packages installed.\n"
+                  "################################\n")
+            import netifaces
 
         try:
             print("\n################################\n"
@@ -335,10 +364,22 @@ class Installer:
                 "\ncd /\" > /home/pi/ServerFiles/StorageManagement/GUI/StorageManagerLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/StorageManagement/GUI/StorageManagerLauncher.sh")
 
-            autostart_workstation_app = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
-            autostart_workstation_app.write(
-                "@lxterminal -e bash /home/pi/ServerFiles/StorageManagement/GUI/StorageWorkerLauncher.sh")
-            autostart_workstation_app.close()
+            print("\n################################\n"
+                  "Deactivating screen saver, saving autostart..\n"
+                  "################################\n")
+
+            autostart_storageworker_apps = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
+            autostart_storageworker_apps.write(
+                "@xset s noblank\n"
+                "@xset s off\n"
+                "@xset -dpms\n"
+                "@lxterminal -e bash /home/pi/ServerFiles/StorageManagement/GUI/StorageWorkerLauncher.sh\n"
+            )
+            autostart_storageworker_apps.close()
+
+            print("\n################################\n"
+                  "Screen saver deactivated.\n Autostart saved.\n"
+                  "################################\n")
 
             os.system("cd /home/pi/Desktop/")
             os.system("echo \"[Desktop Entry]\n"
@@ -403,6 +444,8 @@ class Installer:
             time.sleep(2)
             os.system("sudo apt-get update")
             os.system("sudo apt-get upgrade -y")
+
+            os.system("sudo apt-get install x11-xserver-utils")
 
             print("\n################################\n"
                   "Installing library's....\n"
@@ -507,10 +550,22 @@ class Installer:
                 "\ncd /\" > /home/pi/ServerFiles/Workflow/WorkflowPlanner/WorkflowPlannerLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/Workflow/WorkflowPlanner/WorkflowPlannerLauncher.sh")
 
-            autostart_workstation_app = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
-            autostart_workstation_app.write(
-                "@lxterminal -e bash /home/pi/ServerFiles/Workflow/Workstation/WorkstationLauncher.sh")
-            autostart_workstation_app.close()
+            print("\n################################\n"
+                  "Deactivating screen saver, saving autostart..\n"
+                  "################################\n")
+
+            autostart_workstation_apps = open("/etc/xdg/lxsession/LXDE-pi/autostart", "a")
+            autostart_workstation_apps.write(
+                "@xset s noblank\n"
+                "@xset s off\n"
+                "@xset -dpms\n"
+                "@lxterminal -e bash /home/pi/ServerFiles/Workflow/Workstation/WorkstationLauncher.sh\n"
+            )
+            autostart_workstation_apps.close()
+
+            print("\n################################\n"
+                  "Screen saver deactivated.\n Autostart saved.\n"
+                  "################################\n")
 
             os.system("cd /home/pi/Desktop/")
             os.system("echo \"[Desktop Entry]\n"
