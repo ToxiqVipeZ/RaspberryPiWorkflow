@@ -1,4 +1,3 @@
-import sqlite3
 import mysql.connector
 import time
 from threading import Thread
@@ -146,6 +145,7 @@ class StorageWorkerBackend:
         rfid = station + procedure_id + variation
         self.statistic_tracker("IN", rfid)
         new_rfid = Client.send(Client.SENDING_RFID, rfid) + procedure_id + variation
+        time.sleep(1)
         self.statistic_tracker("OUT", new_rfid)
         print("New RFID: " + rfid + " -> " + new_rfid)
         Client.send(Client.DISCONNECT_MESSAGE)
@@ -169,14 +169,15 @@ class StorageWorkerBackend:
         connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
                                              passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
-        c.execute("SELECT * FROM process_time_table WHERE station='01' ORDER BY process_id ASC")
+        c.execute("SELECT * FROM shop_info_table WHERE status_ident='QUEUED' ORDER BY production_number ASC")
         articles_to_pack = c.fetchall()
 
         if articles_to_pack is not []:
             if len(articles_to_pack) > 0:
                 next_article_to_pack = articles_to_pack[0]
+                article_id_to_pack = next_article_to_pack[2]
                 c.execute("SELECT * FROM article_parts_relation_table WHERE article_id=%s",
-                          (str(next_article_to_pack[1]),))
+                          (str(article_id_to_pack),))
                 article_parts_rel = c.fetchone()
                 parts = article_parts_rel[1][2:-2].split("\', \'")
                 amounts = article_parts_rel[2][2:-2].split("\', \'")

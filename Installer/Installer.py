@@ -122,6 +122,18 @@ class Installer:
             os.system("pip3 install mysql.connector")
             import mysql.connector
 
+        try:
+            import netifaces
+        except ImportError:
+            print("\n################################\n"
+                  "Installing netifaces packages...\n"
+                  "################################\n")
+            os.system("pip3 install netifaces")
+            print("\n################################\n"
+                  "netifaces packages installed.\n"
+                  "################################\n")
+            import netifaces
+
         print("\n################################\n"
               "Setup of autonomic StorageApp start at launch...\n"
               "################################\n")
@@ -354,13 +366,15 @@ class Installer:
 
             os.system("cd /home/pi/ServerFiles/StorageManagement/GUI/")
             os.system(
-                "echo \"#!/bin/bash\necho \"StorageWorker wird in 5s gestartet...\"\nsleep 5\ncd /home/pi/ServerFiles/StorageManagement/GUI\npython3 StorageWorker.py"
+                "echo \"#!/bin/bash\necho \"StorageWorker wird in 5s gestartet...\"\nsleep 5\ncd "
+                "/home/pi/ServerFiles/StorageManagement/GUI\npython3 StorageWorker.py"
                 "\ncd /\" > /home/pi/ServerFiles/StorageManagement/GUI/StorageWorkerLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/StorageManagement/GUI/StorageWorkerLauncher.sh")
 
             os.system("cd /home/pi/ServerFiles/StorageManagement/GUI/")
             os.system(
-                "echo \"#!/bin/bash\necho \"StorageManager wird in 5s gestartet...\"\nsleep 5\ncd /home/pi/ServerFiles/StorageManagement/GUI\npython3 StorageManager.py"
+                "echo \"#!/bin/bash\necho \"StorageManager wird in 5s gestartet...\"\nsleep 5\ncd "
+                "/home/pi/ServerFiles/StorageManagement/GUI\npython3 StorageManager.py"
                 "\ncd /\" > /home/pi/ServerFiles/StorageManagement/GUI/StorageManagerLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/StorageManagement/GUI/StorageManagerLauncher.sh")
 
@@ -533,6 +547,30 @@ class Installer:
             from PIL import Image, ImageTk
 
         try:
+            import mysql.connector
+        except ImportError:
+            print("\n################################\n"
+                  "Installing mysql packages...\n"
+                  "################################\n")
+            os.system("pip3 install mysql.connector")
+            print("\n################################\n"
+                  "mysql packages installed.\n"
+                  "################################\n")
+            import mysql.connector
+
+        try:
+            import netifaces
+        except ImportError:
+            print("\n################################\n"
+                  "Installing netifaces packages...\n"
+                  "################################\n")
+            os.system("pip3 install netifaces")
+            print("\n################################\n"
+                  "netifaces packages installed.\n"
+                  "################################\n")
+            import netifaces
+
+        try:
             print("\n################################\n"
                   "Setup of autonomic WorkstationApp start at launch...\n"
                   "################################\n")
@@ -540,13 +578,15 @@ class Installer:
 
             os.system("cd /home/pi/ServerFiles/Workflow/Workstation/")
             os.system(
-                "echo \"#!/bin/bash\necho \"WorkstationApp wird in 5s gestartet...\"\nsleep 5\ncd /home/pi/ServerFiles/Workflow/Workstation\npython3 WorkstationApp.py"
+                "echo \"#!/bin/bash\necho \"WorkstationApp wird in 5s gestartet...\"\nsleep 5\ncd "
+                "/home/pi/ServerFiles/Workflow/Workstation\npython3 WorkstationApp.py"
                 "\ncd /\" > /home/pi/ServerFiles/Workflow/Workstation/WorkstationLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/Workflow/Workstation/WorkstationLauncher.sh")
 
             os.system("cd /home/pi/ServerFiles/Workflow/WorkflowPlanner/")
             os.system(
-                "echo \"#!/bin/bash\necho \"WorkflowPlanner wird in 5s gestartet...\"\nsleep 5\ncd /home/pi/ServerFiles/Workflow/WorkflowPlanner\npython3 WorkflowPlannerApp.py"
+                "echo \"#!/bin/bash\necho \"WorkflowPlanner wird in 5s gestartet...\"\nsleep 5\ncd "
+                "/home/pi/ServerFiles/Workflow/WorkflowPlanner\npython3 WorkflowPlannerApp.py"
                 "\ncd /\" > /home/pi/ServerFiles/Workflow/WorkflowPlanner/WorkflowPlannerLauncher.sh")
             os.system("sudo chmod 755 /home/pi/ServerFiles/Workflow/WorkflowPlanner/WorkflowPlannerLauncher.sh")
 
@@ -581,7 +621,8 @@ class Installer:
                       "Name=WorkflowManager\n"
                       "Terminal=true\n"
                       "Exec=/home/pi/ServerFiles/Workflow/WorkflowPlanner/WorkflowPlannerLauncher.sh\n"
-                      "Icon=/home/pi/ServerFiles/Logos/desktoplogo.png\n\" > /home/pi/Desktop/WorkflowPlannerApp.desktop")
+                      "Icon=/home/pi/ServerFiles/Logos/desktoplogo.png\n\" "
+                      "> /home/pi/Desktop/WorkflowPlannerApp.desktop")
 
             os.system("sudo rm /etc/xdg/lxsession/LXDE-pi/sshpwd.sh")
 

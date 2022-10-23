@@ -4,6 +4,7 @@ from threading import Thread
 import time
 from Backend.CassetteScanner import CassetteScanner
 from Backend.StorageWorkerBackend import StorageWorkerBackend
+import sys
 
 
 class StorageWorker:
@@ -28,8 +29,10 @@ class StorageWorker:
         data_split[x][2] = in cassette -> None if not in cassette
     """
 
-
     def exec_after_scan(self):
+        while self.CScanner.get_triggered_cassette() == 0:
+            time.sleep(1)
+
         if self.CScanner.get_triggered_cassette() != 0:
             self.cassette_scanned = self.CScanner.get_triggered_cassette()
             for x in range(0, len(self.data_split)):
@@ -56,11 +59,7 @@ class StorageWorker:
             self.CScanner.set_triggered_cassette(0)
             self.cassette_scanned = 0
 
-            time.sleep(10)
-            self.exec_after_scan()
-
-        else:
-            time.sleep(10)
+            time.sleep(1)
             self.exec_after_scan()
 
     def fill_packed_queue(self, part_id):
@@ -150,7 +149,7 @@ class StorageWorker:
                 articles_to_pack = self.data[0]
                 if articles_to_pack != 0:
                     for x in range(0, len(articles_to_pack)):
-                        tree.insert("", tk.END, values=(articles_to_pack[x][1]))
+                        tree.insert("", tk.END, values=(articles_to_pack[x][2]))
             # check if table2(tree2) data exists:
             if self.data[1] is not None and self.data[1] != 0:
                 article_id = self.data_split[0]
@@ -169,8 +168,6 @@ class StorageWorker:
             print(self.cassette_queue)
 
             # The fourth table, showing parts in minimum or under minimum amounts
-
-            # The seconds table, including the parts that have to be packed
 
             tree4_label = tk.Label(text="Bestandswarnungen: ", font=("Tekton Pro", 14, 'bold'), background="#489df7")
             tree4_label.grid(column=1, row=2, rowspan=1, columnspan=1)
@@ -246,10 +243,13 @@ class StorageWorker:
         if self.Backend.feedback_message != "None":
             self.feedback_popup(self.Backend.feedback_message)
 
-    def empty_tables(self):
-        if self.data == 0:
-            print("tables still empty!")
+    def empty_tables(self, root):
+        while self.data == 0:
+            self.data = self.Backend.get_article_to_pack()
+            root.after(1000, root.update())
+        if self.data != 0:
             self.treeview_creator()
+            root.after(1000, root.update())
 
     def main(self):
         global root
@@ -273,10 +273,10 @@ class StorageWorker:
         done_button_text.set("Done")
         done_btn = tk.Button(root, textvariable=done_button_text,
                              command=lambda: (done_btn.configure(state="disabled"),
-                                              self.Backend.packing_completed(self.data[0][0][1],
+                                              self.Backend.packing_completed(self.data[0][0][2],
                                                                              self.not_in_cassettes),
                                               self.feedback_check(),
-                                              self.treeview_creator()),
+                                              self.empty_tables(root)),
                              width=10, height=5, background="green", state="disabled")
         done_btn.grid(column=3, row=1, rowspan=1)
 
@@ -297,7 +297,7 @@ class StorageWorker:
         # button2_btn.grid(column=2, row=1, rowspan=5)
 
         root.after(1000, Thread(target=self.exec_after_scan).start())
-        root.after(2000, self.empty_tables)
+        root.after(2000, self.empty_tables(root))
         # root.after(1000, self.exec_after_scan)
 
         root.mainloop()
