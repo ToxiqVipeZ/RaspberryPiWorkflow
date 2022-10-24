@@ -114,7 +114,6 @@ class Installer:
 
         try:
             import mysql.connector
-
         except ImportError:
             print("\n################################\n"
                   "Installing mysql packages...\n"

@@ -26,7 +26,7 @@ class ServerHandler:
         cursor = connection.cursor()
 
         # getting article_id
-        cursor.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure,))
+        cursor.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure_id,))
         article_id = cursor.fetchone()[0]
 
         # adding the variant to the article_id
@@ -37,16 +37,16 @@ class ServerHandler:
         # process_id = cursor.fetchone()[0]
 
         # getting production_number information
-        cursor.execute("SELECT production_number FROM shop_info_table WHERE article_id=(%s) AND status_ident=(%s)",
+        cursor.execute("SELECT MIN(production_number) FROM shop_info_table WHERE article_id=(%s) AND status_ident=(%s)",
                        (article_id, station,))
         prod_nr = cursor.fetchone()[0]
         print("Server_handler prod_nr: " + str(prod_nr))
 
-        cursor.execute("SELECT MIN(order_id) FROM shop_info_table WHERE production_number=(%s)", (prod_nr,))
+        cursor.execute("SELECT order_id FROM shop_info_table WHERE production_number=(%s)", (prod_nr,))
         order_id = cursor.fetchone()[0]
         print("Server_handler order_id: " + str(order_id))
 
-        cursor.execute("SELECT MIN(stations) FROM workflow_planner_table WHERE workflow_procedure=(%s)", (procedure,))
+        cursor.execute("SELECT MIN(stations) FROM workflow_planner_table WHERE workflow_procedure=(%s)", (procedure_id,))
         stations = cursor.fetchone()[0]
         print(stations)
         splitted_stations = stations.split(";")
@@ -55,6 +55,10 @@ class ServerHandler:
 
         if station == "QUEUED":
             station = "01"
+            #cursor.execute("UPDATE shop_info_table "
+            #               "SET status_ident=%s WHERE production_number=%s",
+            #               (station, prod_nr))
+            #connection.commit()
 
         if station == last_station:
             next_station = "Kunde"
@@ -88,7 +92,7 @@ class ServerHandler:
         cursor = connection.cursor()
 
         # getting article_id
-        cursor.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure,))
+        cursor.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure_id,))
         article_id = cursor.fetchone()[0]
 
         # adding the variant to the article_id

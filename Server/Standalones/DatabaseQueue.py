@@ -45,7 +45,6 @@ class DatabaseQueue:
 
                 cursor.execute("SELECT * FROM shop_info_table")
                 contents = cursor.fetchall()
-                print(contents)
 
                 if contents is not None:
                     cursor.execute("SELECT MIN(production_number) FROM shop_info_table WHERE status_ident = (%s)",

@@ -46,11 +46,11 @@ class StorageWorker:
                         self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
                         self.fill_packed_queue(part_id)
                     elif state == 1:
-                        self.feedback_popup("Mindestbestand für \"" + part_id + "\" erreicht")
+                        self.Backend.set_feedback_message("Mindestbestand für \"" + part_id + "\" erreicht")
                         self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
                         self.fill_packed_queue(part_id)
                     elif state == 2:
-                        self.feedback_popup("Bestand für \"" + part_id +
+                        self.Backend.set_feedback_message("Bestand für \"" + part_id +
                                             "\" negativ!\nEs liegt ein Fehler in der Datenhaltung vor.\n"
                                             "Bitte Korrigieren / Inventur durchführen")
                         self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
@@ -66,8 +66,10 @@ class StorageWorker:
         self.packed_queue.append(part_id)
         tree3.insert("", tk.END, values=part_id)
         tree3.update()
-        print("0 2 : " + str(self.data_split[3]) + " len:" + str(len(self.data_split[0][2])))
-        print("1 2 : " + str(self.data_split) + " len:" + str(len(self.data_split)))
+        #print("0 2 : " + str(self.data_split[3]) + " len:" + str(len(self.data_split[0][2])))
+        #print("1 2 : " + str(self.data_split) + " len:" + str(len(self.data_split)))
+        print("cassette_queue: " + str(self.cassette_queue))
+        print("packed_queue: " + str(self.packed_queue))
         if self.cassette_queue == self.packed_queue:
             done_btn.configure(state="normal")
             for x in range(0, len(self.data_split)):
@@ -155,13 +157,18 @@ class StorageWorker:
                 article_id = self.data_split[0]
                 if article_id != 0:
                     tree2.insert("", 0, values=article_id)
-                    for x in range(1, len(self.data_split[1]) + 1):
+                    print("self.datasplit: \n" + str(self.data_split))
+                    print("self.datasplit[1]: \n" + str(self.data_split[1]))
+                    print("len datasplit[1]: " + str(len(self.data_split[1])))
+                    print("len datasplit: " + str(len(self.data_split)))
+                    for x in range(1, len(self.data_split)):
+                        print("x: " + str(x))
                         tree2.insert("", tk.END, values=(" ",
                                                          self.data_split[x][0],
                                                          self.data_split[x][1],
                                                          self.data_split[x][2]))
             if self.data_split[1][0] is not None:
-                for x in range(1, len(self.data_split[1]) + 1):
+                for x in range(1, len(self.data_split)):
                     if self.data_split[x][2] != "-":
                         self.cassette_queue.append(self.data_split[x][0])
 
@@ -252,56 +259,58 @@ class StorageWorker:
             root.after(1000, root.update())
 
     def main(self):
-        global root
-        root = tk.Tk()
+        try:
+            global root
+            root = tk.Tk()
 
-        # window size:
-        width, height = root.winfo_screenwidth(), root.winfo_screenheight()
-        root.geometry("%dx%d+0+0" % (width, height))
-        root.configure(background="#489df7")
+            # window size:
+            width, height = root.winfo_screenwidth(), root.winfo_screenheight()
+            root.geometry("%dx%d+0+0" % (width, height))
+            root.configure(background="#489df7")
 
-        # background:
-        canvas = tk.Canvas(root, width=width, height=height, background="#489df7", highlightthickness=0)
-        canvas.config(borderwidth=0)
-        # window grid:
-        canvas.grid(columnspan=7, rowspan=7)
-        self.treeview_creator()
+            # background:
+            canvas = tk.Canvas(root, width=width, height=height, background="#489df7", highlightthickness=0)
+            canvas.config(borderwidth=0)
+            # window grid:
+            canvas.grid(columnspan=7, rowspan=7)
+            #self.treeview_creator()
 
-        # done button definition
-        global done_btn
-        done_button_text = tk.StringVar()
-        done_button_text.set("Done")
-        done_btn = tk.Button(root, textvariable=done_button_text,
-                             command=lambda: (done_btn.configure(state="disabled"),
-                                              self.Backend.packing_completed(self.data[0][0][2],
-                                                                             self.not_in_cassettes),
-                                              self.feedback_check(),
-                                              self.empty_tables(root)),
-                             width=10, height=5, background="green", state="disabled")
-        done_btn.grid(column=3, row=1, rowspan=1)
+            # done button definition
+            global done_btn
+            done_button_text = tk.StringVar()
+            done_button_text.set("Done")
+            done_btn = tk.Button(root, textvariable=done_button_text,
+                                 command=lambda: (done_btn.configure(state="disabled"),
+                                                  self.Backend.packing_completed(self.data[0][0][2],
+                                                                                 self.not_in_cassettes),
+                                                  self.feedback_check(),
+                                                  self.empty_tables(root)),
+                                 width=10, height=5, background="green", state="disabled")
+            done_btn.grid(column=3, row=1, rowspan=1)
 
-        # Testbutton definition
-        button1_text = tk.StringVar()
-        button1_text.set("Schote 1\nEntnahme")
-        button1_btn = tk.Button(root, textvariable=button1_text,
-                                command=lambda: (self.CScanner.set_triggered_cassette(1)),
-                                width=10, height=5, background="green")
-        button1_btn.grid(column=3, row=1, rowspan=3)
+            # Testbutton definition
+            button1_text = tk.StringVar()
+            button1_text.set("Schote 1\nEntnahme")
+            button1_btn = tk.Button(root, textvariable=button1_text,
+                                    command=lambda: (self.CScanner.set_triggered_cassette(1)),
+                                    width=10, height=5, background="green")
+            button1_btn.grid(column=3, row=1, rowspan=3)
 
-        # Testbutton definition
-        # button2_text = tk.StringVar()
-        # button2_text.set("Schote 1\nZugabe")
-        # button2_btn = tk.Button(root, textvariable=button2_text,
-        #                         command=lambda: (),
-        #                         width=10, height=5, background="red")
-        # button2_btn.grid(column=2, row=1, rowspan=5)
+            # Testbutton definition
+            # button2_text = tk.StringVar()
+            # button2_text.set("Schote 1\nZugabe")
+            # button2_btn = tk.Button(root, textvariable=button2_text,
+            #                         command=lambda: (),
+            #                         width=10, height=5, background="red")
+            # button2_btn.grid(column=2, row=1, rowspan=5)
 
-        root.after(1000, Thread(target=self.exec_after_scan).start())
-        root.after(2000, self.empty_tables(root))
-        # root.after(1000, self.exec_after_scan)
+            root.after(1000, Thread(target=self.exec_after_scan).start())
+            root.after(2000, self.empty_tables(root))
+            # root.after(1000, self.exec_after_scan)
 
-        root.mainloop()
-
+            root.mainloop()
+        finally:
+            self.Backend.send_disconnect()
 
 if __name__ == '__main__':
     StorageWorker().main()

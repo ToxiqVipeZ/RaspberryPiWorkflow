@@ -2,6 +2,7 @@ import mysql.connector
 import time
 from threading import Thread
 from . import Client
+from . import Writer
 
 DATABASE_PATH = "/home/pi/ServerFiles/Database/productionDatabase.db"
 MYSQL_HOST = "169.254.0.3"
@@ -15,6 +16,9 @@ class StorageWorkerBackend:
 
     def set_feedback_message(self, message):
         self.feedback_message = message
+
+    def send_disconnect(self):
+        Client.send(Client.DISCONNECT_MESSAGE)
 
     def stock_data(self):
         connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
@@ -77,9 +81,7 @@ class StorageWorkerBackend:
         connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
                                              passwd=MYSQL_PASSWD, db=MYSQL_DB)
         c = connection.cursor()
-        print(not_in_cassettes)
-        print(not_in_cassettes[0])
-        print(article_id)
+
         part_amount_in_store_list = []
         part_id_list = []
         part_amount_list = []
@@ -105,11 +107,15 @@ class StorageWorkerBackend:
                         part_amount_in_store_list.append(part_amount_in_store[0])
                         part_amount_list.append(item[1])
                         part_id_list.append(item[0])
-
+        print("TEST 1!")
         if not not_in_store_flag:
+            print("TEST 2!")
             for x in range(0, len(part_amount_in_store_list)):
+                print("TEST 3!")
                 if part_amount_in_store_list is not None:
+                    print("TEST 4!")
                     if part_amount_in_store_list[x] is not None:
+                        print("TEST 5!")
                         part_amount_in_store = part_amount_in_store_list[x]
                         part_amount = part_amount_list[x]
                         part_id = part_id_list[x]
@@ -119,7 +125,7 @@ class StorageWorkerBackend:
                                   (part_amount_in_store - int(part_amount), part_id))
                         connection.commit()
                         connection.close()
-                        self.setting_rfid(article_id)
+            self.setting_rfid(article_id)
         else:
             self.set_feedback_message("Eins / oder mehrere Teile dieses\n"
                                       "Artikels, sind nicht im Lager enthalten!\n"
@@ -143,12 +149,16 @@ class StorageWorkerBackend:
             self.set_feedback_message("Produktions-vorgang für diesen Artikel ist nicht angelegt: " + article_id)
 
         rfid = station + procedure_id + variation
-        self.statistic_tracker("IN", rfid)
+
         new_rfid = Client.send(Client.SENDING_RFID, rfid) + procedure_id + variation
+
         time.sleep(1)
+
+        Writer.Writer(new_rfid)
+
+        self.statistic_tracker("IN", rfid)
         self.statistic_tracker("OUT", new_rfid)
         print("New RFID: " + rfid + " -> " + new_rfid)
-        Client.send(Client.DISCONNECT_MESSAGE)
 
         connection.commit()
         connection.close()
@@ -157,9 +167,9 @@ class StorageWorkerBackend:
         station_number = "01"
         print("statistic_tracker station_number: " + station_number)
         if in_or_out == "IN":
-            Thread(target=Client.send(Client.TRACKING_STATS_IN, rfid_code, station_number)).start()
+            Client.send(Client.TRACKING_STATS_IN, rfid_code, station_number)
         elif in_or_out == "OUT":
-            Thread(target=Client.send(Client.TRACKING_STATS_OUT, rfid_code, station_number)).start()
+            Client.send(Client.TRACKING_STATS_OUT, rfid_code, station_number)
 
     def delayed_destroyer(self, item, time_in_s):
         time.sleep(time_in_s)
@@ -208,14 +218,6 @@ class StorageWorkerBackend:
             print("Keine Artikel die auf Bearbeitung warten.")
             return 0, 0
 
-        connection.close()
-
-    def main(self):
-        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
-        c = connection.cursor()
-
-        connection.commit()
         connection.close()
 
 

@@ -70,6 +70,7 @@ def send(msg, *args):
 
         # returning the next_station back to the application that called this client function
         next_station = client.recv(2048).decode(FORMAT)
+
         return next_station
 
     elif msg == TRACKING_STATS_IN or msg == TRACKING_STATS_OUT or msg == TRACKING_ERROR_IN or msg == TRACKING_ERROR_OUT:
@@ -133,7 +134,6 @@ def send(msg, *args):
         # sending the message length and the message itself afterwards (for any other messages)
         client.send(send_length)
         client.send(message)
-
 
 def get_ip_address():
     ip_address = socket.gethostbyname("WorkstationX.local")

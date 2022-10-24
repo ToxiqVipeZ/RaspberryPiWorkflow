@@ -336,6 +336,7 @@ def display_cards(n_intervals, div_children):
     if not card_df.empty:
         n_intervals = n_intervals % len(card_df)
         station_nr = card_df.get("station")[n_intervals]
+
         if div_children is not None:
             if len(div_children) < len(card_df):
                 if n_intervals in range(0, len(card_df)):
@@ -408,7 +409,12 @@ def display_time(n_intervals, children):
     SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
                       "FROM process_time_table " \
                       "WHERE process_end IS NULL " \
-                      "AND next_station IS NOT 'Kunde'"
+                      "AND next_station != 'Kunde'"
+
+    MYSQL_HOST2 = "169.254.0.3"
+    MYSQL_USER2 = "pi"
+    MYSQL_PASSWD2 = "raspberry"
+    MYSQL_DB2 = "production"
 
     children_index = str(callback_context.outputs_grouping)
     children_index = children_index.split("\'index\': \'")[1][:2]
@@ -422,55 +428,67 @@ def display_time(n_intervals, children):
     if card_df is not None:
         for x in range(0, len(card_df)):
             if card_df["station"][x] == children_index:
-                check_in = card_df["process_start"][x]
-                article_id = card_df["article_id"][x]
+                if card_df["station"][x] != "01":
+                    check_in = card_df["process_start"][x]
+                    article_id = card_df["article_id"][x]
 
-                production_connection.execute("SELECT procedure_id FROM article_procedure_table "
-                                 "WHERE article_id=%s", (article_id[:-3],))
-                procedure_id = production_connection.fetchone()[0]
+                    connection = mysql.connector.connect(host=MYSQL_HOST2, user=MYSQL_USER2,
+                                                         passwd=MYSQL_PASSWD2, db=MYSQL_DB2)
+                    c = connection.cursor()
 
-                production_connection.execute("SELECT stations, times FROM workflow_planner_table "
-                                 "WHERE workflow_procedure=%s", (procedure_id,))
-                time_limit = production_connection.fetchone()
-                time_limit_stations = time_limit[0].split(";")
-                time_limit_times = time_limit[1].split(";")
-                for y in range(0, len(time_limit[0])):
-                    if children_index == time_limit_stations[y]:
-                        time_limit_station = int(time_limit_times[y])
-                        # time_limit_station = datetime.strptime(time_limit_station, "%S")
-                        time_check_in = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
-                        difference = time_now - time_check_in
-                        body_child = str(difference)
-                        difference_in_sec = int(difference.total_seconds())
-                        minus_time_limit = time_limit_station - difference_in_sec
-                        color = "grey"
-                        textColor = "text-white"
-                        if minus_time_limit < 0:
-                            color = "yellow"
-                            textColor = "text-black"
-                            if minus_time_limit <= -20:
-                                color = "darkred"
-                                textColor = "text-white"
-                                if minus_time_limit <= -200001:
-                                    minus_time_limit = math.ceil(minus_time_limit / 10000)
-                        elif minus_time_limit > 0:
-                            color = "green"
+                    c.execute("SELECT procedure_id FROM article_procedure_table "
+                                     "WHERE article_id=%s", (article_id[:-3],))
+                    procedure_id = c.fetchone()[0]
+                    print(procedure_id)
+
+                    c.execute("SELECT stations, times FROM workflow_planner_table "
+                                     "WHERE workflow_procedure=(%s)", (procedure_id,))
+                    time_limit = c.fetchone()
+                    print(time_limit)
+
+                    connection.close()
+
+                    print(time_limit)
+
+                    time_limit_stations = time_limit[0].split(";")
+                    time_limit_times = time_limit[1].split(";")
+                    for y in range(0, len(time_limit[0])):
+                        if children_index == time_limit_stations[y]:
+                            time_limit_station = int(time_limit_times[y])
+                            # time_limit_station = datetime.strptime(time_limit_station, "%S")
+                            time_check_in = datetime.strptime(check_in, "%d.%m.%Y %H:%M:%S")
+                            difference = time_now - time_check_in
+                            body_child = str(difference)
+                            difference_in_sec = int(difference.total_seconds())
+                            minus_time_limit = time_limit_station - difference_in_sec
+                            color = "grey"
                             textColor = "text-white"
-                        minus_time_limit = "Zeitlimit: " + str(minus_time_limit) + "\n"
-                        footer_child = dbc.CardFooter(
-                            children=[minus_time_limit, str(article_id)],
-                            style={
-                                "margin-top": "10px",
-                                "border-style": "outset",
-                                "border-color": "blue",
-                                "border-width": "4px",
-                                "border-radius": "10px",
-                                "display": "inline-block",
-                                "background-color": color
-                            },
-                            className=textColor
-                        )
-                        return [body_child, footer_child]
+                            if minus_time_limit < 0:
+                                color = "yellow"
+                                textColor = "text-black"
+                                if minus_time_limit <= -20:
+                                    color = "darkred"
+                                    textColor = "text-white"
+                                    if minus_time_limit <= -200001:
+                                        minus_time_limit = math.ceil(minus_time_limit / 10000)
+                            elif minus_time_limit > 0:
+                                color = "green"
+                                textColor = "text-white"
+                            minus_time_limit = "Zeitlimit: " + str(minus_time_limit) + "\n"
+                            footer_child = dbc.CardFooter(
+                                children=[minus_time_limit, str(article_id)],
+                                style={
+                                    "margin-top": "10px",
+                                    "border-style": "outset",
+                                    "border-color": "blue",
+                                    "border-width": "4px",
+                                    "border-radius": "10px",
+                                    "display": "inline-block",
+                                    "background-color": color
+                                },
+                                className=textColor
+                            )
+                            return [body_child, footer_child]
 
 
 if __name__ == "__main__":

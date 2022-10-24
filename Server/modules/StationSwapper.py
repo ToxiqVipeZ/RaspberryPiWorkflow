@@ -9,7 +9,7 @@ MYSQL_DB = "production"
 
 def next_in_queue(connection, cursor, procedure_id, station, next_station, variation_value):
     c = cursor
-    c.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure,))
+    c.execute("SELECT article_id FROM article_procedure_table WHERE procedure_id=(%s)", (procedure_id,))
     article_id_queue = c.fetchone()
     article_id_queue = article_id_queue[0] + "-" + variation_value
     print("test: article_id_queue: " + article_id_queue)
@@ -37,10 +37,15 @@ def next_in_queue(connection, cursor, procedure_id, station, next_station, varia
                 ("QUEUED", article_id_queue,))
             prod_nr = c.fetchone()[0]
 
+            print(prod_nr)
+
             c.execute(
                 "SELECT order_item_id, article_id FROM shop_info_table WHERE production_number=(%s)",
                 (prod_nr,))
             fetch = c.fetchone()
+
+            print(fetch)
+            print(article_id_queue)
 
             if article_id_queue == fetch[1]:
                 article_id = fetch[1]
