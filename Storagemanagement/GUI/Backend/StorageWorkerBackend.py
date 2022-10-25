@@ -149,15 +149,11 @@ class StorageWorkerBackend:
             self.set_feedback_message("Produktions-vorgang für diesen Artikel ist nicht angelegt: " + article_id)
 
         rfid = station + procedure_id + variation
-
+        self.statistic_tracker("IN", rfid)
         new_rfid = Client.send(Client.SENDING_RFID, rfid) + procedure_id + variation
-
-        time.sleep(1)
 
         Writer.Writer(new_rfid)
 
-        self.statistic_tracker("IN", rfid)
-        self.statistic_tracker("OUT", new_rfid)
         print("New RFID: " + rfid + " -> " + new_rfid)
 
         connection.commit()

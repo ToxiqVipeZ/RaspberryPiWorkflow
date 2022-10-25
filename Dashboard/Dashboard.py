@@ -339,7 +339,8 @@ def display_cards(n_intervals, div_children):
 
         if div_children is not None:
             if len(div_children) < len(card_df):
-                if n_intervals in range(0, len(card_df)):
+                if n_intervals in range(1, len(card_df) + 1):
+                    print("TEEEEEEEEEST CARDS")
                     new_card = html.Div(
                         style={"width": 210, "height": 180,
                                "margin": 10, "margin-left": 0, "textAlign": "center",
@@ -426,12 +427,12 @@ def display_time(n_intervals, children):
     time_now = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
 
     if card_df is not None:
-        for x in range(0, len(card_df)):
+        for x in range(1, len(card_df) + 1):
             if card_df["station"][x] == children_index:
                 if card_df["station"][x] != "01":
                     check_in = card_df["process_start"][x]
                     article_id = card_df["article_id"][x]
-
+                    print("TEEEEEEEEEST TIMES")
                     connection = mysql.connector.connect(host=MYSQL_HOST2, user=MYSQL_USER2,
                                                          passwd=MYSQL_PASSWD2, db=MYSQL_DB2)
                     c = connection.cursor()

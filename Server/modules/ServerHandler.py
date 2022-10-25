@@ -71,9 +71,15 @@ class ServerHandler:
 
         current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
-        cursor.execute("INSERT INTO process_time_table(process_id, article_id, order_id, station, next_station,"
-                       "last_station, process_start) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                       (prod_nr, article_id, order_id, station, next_station, last_station, current_datetime))
+        if station == "01":
+            cursor.execute("INSERT INTO process_time_table(process_id, article_id, order_id, station, next_station,"
+                           "last_station, process_start, process_end) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                           (prod_nr, article_id, order_id, station, next_station, last_station, current_datetime,
+                            current_datetime))
+        else:
+            cursor.execute("INSERT INTO process_time_table(process_id, article_id, order_id, station, next_station,"
+                           "last_station, process_start) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                           (prod_nr, article_id, order_id, station, next_station, last_station, current_datetime))
 
         connection.commit()
 
