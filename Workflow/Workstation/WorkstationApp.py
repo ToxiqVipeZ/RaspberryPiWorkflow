@@ -165,8 +165,10 @@ class WorkstationApp:
         print("statistic_tracker station_number: " + station_number)
         if in_or_out == "IN":
             Thread(target=Client.send(Client.TRACKING_STATS_IN, self.rfid_scanned, station_number)).start()
+            global old_rfid
+            old_rfid = self.rfid_scanned
         elif in_or_out == "OUT":
-            Thread(target=Client.send(Client.TRACKING_STATS_OUT, self.rfid_scanned, station_number)).start()
+            Thread(target=Client.send(Client.TRACKING_STATS_OUT, old_rfid, station_number)).start()
 
     def error_tracker(self, error_type, error_message):
         #error_message = str(error_message) + "SplitStatement15121 01"

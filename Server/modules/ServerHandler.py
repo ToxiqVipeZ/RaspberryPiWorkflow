@@ -106,14 +106,14 @@ class ServerHandler:
 
         print("ServerHandler articleID: " + article_id)
 
-        cursor.execute("SELECT MIN(process_id) FROM process_time_table WHERE article_id=(%s) AND "
+        cursor.execute("SELECT MIN(entry_count) FROM process_time_table WHERE article_id=(%s) AND "
                        "station=(%s)", (article_id, station,))
-        process_id = cursor.fetchone()[0]
+        entry_counter = cursor.fetchone()[0]
 
         current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
-        cursor.execute("UPDATE process_time_table SET process_end=(%s) WHERE process_id=(%s)",
-                       (current_datetime, process_id,))
+        cursor.execute("UPDATE process_time_table SET process_end=(%s) WHERE entry_count=(%s)",
+                       (current_datetime, entry_counter,))
 
         connection.commit()
 
