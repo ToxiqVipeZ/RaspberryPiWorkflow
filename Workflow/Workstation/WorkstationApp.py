@@ -34,6 +34,7 @@ Other OS related:
         os.system("sudo apt-get upgrade")
         os.system("sudo apt-get -y install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms1-dev libopenjp2-7 libtiff5")
 """
+import time
 
 try:
     import math
@@ -84,6 +85,7 @@ class WorkstationApp:
     auto_width = 300
     auto_height = 220
     rfid_scanned = ""
+    old_rfid = ""
     station = 0
     operation = 0
     variant = 0
@@ -153,23 +155,30 @@ class WorkstationApp:
     def scanning_rfid(self):
         self.scan_flag = True
         self.rfid_scanned = ""
-        work_handler = WorkstationHandler()
-        work_handler.start_op("reader_start")
-        self.rfid_scanned = work_handler.get_rfid()
-        work_handler.reset_rfid()
-        print("TESTPRINT RFID SCANNED: " + str(self.rfid_scanned[:2]))
-        self.statistic_tracker("IN")
-        self.scan_flag = False
+        station_number = self.get_station_number()
+        rfid_check = ""
+        while rfid_check[:2] != station_number:
+            work_handler = WorkstationHandler()
+            work_handler.reset_rfid()
+            work_handler.start_op("reader_start")
+            rfid_check = work_handler.get_rfid()
+            print("TESTPRINT RFID SCANNED: " + str(rfid_check[:2]))
+            time.sleep(1)
+        if rfid_check[:2] == self.get_station_number():
+            self.rfid_scanned = work_handler.get_rfid()
+            work_handler.reset_rfid()
+            self.statistic_tracker("IN")
+            self.scan_flag = False
 
     def statistic_tracker(self, in_or_out):
         station_number = self.get_station_number()
         print("statistic_tracker station_number: " + station_number)
         if in_or_out == "IN":
             Thread(target=Client.send(Client.TRACKING_STATS_IN, self.rfid_scanned, station_number)).start()
-            #global old_rfid
-            #old_rfid = self.rfid_scanned
+            self.old_rfid = self.rfid_scanned
         elif in_or_out == "OUT":
-            Thread(target=Client.send(Client.TRACKING_STATS_OUT, self.rfid_scanned, station_number)).start()
+            Thread(target=Client.send(Client.TRACKING_STATS_OUT, self.old_rfid, station_number)).start()
+            self.old_rfid = ""
 
     def error_tracker(self, error_type, error_message):
         #error_message = str(error_message) + "SplitStatement15121 01"

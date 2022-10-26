@@ -88,8 +88,13 @@ class ServerHandler:
 
     def station_out(self, rfid, station):
         print("ServerHandler called! station = " + station)
-        variant = rfid[5:]
-        procedure_id = rfid[2:5]
+        if rfid[:15] == "no next station":
+            print("RFID ist in station_out == no next station")
+            procedure_id = rfid[15:18]
+            variant = rfid[18:]
+        else:
+            procedure_id = rfid[2:5]
+            variant = rfid[5:]
 
         # connection holds the connection to the database
         connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
@@ -107,8 +112,9 @@ class ServerHandler:
         print("ServerHandler articleID: " + article_id)
 
         cursor.execute("SELECT MIN(entry_count) FROM process_time_table WHERE article_id=(%s) AND "
-                       "station=(%s)", (article_id, station,))
+                       "station=(%s) AND process_end='None'", (article_id, station,))
         entry_counter = cursor.fetchone()[0]
+        print("EEEEEEEEEEEENTRY COUNTER: " + str(entry_counter))
 
         current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 

@@ -41,7 +41,7 @@ class Reader:
             print("Place tag..")
             self.result = self.rfid.read()[1][:7]
             print("Data: " + str(self.result))
-            time.sleep(1)
+            time.sleep(2)
 
         # finally wird benoetigt, da die GPIO Pins ansonsten belegt bleiben
         finally:

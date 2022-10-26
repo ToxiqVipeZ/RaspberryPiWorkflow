@@ -168,7 +168,8 @@ def ptt_reset(connection, c):
     next_station TEXT NOT NULL,
     last_station TEXT NOT NULL,
     process_start TEXT,
-    process_end TEXT
+    process_end TEXT,
+    entry_count INTEGER PRIMARY KEY UNIQUE
     )""")
 
     # committing the created table:

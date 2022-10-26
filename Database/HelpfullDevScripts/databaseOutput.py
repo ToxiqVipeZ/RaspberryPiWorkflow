@@ -1,4 +1,6 @@
 import datetime
+import sqlite3
+
 import mysql.connector
 
 MYSQL_HOST = "169.254.0.3"
@@ -9,8 +11,11 @@ MYSQL_DB = "production"
 # cursor instance:
 connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
                                      passwd=MYSQL_PASSWD, db=MYSQL_DB)
-
 c = connection.cursor()
+
+dash_data = sqlite3.connect("../DashboardDatabase.db")
+dash_c = dash_data.cursor()
+
 
 print("")
 print("Workflow Planer Tabelle: ")
@@ -49,8 +54,16 @@ for item in items:
 
 print("\n\nprocess_time_table: ")
 
-c.execute("SELECT * FROM process_time_table ORDER BY process_id")
+c.execute("SELECT * FROM process_time_table ORDER BY entry_count")
 items = c.fetchall()
+
+for item in items:
+    print(item)
+
+print("\n\n - DASH - process_time_table: ")
+
+dash_c.execute("SELECT * FROM process_time_table ORDER BY entry_count")
+items = dash_c.fetchall()
 
 for item in items:
     print(item)
