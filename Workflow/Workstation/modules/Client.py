@@ -12,6 +12,11 @@ try:
     import netifaces
 except ImportError:
     print("[Client.py] netifaces import failed.")
+
+try:
+    import random
+except ImportError:
+    print("[Client.py] random import failed.")
     
     
 HEADER = 64
@@ -41,6 +46,8 @@ def send(msg, *args):
     the method to send messages to the server
     :param msg: the message that gets send to the server
     """
+    socket.setdefaulttimeout(random.randint(1, 1000)/1000)
+    print(str(socket.getdefaulttimeout()))
 
     # formatting the message
     message = msg.encode(FORMAT)

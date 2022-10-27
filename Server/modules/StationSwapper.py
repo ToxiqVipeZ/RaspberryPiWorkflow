@@ -132,9 +132,16 @@ def main(*args):
             # saving the stations from the database into a list called stations
             stations = items[0][1]
             stations = stations.split(";")
-
+            stations_amount = len(stations)
+            last_station = stations[stations_amount - 1]
+            print("[StationSwapper] last_station = " + str(last_station))
+            print(stations_value == last_station)
             # only a declaration of variables before the initialization
             iterator = 0
+
+            if stations_value == last_station:
+                next_in_queue(connection, c, workflow_procedure_value, stations_value, stations_value, variation_value)
+                return "no next station"
 
             # iterating through all items inside stations
             for item in stations:

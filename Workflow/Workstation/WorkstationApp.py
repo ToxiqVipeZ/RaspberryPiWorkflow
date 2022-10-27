@@ -429,6 +429,7 @@ class WorkstationApp:
         self.workflow_completed(root2)
         self.ausschuss_procedure = False
         self.set_progression_counter(0)
+        self.statistic_tracker("AUSSCHUSS")
         if self.scan_flag == False:
             root.after(3000, Thread(target=self.scanning_rfid).start())
             root.after(5000, self.exec_after_scan)

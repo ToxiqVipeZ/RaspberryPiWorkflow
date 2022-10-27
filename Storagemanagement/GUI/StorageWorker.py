@@ -4,7 +4,6 @@ from threading import Thread
 import time
 from Backend.CassetteScanner import CassetteScanner
 from Backend.StorageWorkerBackend import StorageWorkerBackend
-import sys
 
 
 class StorageWorker:

@@ -106,6 +106,7 @@ class Server:
                     # excluding the first message, so that only the arguments in args join into this section
                     if msg != TRACKING_STATS_IN:
                         if msg != TRACKING_STATS_OUT:
+                            print("message_queue_counter: " + str(self.message_queue_counter))
                             self.message_queue[self.message_queue_counter] = msg
                             self.message_queue_counter += 1
                             # exiting the receive_stats_mode
@@ -114,6 +115,7 @@ class Server:
                                 self.message_queue = [0, 1]
                                 self.message_queue_counter = 0
                                 self.receive_status = ""
+                                print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
                                 self.receive_stats_mode = False
 
                 # starting receive_error_mode
