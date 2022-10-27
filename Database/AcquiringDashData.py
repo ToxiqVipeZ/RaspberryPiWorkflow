@@ -12,8 +12,6 @@ MYSQL_DB = "production"
 class AcquiringDashData:
 
     def main(self):
-
-
         try:
             while True:
                 dashboard_data_connection = sqlite3.connect("./DashboardDatabase.db")

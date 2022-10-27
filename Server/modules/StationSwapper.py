@@ -107,59 +107,66 @@ def next_in_queue(connection, cursor, procedure_id, station, next_station, varia
 
 
 def main(*args):
-    try:
-        # connection holds the connection to the database
-        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
+    runs = True
+    while runs == True:
+        try:
+            # connection holds the connection to the database
+            connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
+                                                 passwd=MYSQL_PASSWD, db=MYSQL_DB)
 
-        # cursor instance:
-        c = connection.cursor()
+            # cursor instance:
+            c = connection.cursor()
 
-        # saving the values received by the client
-        workflow_procedure_value = args[0]
-        stations_value = args[1]
-        variation_value = args[2]
+            # saving the values received by the client
+            workflow_procedure_value = args[0]
+            stations_value = args[1]
+            variation_value = args[2]
 
-        # the databank operation that selects the workflow procedure_id value, matching the passed one
-        c.execute("SELECT * FROM workflow_planner_table WHERE workflow_procedure = (%s)",
-                  (workflow_procedure_value,))
+            # the databank operation that selects the workflow procedure_id value, matching the passed one
+            c.execute("SELECT * FROM workflow_planner_table WHERE workflow_procedure = (%s)",
+                      (workflow_procedure_value,))
 
-        # saving the information from the database in items
-        items = c.fetchall()
+            # saving the information from the database in items
+            items = c.fetchall()
 
-        # saving the stations from the database into a list called stations
-        stations = items[0][1]
-        stations = stations.split(";")
+            # saving the stations from the database into a list called stations
+            stations = items[0][1]
+            stations = stations.split(";")
 
-        # only a declaration of variables before the initialization
-        iterator = 0
+            # only a declaration of variables before the initialization
+            iterator = 0
 
-        # iterating through all items inside stations
-        for item in stations:
-            # looking, which station in the database matches the station passed by the client
-            if stations_value == item:
-                print("Station gefunden! " + "\nPos: " + str(iterator) + "\nStation: " + item)
-                # saving the next station
-                next_station = stations[iterator + 1]
-                print("Nächste Station: " + next_station)
-                next_in_queue(connection, c, workflow_procedure_value, stations_value, next_station, variation_value)
-                break
-            iterator += 1
+            # iterating through all items inside stations
+            for item in stations:
+                # looking, which station in the database matches the station passed by the client
+                if stations_value == item:
+                    print("Station gefunden! " + "\nPos: " + str(iterator) + "\nStation: " + item)
+                    # saving the next station
+                    next_station = stations[iterator + 1]
+                    print("Nächste Station: " + next_station)
+                    next_in_queue(connection, c, workflow_procedure_value, stations_value, next_station, variation_value)
+                    break
+                iterator += 1
 
-        print("Datenbankoperation ausgeführt, nächste Station übergeben.")
+            print("Datenbankoperation ausgeführt, nächste Station übergeben.")
 
-        # committing the created table:
-        connection.commit()
+            # committing the created table:
+            connection.commit()
 
-        # closing the connection
-        connection.close()
+            # closing the connection
+            connection.close()
 
-        # returning the next station
-        return next_station
+            if next_station is not None and len(next_station) != 0:
+                runs = False
 
-    except IndexError:
-        next_in_queue(connection, c, workflow_procedure_value, stations_value, stations_value, variation_value)
-        return "no next station"
+            # returning the next station
+            return next_station
+
+        except IndexError:
+            next_in_queue(connection, c, workflow_procedure_value, stations_value, stations_value, variation_value)
+            if next_station is not None and len(next_station) != 0:
+                runs = False
+            return "no next station"
 
 #######################TEST
 # connection holds the connection to the database

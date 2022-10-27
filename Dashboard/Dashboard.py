@@ -1,3 +1,5 @@
+import random
+
 import mysql
 from dash import dash, dcc, html, dash_table, callback_context
 from dash.dependencies import Output, Input, State, MATCH
@@ -198,7 +200,7 @@ def stations_puffer_time(n_intervals):
     c = connection.cursor()
     result = []
 
-    c.execute("SELECT DISTINCT(next_station), article_id  FROM article_queue")
+    c.execute("SELECT DISTINCT(next_station), article_id  FROM article_queue WHERE next_station != 'DONE'")
     data = c.fetchall()
 
     for x in range(0, len(data)):
@@ -218,12 +220,11 @@ def stations_puffer_time(n_intervals):
     df_new_columns = ["ArtikelID", "Push", "Pull", "Checkout"]
     df_new = pd.DataFrame(columns=df_new_columns)
 
-    for x in range(0, len(result)):
-        df_new.loc[x] = [result[x][0], result[x][1], result[x][2], result[x][3]]
-
-    print(df_new)
-    #for x in range(0, len(df_stations_await)):
-
+    if result is not None:
+        for x in range(0, len(result)):
+            if df_new is not None:
+                if result[x] is not None:
+                    df_new.loc[x] = [result[x][0], result[x][1], result[x][2], result[x][3]]
 
     for x in range(0, len(df_new)):
         now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
@@ -357,12 +358,27 @@ def display_cards(n_intervals, div_children):
     card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
     card_df = card_df.sort_values(by="station")
     card_df = card_df.reset_index(drop=True)
+    station_nr = []
+
+    if div_children is not None:
+        if len(div_children) > len(card_df):
+            div_children.pop()
+            return div_children
+
     if len(card_df) != 0:
+        print(len(card_df))
         n_intervals = n_intervals % len(card_df)
-        station_nr = card_df.get("station")[n_intervals]
+        print(n_intervals)
+        #station_nr = card_df.get("station")[n_intervals]
+        print(station_nr)
+
+    for item in card_df.get("station"):
+        station_nr.append(item)
+
     if div_children is not None:
         if len(div_children) < len(card_df):
             if n_intervals in range(0, len(card_df)):
+                print("2: " + str(station_nr))
                 new_card = html.Div(
                     style={"width": 210, "height": 180,
                            "margin": 10, "margin-left": 0, "textAlign": "center",
@@ -372,17 +388,17 @@ def display_cards(n_intervals, div_children):
                         dbc.Card(
                             id={
                                 "type": "dynamic-cards",
-                                "index": station_nr + str(n_intervals)
+                                "index": str(station_nr[n_intervals])
                             },
                             children=[
                                 dbc.CardHeader(
-                                    children=["Station: " + station_nr],
+                                    children=["Station: " + station_nr[n_intervals]],
                                     style={"border-bottom": "3px solid blue", "font-weight": "bold", "font-size": 18}
                                 ),
                                 dbc.CardBody(
                                     id={
                                         "type": "dynamic-cards-text",
-                                        "index": station_nr + str(n_intervals)
+                                        "index": str(station_nr[n_intervals])
                                     },
                                     children=[],
                                     className="text-white"
