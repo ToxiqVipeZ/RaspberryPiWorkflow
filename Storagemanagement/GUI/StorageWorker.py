@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from threading import Thread
 import time
+import sys
 from Backend.CassetteScanner import CassetteScanner
 from Backend.StorageWorkerBackend import StorageWorkerBackend
 
@@ -17,6 +18,9 @@ class StorageWorker:
     else:
         data_split = data[1]
 
+    state = 9
+    part_id = 0
+    part_amount = 0
     cassette_scanned = 0
     cassette_queue = []
     packed_queue = []
@@ -38,22 +42,25 @@ class StorageWorker:
                 if self.cassette_scanned == self.data_split[x][2]:
                     print("eintrag gefunden für x: " + str(x))
                     print(self.data_split[x][0])
-                    part_id = self.data_split[x][0]
-                    part_amount = self.data_split[x][1]
-                    state = self.Backend.min_amount_check(self.cassette_scanned, part_amount)
-                    if state == 0:
-                        self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
-                        self.fill_packed_queue(part_id)
-                    elif state == 1:
-                        self.Backend.set_feedback_message("Mindestbestand für \"" + part_id + "\" erreicht")
-                        self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
-                        self.fill_packed_queue(part_id)
-                    elif state == 2:
-                        self.Backend.set_feedback_message("Bestand für \"" + part_id +
+                    self.part_id = self.data_split[x][0]
+                    self.part_amount = self.data_split[x][1]
+                    self.state = self.Backend.min_amount_check(self.cassette_scanned, self.part_amount)
+                    print(self.state)
+                    if self.state == 0:
+                        print("X1")
+                        self.Backend.cassette_out_triggered(self.cassette_scanned, self.part_id, self.part_amount)
+
+                    elif self.state == 1:
+                        print("X2")
+                        self.Backend.set_feedback_message("Mindestbestand für \"" + self.part_id + "\" erreicht")
+                        self.Backend.cassette_out_triggered(self.cassette_scanned, self.part_id, self.part_amount)
+
+                    elif self.state == 2:
+                        print("X3")
+                        self.Backend.set_feedback_message("Bestand für \"" + self.part_id +
                                             "\" negativ!\nEs liegt ein Fehler in der Datenhaltung vor.\n"
                                             "Bitte Korrigieren / Inventur durchführen")
-                        self.Backend.cassette_out_triggered(self.cassette_scanned, part_id, part_amount)
-                        self.fill_packed_queue(part_id)
+                        self.Backend.cassette_out_triggered(self.cassette_scanned, self.part_id, self.part_amount)
 
             self.CScanner.set_triggered_cassette(0)
             self.cassette_scanned = 0
@@ -74,6 +81,10 @@ class StorageWorker:
             for x in range(0, len(self.data_split)):
                 if self.data_split[x][2] == "-":
                     self.not_in_cassettes.append(self.data_split[x])
+
+    def queues_reset(self):
+        self.packed_queue = []
+        self.cassette_queue = []
 
     def treeview_creator(self):
         """
@@ -202,7 +213,9 @@ class StorageWorker:
 
             stock_data = self.Backend.stock_data()
 
-            for x in range(1, len(stock_data)):
+            print("stock_data : " + str(stock_data))
+
+            for x in range(0, len(stock_data)):
                 tree4.insert("", tk.END, values=(stock_data[x][0],
                                                  stock_data[x][1],
                                                  stock_data[x][2],
@@ -249,15 +262,39 @@ class StorageWorker:
         if self.Backend.feedback_message != "None":
             self.feedback_popup(self.Backend.feedback_message)
 
-    def empty_tables(self, root):
+    def empty_tables(self):
+        print("empty tables called")
+        print("self.data:")
+        print(self.data)
         while self.data == 0:
             self.data = self.Backend.get_article_to_pack()
-            root.after(1000, root.update())
+            root.update()
+            print("heh")
+            if self.data != 0:
+                self.treeview_creator()
+                root.update()
+                print("heh")
         if self.data != 0:
             self.treeview_creator()
-            root.after(1000, root.update())
+            root.update()
+            print("heh")
+
+    def check_state(self):
+        print(self.state)
+        print(sys.getrecursionlimit())
+
+        if self.state != 9:
+            self.fill_packed_queue(self.part_id)
+            self.part_id = 0
+            self.part_amount = 0
+            self.state = 9
+
+        root.update()
+        root.after(1, self.check_state)
+
 
     def main(self):
+        sys.setrecursionlimit(1000000)
         try:
             global root
             root = tk.Tk()
@@ -271,21 +308,30 @@ class StorageWorker:
             canvas = tk.Canvas(root, width=width, height=height, background="#489df7", highlightthickness=0)
             canvas.config(borderwidth=0)
             # window grid:
-            canvas.grid(columnspan=7, rowspan=7)
+            canvas.grid(columnspan=6, rowspan=6)
             #self.treeview_creator()
 
             # done button definition
             global done_btn
             done_button_text = tk.StringVar()
-            done_button_text.set("Done")
+            done_button_text.set("Fertig")
             done_btn = tk.Button(root, textvariable=done_button_text,
                                  command=lambda: (done_btn.configure(state="disabled"),
                                                   self.Backend.packing_completed(self.data[0][0][2],
                                                                                  self.not_in_cassettes),
                                                   self.feedback_check(),
-                                                  self.empty_tables(root)),
+                                                  self.queues_reset(),
+                                                  self.empty_tables()),
                                  width=10, height=5, background="green", state="disabled")
             done_btn.grid(column=3, row=1, rowspan=1)
+
+            reset_button_text = tk.StringVar()
+            reset_button_text.set("Aktualisieren")
+            reset_btn = tk.Button(root, textvariable=reset_button_text,
+                                 command=lambda: (self.queues_reset(),
+                                                  self.empty_tables()),
+                                 width=10, height=5, background="yellow")
+            reset_btn.grid(column=3, row=2, rowspan=1)
 
             # Testbutton definition
             button1_text = tk.StringVar()
@@ -293,7 +339,7 @@ class StorageWorker:
             button1_btn = tk.Button(root, textvariable=button1_text,
                                     command=lambda: (self.CScanner.set_triggered_cassette(1)),
                                     width=10, height=5, background="green")
-            button1_btn.grid(column=3, row=1, rowspan=3)
+            button1_btn.grid(column=3, row=3, rowspan=1)
 
             # Testbutton definition
             # button2_text = tk.StringVar()
@@ -304,7 +350,10 @@ class StorageWorker:
             # button2_btn.grid(column=2, row=1, rowspan=5)
 
             root.after(1000, Thread(target=self.exec_after_scan).start())
-            root.after(2000, self.empty_tables(root))
+
+            root.after(1000, self.empty_tables())
+
+            root.after(1000, self.check_state)
             # root.after(1000, self.exec_after_scan)
 
             root.mainloop()

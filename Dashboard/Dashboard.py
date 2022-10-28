@@ -1,5 +1,4 @@
 import random
-
 import mysql.connector
 from dash import dash, dcc, html, dash_table, callback_context
 from dash.dependencies import Output, Input, State, MATCH

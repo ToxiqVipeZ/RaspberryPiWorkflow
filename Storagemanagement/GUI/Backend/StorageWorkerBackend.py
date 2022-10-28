@@ -30,7 +30,7 @@ class StorageWorkerBackend:
         fetch = c.fetchall()
         connection.commit()
         connection.close()
-
+        print("fetch : " + str(fetch))
         if fetch is not None:
             return fetch
         else:

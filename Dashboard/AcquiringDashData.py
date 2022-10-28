@@ -14,7 +14,7 @@ class AcquiringDashData:
     def main(self):
         try:
             while True:
-                dashboard_data_connection = sqlite3.connect("./DashboardDatabase.db")
+                dashboard_data_connection = sqlite3.connect("../Database/DashboardDatabase.db")
                 dashboard_c = dashboard_data_connection.cursor()
 
                 # cursor instance:
@@ -68,6 +68,7 @@ class AcquiringDashData:
                     dashboard_data_connection.commit()
 
                 time.sleep(0.5)
+
         finally:
             dashboard_data_connection.close()
             connection.close()

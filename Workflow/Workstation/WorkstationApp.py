@@ -93,6 +93,8 @@ class WorkstationApp:
     progression_counter = 0
     picture_count = 0
     new_rfid = ""
+    wrong_rfid = ""
+    feedback_message = ""
     written_flag = False
     scan_flag = False
     ausschuss_procedure = False
@@ -163,12 +165,47 @@ class WorkstationApp:
             work_handler.start_op("reader_start")
             rfid_check = work_handler.get_rfid()
             print("TESTPRINT RFID SCANNED: " + str(rfid_check[:2]))
-            time.sleep(1)
+            if rfid_check[:2] != self.get_station_number():
+                self.wrong_rfid = rfid_check[:2]
+            time.sleep(0.5)
         if rfid_check[:2] == self.get_station_number():
             self.rfid_scanned = work_handler.get_rfid()
             work_handler.reset_rfid()
             self.statistic_tracker("IN")
             self.scan_flag = False
+
+    def set_feedback_message(self, message):
+        self.feedback_message = message
+
+    def feedback_check(self):
+        if self.feedback_message != "None":
+            self.feedback_popup(self.feedback_message)
+
+    def feedback_popup(self, message):
+        popup2 = tk.Toplevel(background="red")
+        popup2.title("Alert")
+
+        placeholder = tk.Label(popup2, text="", height=2, background="red")
+        placeholder.pack()
+
+        label = tk.Label(popup2, text=message, background="red", font=("Tekton Pro", 12))
+        label.pack()
+
+        placeholder2 = tk.Label(popup2, text="", height=1, background="red")
+        placeholder2.pack()
+
+        # Testbutton definition
+        button1_text = tk.StringVar(popup2)
+        button1_text.set("Verstanden")
+        button1_btn = tk.Button(popup2, textvariable=button1_text,
+                                command=lambda: (popup2.destroy(), popup2.quit()),
+                                width=10, height=5, background="blue")
+
+        placeholder3 = tk.Label(popup2, text="", height=1, background="red")
+        placeholder3.pack()
+
+        button1_btn.pack()
+        popup2.mainloop()
 
     def statistic_tracker(self, in_or_out):
         station_number = self.get_station_number()
@@ -229,6 +266,12 @@ class WorkstationApp:
     def exec_after_scan(self):
         if self.rfid_scanned != "":
             self.rfid_readed(self.rfid_scanned)
+        elif self.wrong_rfid != "":
+            self.set_feedback_message("Es wurde die RFID-Box für Station: " + self.wrong_rfid + " eingelesen.\n"
+                                                                                                "Bitte erneut scannen.")
+            self.feedback_check()
+            self.set_feedback_message("")
+            self.wrong_rfid = ""
         else:
             root.update()
             root.after(100, self.exec_after_scan)
