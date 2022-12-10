@@ -1,4 +1,5 @@
 import random
+
 import mysql.connector
 from dash import dash, dcc, html, dash_table, callback_context
 from dash.dependencies import Output, Input, State, MATCH
@@ -10,34 +11,36 @@ import sqlalchemy
 from datetime import datetime
 
 # SQLITE3_HOST = "C:/Users/g-oli/PycharmProjects/RaspberryPiWorkflow/Database/productionDatabase.db"
-SQLITE3_HOST = "../Database/DashboardDatabase.db"
+#SQLITE3_HOST = "../Database/DashboardDatabase.db"
 MYSQL_HOST = "169.254.0.3"
 MYSQL_USER = "pi"
 MYSQL_PASSWD = "raspberry"
 MYSQL_DB = "production"
 
 #production_connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-#                                                passwd=MYSQL_PASSWD, db=MYSQL_DB
-production_connection = sqlite3.connect(SQLITE3_HOST)
-prod_cursor = production_connection.cursor()
+#                                                passwd=MYSQL_PASSWD, db=MYSQL_DB)
+production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
 
 # Dataquery's for data frames
-SQL_QUERY_PTT_1 = "SELECT * FROM process_time_table" \
-                  " ORDER BY ROWID DESC"
+SQL_QUERY_PTT_1 = "SELECT * FROM process_time_table WHERE next_station!='Kunde'" \
+                  " ORDER BY process_id DESC"
 SQL_QUERY_PTT_2 = "SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, next_station AS Pull" \
                   " FROM process_time_table " \
-                  "WHERE next_station!=\"Kunde\" ORDER BY ROWID DESC"
+                  "WHERE next_station!='Kunde' ORDER BY process_id DESC"
 SQL_QUERY_PTT_5 = "SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, next_station AS Pull, process_end AS Checkout " \
                   "FROM process_time_table " \
-                  "WHERE next_station!=\"Kunde\"" \
-                  "AND process_end!=\"None\" ORDER BY ROWID DESC"
+                  "WHERE next_station!='Kunde'" \
+                  "AND process_end!='None' ORDER BY process_id DESC"
 
-
-df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
+df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, con=production_connection)
 
 # Dataframes
-df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
-df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, production_connection)
+df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, con=production_connection)
+df_logs = pd.read_sql(SQL_QUERY_PTT_1, con=production_connection)
+df_stations_await = pd.read_sql(SQL_QUERY_PTT_2, con=production_connection)
 
 df_logs_columns = ["ProzessID", "ArtikelID", "BestellID", "Station",
                    "Nächste Station", "Endstation", "Startzeit", "Endzeit"]
@@ -174,15 +177,16 @@ app.layout = html.Div([
     dcc.Interval(interval=1 * 500, n_intervals=0, id="puffer_time_check")
 ], style={"margin": 20})
 
-production_connection.close()
-
 @app.callback(
     Output(component_id="activity_log", component_property="data"),
     Input(component_id="puffer_time_check", component_property="n_intervals")
 )
 def activity_log_refresher(n_intervals):
-    production_connection = sqlite3.connect(SQLITE3_HOST)
-    df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
+    production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
+    df_logs = pd.read_sql(SQL_QUERY_PTT_1, con=production_connection)
 
     return df_logs.to_dict("records")
 
@@ -191,54 +195,25 @@ def activity_log_refresher(n_intervals):
     Input(component_id="puffer_time_check", component_property="n_intervals")
 )
 def stations_puffer_time(n_intervals):
-    try:
-        production_connection = sqlite3.connect(SQLITE3_HOST)
-        connection = mysql.connector.connect(host=MYSQL_HOST, user=MYSQL_USER,
-                                             passwd=MYSQL_PASSWD, db=MYSQL_DB)
-        prod_cursor = production_connection.cursor()
-        # cursor instance:
-        c = connection.cursor()
-        result = []
+    production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
 
-        c.execute("SELECT DISTINCT(next_station), article_id  FROM article_queue WHERE next_station != 'DONE'")
-        data = c.fetchall()
+    df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, con=production_connection)
 
-        for x in range(0, len(data)):
-            prod_cursor.execute("SELECT MAX(entry_count) FROM process_time_table WHERE next_station = (?) AND article_id = (?) "
-                                "AND process_end != \"Null\"",
-                                (data[x][0], data[x][1]))
-            entry = prod_cursor.fetchone()[0]
+    for x in range(0, len(df_stations_await_plus)):
+        now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+        time_now = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
+        checkout = datetime.strptime(df_stations_await_plus["Checkout"][x], "%d.%m.%Y %H:%M:%S")
+        difference = (time_now - checkout)
 
-            prod_cursor.execute("SELECT DISTINCT(article_id) AS ArtikelID, station AS Push, "
-                                "next_station AS Pull, process_end AS Checkout "
-                                "FROM process_time_table WHERE entry_count = (?)", (entry, ))
-            result.append(prod_cursor.fetchone())
+        df_stations_await_plus["Checkout"][x] = str(difference)
 
-        #df_stations_await_plus = pd.read_sql(SQL_QUERY_PTT_5, production_connection)
 
-        #df_stations_await = pd.read_sql(SQL_QUERY_PTT_5, con=connection)
-        df_new_columns = ["ArtikelID", "Push", "Pull", "Checkout"]
-        df_new = pd.DataFrame(columns=df_new_columns)
+    # print(df_stations_await_plus.to_dict("records"))
+    return df_stations_await_plus.to_dict("records")
 
-        if result is not None:
-            for x in range(0, len(result)):
-                if df_new is not None:
-                    if result[x] is not None:
-                        df_new.loc[x] = [result[x][0], result[x][1], result[x][2], result[x][3]]
-
-        for x in range(0, len(df_new)):
-            now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-            time_now = datetime.strptime(now, "%d.%m.%Y %H:%M:%S")
-            checkout = datetime.strptime(df_new["Checkout"][x], "%d.%m.%Y %H:%M:%S")
-            difference = (time_now - checkout)
-
-            df_new["Checkout"][x] = str(difference)
-
-        production_connection.close()
-        # print(df_stations_await_plus.to_dict("records"))
-        return df_new.to_dict("records")
-    except KeyError:
-        return dash.no_update
 
 @app.callback(
     Output("error-card-container", "children"),
@@ -262,7 +237,7 @@ def display_error_cards(n_intervals, div_children):
                                                      "/" + MYSQL_DB)
 
     SQL_QUERY_PTT_3 = "SELECT station_nr, error_start, error_type, error_message " \
-                      "FROM error_history_table WHERE error_end='waiting'"
+                      "FROM error_history_table WHERE error_end = 'waiting'"
 
     card_df = pd.read_sql(SQL_QUERY_PTT_3, con=production_connection)
     card_df = card_df.sort_values(by="station_nr")
@@ -346,16 +321,19 @@ def display_cards(n_intervals, div_children):
     # C.O.S Comment in:
     # SQLITE3_HOST = "//FILESERVER/ProductionDatabase/productionDatabase.db"
     try:
-        production_connection = sqlite3.connect(SQLITE3_HOST)
+        production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
 
         global df_logs
-        df_logs = pd.read_sql(SQL_QUERY_PTT_1, production_connection)
+        df_logs = pd.read_sql(SQL_QUERY_PTT_1, con=production_connection)
 
         SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
                           "FROM process_time_table " \
                           "WHERE process_end IS NULL "
 
-        card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+        card_df = pd.read_sql(SQL_QUERY_PTT_3, con=production_connection)
         card_df = card_df.sort_values(by="station")
         card_df = card_df.reset_index(drop=True)
         station_nr = []
@@ -410,16 +388,15 @@ def display_cards(n_intervals, div_children):
                         ]
                     )
                     div_children.append(new_card)
-                    production_connection.close()
+
                     return div_children
                 else:
-                    production_connection.close()
+
                     return dash.no_update
             else:
-                production_connection.close()
+
                 return dash.no_update
         else:
-            production_connection.close()
             return dash.no_update
     except ReferenceError:
         return dash.no_update
@@ -445,7 +422,10 @@ def display_time(n_intervals, children):
                                                          "@" + MYSQL_HOST + ":3306" +
                                                          "/" + MYSQL_DB)
 
-        production_connection = sqlite3.connect(SQLITE3_HOST)
+        production_connection = sqlalchemy.create_engine("mysql+mysqlconnector://" + MYSQL_USER +
+                                                 ":" + MYSQL_PASSWD +
+                                                 "@" + MYSQL_HOST + ":3306" +
+                                                 "/" + MYSQL_DB)
 
         SQL_QUERY_PTT_3 = "SELECT station, process_start, article_id " \
                           "FROM process_time_table " \
@@ -456,7 +436,7 @@ def display_time(n_intervals, children):
         #children_index = children_index.split("\'index\': \'")[1][:2]
         childrens_station_nr = children_index.split("\'index\': \'")[1][:2]
         print(childrens_station_nr)
-        card_df = pd.read_sql(SQL_QUERY_PTT_3, production_connection)
+        card_df = pd.read_sql(SQL_QUERY_PTT_3, con=production_connection)
         card_df = card_df.sort_values(by="station")
         card_df = card_df.reset_index(drop=True)
 

@@ -178,7 +178,7 @@ class WorkstationApp:
         self.feedback_message = message
 
     def feedback_check(self):
-        if self.feedback_message != "None":
+        if self.feedback_message != "":
             self.feedback_popup(self.feedback_message)
 
     def feedback_popup(self, message):
@@ -198,7 +198,7 @@ class WorkstationApp:
         button1_text = tk.StringVar(popup2)
         button1_text.set("Verstanden")
         button1_btn = tk.Button(popup2, textvariable=button1_text,
-                                command=lambda: (popup2.destroy(), popup2.quit()),
+                                command=lambda: (popup2.destroy()),
                                 width=10, height=5, background="blue")
 
         placeholder3 = tk.Label(popup2, text="", height=1, background="red")
